@@ -4661,7 +4661,6 @@ function allocAttr(attr){
   renderAll();
 }
 function undoAlloc(attr){
-  if(G.player.allocLocked){toast('已确认锁定，不可减少。升级增加仍可继续');return;}
   if((G.player.pendingPts[attr]||0)<=0) return;
   G.player.pendingPts[attr]--;
   G.player.attrPoints++;
@@ -5537,7 +5536,7 @@ function tabCharStats(){
       html+='<button class="attr-btn attr-btn-plus" onclick="allocAttr(\''+key+'\')">+</button>';
       if(pend>0) html+='<span style="color:var(--gold-soft);font-size:11px;margin:0 2px;">+'+pend+'</span>';
     }
-    if(!locked&&pend>0){
+    if(pend>0){
       html+='<button class="attr-btn attr-btn-minus" onclick="undoAlloc(\''+key+'\')">\u2212</button>';
     }
     html+='<div class="cs-bar"><div class="cs-fill" style="width:'+pct+'%;background:'+a.color+'"></div></div>'+
