@@ -4674,7 +4674,6 @@ function confirmAlloc(){
   G.player.str+=pp.str; G.player.agi+=pp.agi; G.player.con+=pp.con; G.player.int+=pp.int; G.player.spi+=pp.spi;
   pp.str=pp.agi=pp.con=pp.int=pp.spi=0;
   G.player.allocLocked=true;
-  G.player.attrPoints+=total; /* 点数保留，只锁减不减增 */
   toast('✅ 已确认分配 '+total+' 点（可继续加，不可减）');
   save();renderAll();
 }
@@ -5534,7 +5533,7 @@ function tabCharStats(){
       '<span class="cs-base">'+base+'</span>'+
       (bonus>0?'<span class="cs-bonus">+'+bonus+'</span>':'')+
       '<span class="cs-total">'+total+'</span>';
-    if(!locked&&pts>0){
+    if(pts>0){
       html+='<button class="attr-btn attr-btn-plus" onclick="allocAttr(\''+key+'\')">+</button>';
       if(pend>0) html+='<span style="color:var(--gold-soft);font-size:11px;margin:0 2px;">+'+pend+'</span>';
     }
