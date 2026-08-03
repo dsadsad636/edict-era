@@ -5542,7 +5542,7 @@ function tabCharStats(){
     html+='<div class="cs-bar"><div class="cs-fill" style="width:'+pct+'%;background:'+a.color+'"></div></div>'+
     '</div>';
   });
-  if(!locked&&pendingTotal>0){
+  if(pendingTotal>0){
     html+='<div style="text-align:center;margin-top:10px;">'+
       '<button class="btn btn-gold" onclick="confirmAlloc()" style="padding:8px 24px;font-size:14px;">\u2705 \u786e\u8ba4\u5206\u914d '+pendingTotal+' \u70b9</button></div>';
   }
