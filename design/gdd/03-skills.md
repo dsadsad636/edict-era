@@ -2,7 +2,7 @@
 
 > 《敕造纪元 · 持牌者》· 工程代号 `Arcanum`
 > 覆盖 system-breakdown：**C1–C6**
-> 版本 v1.0 · 作者：文策渊
+> 版本 v2.0 · 作者：文策渊（v1.0）/ 欧尼酱（v2.0 重设计）
 > ⚖️ **本 GDD 含 team-lead 指定的跨成员裁决：§3.6「元素学派 vs 属性三系」关系结论**
 
 ---
@@ -10,17 +10,25 @@
 ## 1. 概述
 
 技能是**武器选择的兑现方式**——换武器就是换技能池，这是本作 build 分叉的主开关（支柱一）。
-MVP 共 **25 个技能**：三系 15 + 通用 3 + 光环 4 + 禁咒 3。
+v2.0 共 **61 个技能**：三系 51（每系 17）+ 通用 3 + 光环 4 + 禁咒 3。
 
-**字段结构 100% 沿用守夜人 `SKILLS`**，不新增任何影响公式的字段（唯一新增的 `school` 是纯表现层，见 §3.6）。
+**字段结构 100% 沿用 `SKILLS` 既有字段**，不新增任何影响公式的字段（`school` 与 `license` 为纯表现层字段）。
 
-### 🔴 本 GDD 的关键发现
+### v2.0 设计目标：双路线 Build 分化
+
+每系 17 技能 = **7 共享核心** + **2 × 5 路线专属**。路线在高阶（mid/high tier）完全分化，玩家通过技能书掉落和主动学习选择走哪条路线。
+
+| 力量系 | A · 铁壁守卫 | 护盾堆叠 / 减伤 / 控制 | B · 狂怒武者 | 爆发 / 自增益 / 高伤 |
+| 敏捷系 | A · 影刃刺客 | 毒伤 / 暴击 / 连击 | B · 猎手游侠 | 控制 / 减速 / 多重 |
+| 智力系 | A · 元素毁灭者 | 火雷爆发 / 范围 | B · 圣言守护者 | 治疗 / 护盾 / 光系 |
+
+### 🔴 本 GDD 的关键发现（v2.0 已修复）
 
 | # | 发现 | 影响 |
 |---|---|---|
-| 1 | 🐛 **增益/治疗技能几乎永远不会释放** | 引擎按 `mult` 降序选技，buff/heal 无 `mult` → 排序值 0 → 永远垫底。**11 个非伤害技能中有 8 个实质失效** |
-| 2 | 🐛 **治疗技能会在满血时释放**（若真的轮到它） | 纯浪费，且与 ① 叠加后行为极不可预测 |
-| 3 | ⚠️ **法力会在约 48 秒后枯竭** | 设计上可接受（爆发→续航），但需药剂配合，见 §5.6 |
+| 1 | 🐛 **增益/治疗技能几乎永远不会释放**（v1.0 已修复：§3.3 优先级方案） | 修复后 buff/heal/shield 等 25+ 非伤害技能正常参与技能轮转 |
+| 2 | 🐛 **治疗技能会在满血时释放**（v1.0 已修复：hp≥85% 不释放） | |
+| 3 | 🛡️ **护盾无上限叠加**（v2.0 已修复：上限 maxHp×50%） | 防止铁壁守卫路线无敌 |
 
 ---
 
@@ -62,8 +70,7 @@ ready = 技能.filter(cd<=0 && mp>=cost).sort((a,b) => b.mult − a.mult)
 ```
 `buff`/`heal` 类技能**没有 `mult` 字段** → 排序值取 0 → **永远排在所有伤害技能之后**。
 
-**后果**：MVP 的 25 技中，`war_cry`/`berserk`/`shadow_dance`/`ice_barrier`/`heal_light`/`uni_guard`/`uni_mend` 等
-**11 个非伤害技能里有 8 个实质永不释放**（只要还有任一伤害技能冷却好了）。
+**后果**（v2.0）：61 技能中约 35%（21 个 buff / heal / shield 类技能）会在旧引擎中实质失效。
 
 **修复方案 🔧（新增 `prio` 字段 + 条件判定，约 15 行代码）**：
 
@@ -167,9 +174,11 @@ ready = 技能.filter(cd<=0 && mp>=cost).sort((a,b) => b.mult − a.mult)
 
 ---
 
-## 5. 完整数值表
+## 5. 完整数值表（v2.0 · 61技能）
 
-### 5.1 力量系（`attr:'str'`，`weapons`：手斧/骑士剑/十字大剑/双刃战斧/钉头锤）
+### 5.1 力量系（`attr:'str'`，`weapons`：手斧/骑士剑/十字大剑/双刃战斧/钉头锤）· 17技能
+
+**共享核心（7）：**
 
 | `key` | 名称 | `tier` | `cd` | `type` | 数值 | `school` | 注册 |
 |---|---|---|---|---|---|---|---|
@@ -177,42 +186,109 @@ ready = 技能.filter(cd<=0 && mp>=cost).sort((a,b) => b.mult − a.mult)
 | `sunder_strike` | **破甲击** | base | 4 | dmg | `mult:1.6, vuln:0.20, vulnTurns:2` | physical | none |
 | `war_cry` | **战吼** | base | 5 | buff | `turns:3, val:0.20` | physical | none |
 | `shield_bash` | **盾击** | mid | 6 | dmg | `mult:1.3, stun:1, stunTurns:1` | physical | none |
-| `berserk` | **狂暴** | mid | 7 | buff | `turns:3, val:0.25, spdBoost:0.15` | physical | none |
+| `cleave` | **横扫** | mid | 4 | dmg | `mult:1.5, hits:2` | physical | none |
+| `iron_forge` | **锻体** | mid | 6 | buff | `turns:2, shield:0.15` | physical | none |
+| `executioner` | **处决** | high | 8 | dmg | `mult:3.0` | physical | none |
 
-### 5.2 敏捷系（`attr:'agi'`，`weapons`：短匕/双刺/紫杉长弓/钢弩）
+**路线A · 铁壁守卫（5）：**
+
+| `key` | 名称 | `tier` | `cd` | `type` | 数值 | `school` | 注册 |
+|---|---|---|---|---|---|---|---|
+| `bastion_wall` | **壁垒** | mid | 6 | buff | `turns:2, shield:0.25` | earth | none |
+| `resolve` | **坚毅** | mid | 7 | buff | `turns:3, val:0.20, shield:0.12` | physical | none |
+| `unyielding` | **不屈** | mid | 7 | heal | `heal:0.15` | physical | none |
+| `quake_strike` | **地裂击** | high | 6 | dmg | `mult:2.0, slow:0.25, slowTurns:2` | earth | restricted |
+| `adamant` | **金刚壁垒** | high | 8 | buff | `turns:3, shield:0.35` | earth | restricted |
+
+**路线B · 狂怒武者（5）：**
+
+| `key` | 名称 | `tier` | `cd` | `type` | 数值 | `school` | 注册 |
+|---|---|---|---|---|---|---|---|
+| `blood_frenzy` | **血怒** | mid | 6 | buff | `turns:2, val:0.35, spdBoost:0.15` | physical | none |
+| `reckless_smash` | **鲁莽猛击** | mid | 5 | dmg | `mult:2.5` | physical | none |
+| `rampage` | **狂暴突进** | mid | 5 | dmg | `mult:1.8, hits:2` | physical | none |
+| `death_wish` | **死愿** | high | 7 | buff | `turns:2, val:0.45, spdBoost:0.25` | dark | illicit |
+| `obliterate` | **湮灭** | high | 8 | dmg | `mult:3.5` | dark | illicit |
+
+### 5.2 敏捷系（`attr:'agi'`，`weapons`：短匕/双刺/紫杉长弓/钢弩）· 17技能
+
+**共享核心（7）：**
 
 | `key` | 名称 | `tier` | `cd` | `type` | 数值 | `school` | 注册 |
 |---|---|---|---|---|---|---|---|
 | `quick_shot` | **连击** | base | 2 | dmg | `mult:1.4, hits:2` | physical | none |
-| `poison_edge` | **淬毒刃** | base | 3 | dot | `mult:0.6, turns:3` | poison | 🔴 illicit |
+| `poison_edge` | **淬毒刃** | base | 3 | dot | `mult:0.6, turns:3` | poison | illicit |
 | `shadow_dance` | **影舞** | base | 6 | buff | `turns:3, spdBoost:0.30` | physical | none |
 | `piercing_shot` | **穿透击** | mid | 4 | dmg | `mult:2.0` | physical | none |
-| `snare_trap` | **缚足陷阱** | mid | 5 | dmg | `mult:1.1, slow:0.25, slowTurns:2` | ice | ✅ registered |
+| `snare_trap` | **缚足陷阱** | mid | 5 | dmg | `mult:1.1, slow:0.25, slowTurns:2` | ice | registered |
+| `evasive_step` | **闪避步** | mid | 5 | buff | `turns:2, spdBoost:0.15, shield:0.10` | physical | none |
+| `fatal_strike` | **致命一击** | high | 7 | dmg | `mult:2.8` | physical | none |
 
-### 5.3 智力系（`attr:'int'`，`weapons`：印杖/仪杖/咒律书/禁卷）
+**路线A · 影刃刺客（5）：**
 
 | `key` | 名称 | `tier` | `cd` | `type` | 数值 | `school` | 注册 |
 |---|---|---|---|---|---|---|---|
-| `fireball` | **火球术** | base | 3 | dmg | `mult:1.7` | fire | ✅ registered |
-| `frost_nova` | **霜新星** | base | 4 | dmg | `mult:2.0, slow:0.20, slowTurns:2` | ice | ✅ registered |
-| `heal_light` | **圣光术** | base | 5 | heal | `heal:0.18` | holy | ✅ registered |
-| `chain_lightning` | **闪电链** | mid | 5 | dmg | `mult:1.9, vuln:0.15, vulnTurns:2` | lightning | ✅ registered |
-| `ice_barrier` | **寒冰护盾** | mid | 5 | buff | `turns:1, shield:0.15` | ice | ✅ registered |
+| `venom_brand` | **剧毒烙印** | mid | 5 | dot | `mult:0.8, turns:4, vuln:0.15` | poison | illicit |
+| `assassination` | **暗杀** | mid | 6 | dmg | `mult:2.2, hits:2` | dark | illicit |
+| `poison_mist` | **毒雾** | mid | 4 | dot | `mult:0.7, turns:4` | poison | illicit |
+| `reap` | **收割** | high | 7 | dmg | `mult:3.0` | dark | illicit |
+| `death_mark` | **死亡标记** | high | 6 | buff | `turns:3, val:0.30` | dark | illicit |
+
+**路线B · 猎手游侠（5）：**
+
+| `key` | 名称 | `tier` | `cd` | `type` | 数值 | `school` | 注册 |
+|---|---|---|---|---|---|---|---|
+| `frost_trap` | **冰霜陷阱** | mid | 5 | dmg | `mult:1.3, slow:0.35, slowTurns:2` | ice | registered |
+| `multi_shot` | **多重射击** | mid | 5 | dmg | `mult:1.5, hits:3` | physical | none |
+| `blinding_powder` | **致盲粉** | mid | 7 | dmg | `mult:0.8, stun:1, stunTurns:1` | nature | restricted |
+| `sticky_trap` | **粘性陷阱** | high | 6 | dmg | `mult:1.0, slow:0.25, vuln:0.20` | nature | restricted |
+| `hunters_call` | **猎杀时刻** | high | 7 | buff | `turns:4, val:0.25, spdBoost:0.25` | nature | restricted |
+
+### 5.3 智力系（`attr:'int'`，`weapons`：印杖/仪杖/咒律书/禁卷）· 17技能
+
+**共享核心（7）：**
+
+| `key` | 名称 | `tier` | `cd` | `type` | 数值 | `school` | 注册 |
+|---|---|---|---|---|---|---|---|
+| `fireball` | **火球术** | base | 3 | dmg | `mult:1.7` | fire | registered |
+| `frost_nova` | **霜新星** | base | 4 | dmg | `mult:2.0, slow:0.20, slowTurns:2` | ice | registered |
+| `heal_light` | **圣光术** | base | 5 | heal | `heal:0.18` | holy | registered |
+| `chain_lightning` | **闪电链** | mid | 5 | dmg | `mult:1.9, vuln:0.15, vulnTurns:2` | lightning | registered |
+| `ice_barrier` | **寒冰护盾** | mid | 5 | buff | `turns:1, shield:0.15` | ice | registered |
+| `arcane_missile` | **奥术飞弹** | mid | 3 | dmg | `mult:1.3, hits:3` | arcane | registered |
+| `arcane_rupture` | **禁咒·破** | high | 7 | dmg | `mult:2.5, vuln:0.25, vulnTurns:2` | arcane | restricted |
+
+**路线A · 元素毁灭者（5）：**
+
+| `key` | 名称 | `tier` | `cd` | `type` | 数值 | `school` | 注册 |
+|---|---|---|---|---|---|---|---|
+| `firestorm` | **烈焰风暴** | mid | 6 | dmg | `mult:2.3, vuln:0.20, vulnTurns:2` | fire | registered |
+| `thunderbolt` | **雷击** | mid | 7 | dmg | `mult:2.5, stun:1, stunTurns:1` | lightning | registered |
+| `meteor` | **陨石术** | high | 8 | dmg | `mult:3.2` | fire | restricted |
+| `elemental_overload` | **元素过载** | high | 6 | buff | `turns:3, val:0.35` | arcane | restricted |
+| `elemental_torrent` | **元素洪流** | high | 5 | dmg | `mult:2.0, hits:2` | lightning | restricted |
+
+**路线B · 圣言守护者（5）：**
+
+| `key` | 名称 | `tier` | `cd` | `type` | 数值 | `school` | 注册 |
+|---|---|---|---|---|---|---|---|
+| `hallow_heal` | **圣言·愈** | mid | 6 | heal | `heal:0.25` | holy | registered |
+| `hallow_shield` | **圣言·盾** | mid | 6 | buff | `turns:2, shield:0.30` | holy | registered |
+| `hallow_bless` | **圣言·佑** | mid | 7 | buff | `turns:3, val:0.15, shield:0.18` | holy | registered |
+| `purify` | **净化** | high | 5 | heal | `heal:0.12` | holy | registered |
+| `holy_judgment` | **神圣审判** | high | 6 | dmg | `mult:2.2, heal:0.10` | holy | registered |
 
 ### 5.4 禁咒（Boss 专属，`attr:null`，`weapons:null`，`tier:'boss'`）
 
 | `key` | 名称 | 来源 Boss | `cd` | `type` | 数值 | `school` | 注册 |
 |---|---|---|---|---|---|---|---|
-| `boundary_wrath` | **界桩之怒** | 锈冠牡鹿 | 6 | dmg | `mult:2.6, stun:1, stunTurns:1` | nature | ⚠️ restricted |
-| `blackmarket_toxin` | **黑市毒刃** | 「三指」奥兹 | 4 | dot | `mult:0.70, turns:4, vuln:0.20` | poison | 🔴 illicit |
-| `silent_hymn` | **无声圣咏** | 缄默圣女·艾德娜 | 7 | dmg | `mult:2.4, heal:0.10` | dark | 🔴 illicit |
-
-> 💡 **G4 的落点**：三个禁咒全部是 `weapons:null`（不限武器）——它们**绕过了武器绑定规则**。
-> 机制上"越界"，叙事上"违禁"。玩家会直觉感到这些技能不守规矩。
+| `boundary_wrath` | **界桩之怒** | 锈冠牡鹿 | 6 | dmg | `mult:2.6, stun:1, stunTurns:1` | nature | restricted |
+| `blackmarket_toxin` | **黑市毒刃** | 「三指」奥兹 | 4 | dot | `mult:0.70, turns:4, vuln:0.20` | poison | illicit |
+| `silent_hymn` | **无声圣咏** | 缄默圣女·艾德娜 | 7 | dmg | `mult:2.4, heal:0.10` | dark | illicit |
 
 ### 5.5 通用技与光环
 
-**通用技**（`attr:null`, `weapons:null`, `tier:'base'`）——新手保底，防止"没有匹配武器就没技能"：
+**通用技**（`attr:null`, `weapons:null`, `tier:'base'`）：
 
 | `key` | 名称 | `cd` | `type` | 数值 | `school` |
 |---|---|---|---|---|---|
@@ -220,32 +296,18 @@ ready = 技能.filter(cd<=0 && mp>=cost).sort((a,b) => b.mult − a.mult)
 | `uni_guard` | **通用·守护** | 5 | buff | `turns:1, shield:0.12` | physical |
 | `uni_mend` | **通用·急救** | 5 | heal | `heal:0.12` | holy |
 
-**光环**（`type:'aura'`, `cd:0`, `tier:'aura'`）——常驻被动：
+**光环**（`type:'aura'`, `cd:0`, `tier:'aura'`）：
 
 | `key` | 名称 | `auraStat` | `val`/级 | `school` |
 |---|---|---|---|---|
 | `aura_atk` | **加攻光环** | `atk` | 0.03 | arcane |
-| `aura_spd` | **疾行光环** | `spd` | 0.03 | arcane |
+| `aura_spd` | **疾行光环** | `spd` | 0.02 | arcane |
 | `aura_cast` | **通咒光环** | `skillDmg` | 0.04 | arcane |
 | `aura_crit` | **破绽光环** | `crit` | 0.01 | arcane |
 
-> ⚠️ **`aura_spd` 需重新评估**：新攻速体系下基础攻速仅 53，每级 +3% 是乘算（`spd × (1+aura.spd)`），
-> 5 级 = +15% 攻速 = **+15% DPS**，是四个光环里最强的。**建议降为 0.02/级**并实测。
+### 5.6 三系强度校验（v2.0 初估，待实测精算）
 
-### 5.6 三系强度校验（G3）
-
-按"每次行动的期望技能倍率"估算（技能 CD 越短，占行动比例越高）：
-
-| 系 | 技能组合 | 加权平均倍率 | 结论 |
-|---|---|---|---|
-| 力量 | 2.2 / 1.6+易伤 / buff / 1.3+晕 / buff | ≈ **1.92** | ✅ |
-| 敏捷 | 1.4×2=2.8 / dot0.6×3 / buff / 2.0 / 1.1+减速 | ≈ **1.98** | ✅ |
-| 智力 | 1.7 / 2.0+减速 / heal / 1.9+易伤 / buff | ≈ **1.87** | ✅ |
-
-三系加权倍率差 ≤ 6%，叠加 GDD 02 §6 已收敛的武器 DPS（±0.4%），**G3 达成**。
-
-> 📌 敏捷系略高（1.98）的原因是 `quick_shot` 的 `hits:2` 双击。但敏捷系单次伤害最低、
-> 且 GDD 02 已给敏捷家族最低的 `baseAtk`，综合后仍在容差内。
+v2.0 技能池大幅扩展，加权倍率需真机实测后重新精算。当前保守估算三系 DPS 偏差预计在 ±12% 内，可通过掉落率与技能书 tier 分布微调平衡。
 
 ---
 

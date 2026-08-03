@@ -49,7 +49,7 @@
 |---|---|
 | `design/gdd/01-character-progression.md` | 5 属性、5 出身、等级曲线、派生公式、战力估算面板 |
 | `design/gdd/02-equipment-affix.md` | 5 阶认证、13 武器、3 甲型、15 词缀、套装、Boss 唯一装备 |
-| `design/gdd/03-skills.md` | ~25 技能全表、武器绑定矩阵、光环、禁咒、学派裁决 |
+| `design/gdd/03-skills.md` | v2.0：61技能全表（三系×17+通用3+光环4+禁咒3），双路线Build分化 |
 | `design/gdd/04-combat-monsters.md` | 战斗循环参数、27 怪全表、五族群技能分池（v1.1，经返工） |
 | `design/gdd/05-economy-loop.md` | 三图配置、掉落、印屑、锻造、金币出口模型、药剂、离线收益 |
 

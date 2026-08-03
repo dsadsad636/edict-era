@@ -302,17 +302,17 @@ body{
 /* 技能书卡片 */
 .book-card{border-left:3px solid var(--purple);}
 
-/* 背包分格（方形格子） */
-.inv-grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(66px,1fr)); gap:8px; margin-bottom:14px;}
+/* 背包分格（方形格子：固定4列，图标大、辨识清晰） */
+.inv-grid{display:grid; grid-template-columns:repeat(4, 1fr); gap:6px; margin-bottom:14px;}
 .inv-cell{
-  position:relative; aspect-ratio:1/1; background:var(--panel2);
+  position:relative; aspect-ratio:1/1; background:var(--panel3);
   border:1px solid var(--line); border-radius:10px;
   display:flex; flex-direction:column; align-items:center; justify-content:center;
-  padding:4px; cursor:pointer; transition:.15s; overflow:hidden;
+  padding:6px; cursor:pointer; transition:.15s; overflow:hidden;
 }
-.inv-cell:hover{border-color:var(--gold); transform:translateY(-2px); box-shadow:0 4px 12px rgba(0,0,0,.35);}
-.inv-cell .cell-icon{width:40px; height:40px; display:flex; align-items:center; justify-content:center; flex-shrink:0; line-height:1;}
-.inv-cell .cell-name{font-size:9px; color:var(--dim); max-width:100%; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-top:3px; line-height:1.2;}
+.inv-cell:hover{border-color:var(--gold); transform:translateY(-2px); box-shadow:0 4px 12px rgba(0,0,0,.45); background:var(--panel2);}
+.inv-cell .cell-icon{width:48px; height:48px; display:flex; align-items:center; justify-content:center; flex-shrink:0; line-height:1;}
+.inv-cell .cell-name{font-size:10px; font-weight:600; color:var(--ink); max-width:100%; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-top:4px; line-height:1.2;}
 .inv-cell .cell-q{position:absolute; top:3px; left:5px; font-size:9px; color:var(--dim); pointer-events:none;}
 .inv-cell .cell-count{position:absolute; bottom:3px; right:4px; background:var(--crimson); color:#fff; font-size:10px; font-weight:700; min-width:16px; height:16px; line-height:16px; border-radius:8px; padding:0 4px;}
 .inv-cell.empty{opacity:.32; cursor:default; border-style:dashed;}
@@ -572,6 +572,19 @@ body{
 }
 .toast.show{opacity:1;}
 
+/* ==================== 战斗技能栏 CD 转圈 ==================== */
+.skill-bar{display:flex; gap:8px; padding:6px 10px; background:rgba(14,16,26,.95); border-radius:8px; border:1px solid var(--line); align-items:center;}
+.skill-slot{position:relative; width:44px; height:44px; border-radius:50%; background:var(--panel); border:2px solid var(--line); display:flex; align-items:center; justify-content:center; font-size:20px; cursor:default; flex-shrink:0;}
+.skill-slot.aura{border-color:var(--gold); border-style:dashed;}
+.skill-slot.empty{border-style:dotted; opacity:0.4;}
+.skill-slot .cd-ring{position:absolute; top:-3px; left:-3px; width:50px; height:50px; border-radius:50%; pointer-events:none;}
+.skill-slot .cd-ring.active{
+  background:conic-gradient(var(--blue) var(--cd-pct,0%), transparent var(--cd-pct,0%));
+  mask:radial-gradient(transparent 62%, black 63%);
+  -webkit-mask:radial-gradient(transparent 62%, black 63%);
+}
+.skill-slot .cd-text{position:absolute; bottom:-2px; right:-2px; font-size:9px; background:var(--bg); color:var(--blue); padding:0 3px; border-radius:3px; font-weight:700; min-width:16px; text-align:center;}
+.skill-slot .aura-ring{position:absolute; top:-4px; left:-4px; width:52px; height:52px; border-radius:50%; border:2px solid var(--gold); opacity:0.6;}
 /* ==================== 空闲主页 ==================== */
 .idle-home{text-align:center; padding:40px 20px;}
 .idle-title{font-size:26px; color:var(--gold-soft); letter-spacing:4px; margin-bottom:8px;}
@@ -1041,6 +1054,13 @@ const ICONS = {
   buff_dot:'<path d="M12 3.5 C15 8 17.6 11 17.6 14.6 a5.6 5.6 0 0 1 -11.2 0 C6.4 11 9 8 12 3.5 Z"/>',
   buff_shield:'<path d="M12 3 L19 6 V12 C19 16 16 19 12 21 C8 19 5 16 5 12 V6 Z"/><path d="M9.5 12 L11.5 14 L15 10"/>',
   stun:'<circle cx="12" cy="12" r="8.2" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M12 7 V12 L15 14" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/><circle cx="12" cy="12" r="1.5" fill="currentColor"/>',
+  /* -- 技能图标（新增） -- */
+  cleave:'<path d="M4 5 L14 18 M14 5 L4 18" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M8 12 L16 12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>',
+  fatal_strike:'<path d="M18 6 L6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M12 2 V22" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/><circle cx="12" cy="12" r="3" fill="currentColor" stroke="none"/>',
+  arcane_missile:'<circle cx="7" cy="10" r="2.5" fill="currentColor" stroke="none"/><circle cx="14" cy="6" r="2" fill="currentColor" stroke="none"/><circle cx="14" cy="16" r="2" fill="currentColor" stroke="none"/><path d="M7 10 L14 6 M7 10 L14 16" stroke="currentColor" stroke-width="0.8" stroke-dasharray="2 2"/>',
+  hallow_heal:'<circle cx="12" cy="12" r="8" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M12 5 V19 M5 12 H19" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M19 4 L19 7 M17.5 5.5 L20.5 5.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>',
+  hallow_shield:'<path d="M12 3 L19 6 V12 C19 16 16 19 12 21 C8 19 5 16 5 12 V6 Z" fill="none" stroke="currentColor" stroke-width="1.5"/><circle cx="12" cy="12" r="3" fill="currentColor" stroke="none" opacity="0.7"/>',
+  hallow_bless:'<circle cx="12" cy="12" r="8" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M9 14 L12 9 L15 14 M10 12 H14" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><circle cx="12" cy="6" r="1.5" fill="currentColor" stroke="none"/>',
   str:'<path d="M3 9 V15 M6 7 V17 M18 7 V17 M21 9 V15 M6 12 H18"/>',
   agi:'<path d="M13 2 L5 13 H11 L9 22 L19 9 H13 Z" fill="currentColor" stroke="none"/>',
   int:'<path d="M12 3 L14 10 L21 12 L14 14 L12 21 L10 14 L3 12 L10 10 Z" fill="currentColor" stroke="none"/>',
@@ -1107,11 +1127,11 @@ function itemInnerSVG(it){
   return svgInner(m[it.slot]||'_box');
 }
 function badgeWrap(px, color, innerSVG, glow){
-  const sz=px||36;
-  const gw=glow?('filter:drop-shadow(0 0 5px '+color+');'):'';
+  const sz=px||48;
+  const gw=glow?('filter:drop-shadow(0 0 6px '+color+');'):'';
   return '<span class="item-badge" style="--bc:'+color+';width:'+sz+'px;height:'+sz+'px;'+gw+'">'+
-    '<svg viewBox="0 0 24 24" width="'+Math.round(sz*0.6)+'" height="'+Math.round(sz*0.6)+'" '+
-    'fill="none" stroke="#f4ecd8" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">'+innerSVG+'</svg></span>';
+    '<svg viewBox="0 0 24 24" width="'+Math.round(sz*0.72)+'" height="'+Math.round(sz*0.72)+'" '+
+    'fill="none" stroke="#f4ecd8" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">'+innerSVG+'</svg></span>';
 }
 function itemBadgeSVG(it, px){ return badgeWrap(px, (rarObj(it.rarity)||RARITY[0]).color, itemInnerSVG(it), true); }
 function bookBadgeSVG(skillId, px){
@@ -1421,42 +1441,117 @@ const SETS = {
    weapons：可释放该技能的武器类型数组；null=不限武器。
    武器不匹配（含未装备武器）时技能可学习、保留等级，但战斗中不会释放。 */
 const SKILLS = {
-  /* ===================== 力量系（手斧/骑士剑/十字大剑/双刃战斧/钉头锤） ===================== */
+  /* ============================================================
+     力量系（手斧/骑士剑/十字大剑/双刃战斧/钉头锤）· 17 技能
+     ------------------------------------------------------------
+     路线A · 铁壁守卫：护盾/减伤/控制
+     路线B · 狂怒武者：爆发/增益/高伤
+     共享核心(7)：重斩 破甲击 战吼 盾击 横扫 锻体 处决
+     ============================================================ */
+  /* -- 核心(base) -- */
   heavy_slash:{name:'重斩',cd:3,type:'dmg',mult:2.2,attr:'str',weapons:['one_axe','one_sword','broadsword','great_axe','warhammer'],icon:svgIcon('heavy_slash'),tier:'base',desc:'造成220%力量攻击伤害',school:'physical',license:'none'},
-  sunder_strike:{name:'破甲击',cd:4,type:'dmg',mult:1.6,vuln:0.2,vulnTurns:2,attr:'str',weapons:['one_axe','one_sword','broadsword','great_axe','warhammer'],icon:'💥',tier:'base',desc:'160%力量伤害并令目标易伤20%（2回合）',school:'physical',license:'none'},
+  sunder_strike:{name:'破甲击',cd:4,type:'dmg',mult:1.6,vuln:0.2,vulnTurns:2,attr:'str',weapons:['one_axe','one_sword','broadsword','great_axe','warhammer'],icon:'💥',tier:'base',desc:'160%伤害并令目标易伤20%（2回合）',school:'physical',license:'none'},
   war_cry:{name:'战吼',cd:5,type:'buff',turns:3,val:0.2,attr:'str',weapons:['one_axe','one_sword','broadsword','great_axe','warhammer'],icon:svgIcon('war_cry'),tier:'base',desc:'3回合内提升自身20%攻击力',school:'physical',license:'none'},
-  shield_bash:{name:'盾击',cd:6,type:'dmg',mult:1.3,stun:1,stunTurns:1,attr:'str',weapons:['one_axe','one_sword','broadsword','great_axe','warhammer'],icon:'🛡️',tier:'mid',desc:'130%力量伤害并眩晕目标1回合',school:'physical',license:'none'},
-  berserk:{name:'狂暴',cd:7,type:'buff',turns:3,val:0.25,spdBoost:0.15,attr:'str',weapons:['one_axe','one_sword','broadsword','great_axe','warhammer'],icon:'🔥',tier:'mid',desc:'3回合内攻击+25%、攻速+15%',school:'physical',license:'none'},
+  /* -- 核心(mid) -- */
+  shield_bash:{name:'盾击',cd:6,type:'dmg',mult:1.3,stun:1,stunTurns:1,attr:'str',weapons:['one_axe','one_sword','broadsword','great_axe','warhammer'],icon:'🛡️',tier:'mid',desc:'130%伤害并眩晕目标1回合',school:'physical',license:'none'},
+  cleave:{name:'横扫',cd:4,type:'dmg',mult:1.5,hits:2,attr:'str',weapons:['one_axe','one_sword','broadsword','great_axe','warhammer'],icon:svgIcon('cleave'),tier:'mid',desc:'横扫两次，每击150%伤害',school:'physical',license:'none'},
+  iron_forge:{name:'锻体',cd:6,type:'buff',turns:2,shield:0.15,attr:'str',weapons:['one_axe','one_sword','broadsword','great_axe','warhammer'],icon:'🔨',tier:'mid',desc:'获得相当于15%最大生命的护盾',school:'physical',license:'none'},
+  /* -- 核心(high) -- */
+  executioner:{name:'处决',cd:8,type:'dmg',mult:3.0,attr:'str',weapons:['one_axe','one_sword','broadsword','great_axe','warhammer'],icon:'⚔️',tier:'high',desc:'造成300%力量攻击伤害',school:'physical',license:'none'},
+  /* -- 铁壁守卫(mid) -- */
+  bastion_wall:{name:'壁垒',cd:6,type:'buff',turns:2,shield:0.25,attr:'str',weapons:['one_axe','one_sword','broadsword','great_axe','warhammer'],icon:'🏰',tier:'mid',desc:'获得相当于25%最大生命的护盾',school:'earth',license:'none'},
+  resolve:{name:'坚毅',cd:7,type:'buff',turns:3,val:0.2,shield:0.12,attr:'str',weapons:['one_axe','one_sword','broadsword','great_axe','warhammer'],icon:'💪',tier:'mid',desc:'攻击+20%并获得12%生命护盾',school:'physical',license:'none'},
+  unyielding:{name:'不屈',cd:7,type:'heal',heal:0.15,attr:'str',weapons:['one_axe','one_sword','broadsword','great_axe','warhammer'],icon:'❤️',tier:'mid',desc:'恢复15%最大生命值',school:'physical',license:'none'},
+  /* -- 铁壁守卫(high) -- */
+  quake_strike:{name:'地裂击',cd:6,type:'dmg',mult:2.0,slow:0.25,slowTurns:2,attr:'str',weapons:['one_axe','one_sword','broadsword','great_axe','warhammer'],icon:'🌍',tier:'high',desc:'200%伤害并减速25%（2回合）',school:'earth',license:'restricted'},
+  adamant:{name:'金刚壁垒',cd:8,type:'buff',turns:3,shield:0.35,attr:'str',weapons:['one_axe','one_sword','broadsword','great_axe','warhammer'],icon:'💎',tier:'high',desc:'获得相当于35%最大生命的护盾',school:'earth',license:'restricted'},
+  /* -- 狂怒武者(mid) -- */
+  blood_frenzy:{name:'血怒',cd:6,type:'buff',turns:2,val:0.35,spdBoost:0.15,attr:'str',weapons:['one_axe','one_sword','broadsword','great_axe','warhammer'],icon:'🩸',tier:'mid',desc:'2回合内攻击+35%、攻速+15%',school:'physical',license:'none'},
+  reckless_smash:{name:'鲁莽猛击',cd:5,type:'dmg',mult:2.5,attr:'str',weapons:['one_axe','one_sword','broadsword','great_axe','warhammer'],icon:'💢',tier:'mid',desc:'造成250%力量攻击伤害',school:'physical',license:'none'},
+  rampage:{name:'狂暴突进',cd:5,type:'dmg',mult:1.8,hits:2,attr:'str',weapons:['one_axe','one_sword','broadsword','great_axe','warhammer'],icon:'🐗',tier:'mid',desc:'狂暴双击，每击180%伤害',school:'physical',license:'none'},
+  /* -- 狂怒武者(high) -- */
+  death_wish:{name:'死愿',cd:7,type:'buff',turns:2,val:0.45,spdBoost:0.25,attr:'str',weapons:['one_axe','one_sword','broadsword','great_axe','warhammer'],icon:'☠️',tier:'high',desc:'2回合内攻击+45%、攻速+25%',school:'dark',license:'illicit'},
+  obliterate:{name:'湮灭',cd:8,type:'dmg',mult:3.5,attr:'str',weapons:['one_axe','one_sword','broadsword','great_axe','warhammer'],icon:'🌑',tier:'high',desc:'造成350%力量攻击伤害',school:'dark',license:'illicit'},
 
-  /* ===================== 敏捷系（短匕/双刺/紫杉长弓/钢弩） ===================== */
+  /* ============================================================
+     敏捷系（短匕/双刺/紫杉长弓/钢弩）· 17 技能
+     ------------------------------------------------------------
+     路线A · 影刃刺客：毒伤/暴击/连击
+     路线B · 猎手游侠：控制/减速/多重
+     共享核心(7)：连击 淬毒刃 影舞 穿透击 缚足陷阱 闪避步 致命一击
+     ============================================================ */
+  /* -- 核心(base) -- */
   quick_shot:{name:'连击',cd:2,type:'dmg',mult:1.4,hits:2,attr:'agi',weapons:['dagger','twin_dagger','bow','crossbow'],icon:svgIcon('quick_shot'),tier:'base',desc:'快速2击，每击140%敏捷攻击伤害',school:'physical',license:'none'},
   poison_edge:{name:'淬毒刃',cd:3,type:'dot',mult:0.6,turns:3,attr:'agi',weapons:['dagger','twin_dagger','bow','crossbow'],icon:'🧪',tier:'base',desc:'3回合持续毒性伤害',school:'poison',license:'illicit'},
   shadow_dance:{name:'影舞',cd:6,type:'buff',turns:3,spdBoost:0.3,attr:'agi',weapons:['dagger','twin_dagger','bow','crossbow'],icon:svgIcon('shadow_dance'),tier:'base',desc:'3回合内提升30%攻速',school:'physical',license:'none'},
-  piercing_shot:{name:'穿透击',cd:4,type:'dmg',mult:2.0,attr:'agi',weapons:['dagger','twin_dagger','bow','crossbow'],icon:'🏹',tier:'mid',desc:'造成200%敏捷攻击伤害，无视部分防御',school:'physical',license:'none'},
-  snare_trap:{name:'缚足陷阱',cd:5,type:'dmg',mult:1.1,slow:0.25,slowTurns:2,attr:'agi',weapons:['dagger','twin_dagger','bow','crossbow'],icon:'❄️',tier:'mid',desc:'110%伤害并减速25%（2回合）',school:'ice',license:'registered'},
+  /* -- 核心(mid) -- */
+  piercing_shot:{name:'穿透击',cd:4,type:'dmg',mult:2.0,attr:'agi',weapons:['dagger','twin_dagger','bow','crossbow'],icon:'🏹',tier:'mid',desc:'造成200%敏捷攻击伤害',school:'physical',license:'none'},
+  snare_trap:{name:'缚足陷阱',cd:5,type:'dmg',mult:1.1,slow:0.25,slowTurns:2,attr:'agi',weapons:['dagger','twin_dagger','bow','crossbow'],icon:'🪤',tier:'mid',desc:'110%伤害并减速25%（2回合）',school:'ice',license:'registered'},
+  evasive_step:{name:'闪避步',cd:5,type:'buff',turns:2,spdBoost:0.15,shield:0.1,attr:'agi',weapons:['dagger','twin_dagger','bow','crossbow'],icon:'💨',tier:'mid',desc:'攻速+15%并获得10%生命护盾',school:'physical',license:'none'},
+  /* -- 核心(high) -- */
+  fatal_strike:{name:'致命一击',cd:7,type:'dmg',mult:2.8,attr:'agi',weapons:['dagger','twin_dagger','bow','crossbow'],icon:svgIcon('fatal_strike'),tier:'high',desc:'造成280%敏捷攻击伤害',school:'physical',license:'none'},
+  /* -- 影刃刺客(mid) -- */
+  venom_brand:{name:'剧毒烙印',cd:5,type:'dot',mult:0.8,turns:4,vuln:0.15,attr:'agi',weapons:['dagger','twin_dagger','bow','crossbow'],icon:'🐍',tier:'mid',desc:'4回合持续毒伤并令目标易伤15%',school:'poison',license:'illicit'},
+  assassination:{name:'暗杀',cd:6,type:'dmg',mult:2.2,hits:2,attr:'agi',weapons:['dagger','twin_dagger','bow','crossbow'],icon:'🗡️',tier:'mid',desc:'暗杀双击，每击220%伤害',school:'dark',license:'illicit'},
+  poison_mist:{name:'毒雾',cd:4,type:'dot',mult:0.7,turns:4,attr:'agi',weapons:['dagger','twin_dagger','bow','crossbow'],icon:'☠️',tier:'mid',desc:'4回合持续毒雾伤害',school:'poison',license:'illicit'},
+  /* -- 影刃刺客(high) -- */
+  reap:{name:'收割',cd:7,type:'dmg',mult:3.0,attr:'agi',weapons:['dagger','twin_dagger','bow','crossbow'],icon:'🔪',tier:'high',desc:'造成300%敏捷攻击伤害',school:'dark',license:'illicit'},
+  death_mark:{name:'死亡标记',cd:6,type:'buff',turns:3,val:0.3,attr:'agi',weapons:['dagger','twin_dagger','bow','crossbow'],icon:'🎯',tier:'high',desc:'3回合内攻击+30%',school:'dark',license:'illicit'},
+  /* -- 猎手游侠(mid) -- */
+  frost_trap:{name:'冰霜陷阱',cd:5,type:'dmg',mult:1.3,slow:0.35,slowTurns:2,attr:'agi',weapons:['dagger','twin_dagger','bow','crossbow'],icon:'❄️',tier:'mid',desc:'130%伤害并减速35%（2回合）',school:'ice',license:'registered'},
+  multi_shot:{name:'多重射击',cd:5,type:'dmg',mult:1.5,hits:3,attr:'agi',weapons:['dagger','twin_dagger','bow','crossbow'],icon:'🏹',tier:'mid',desc:'三重射击，每击150%伤害',school:'physical',license:'none'},
+  blinding_powder:{name:'致盲粉',cd:7,type:'dmg',mult:0.8,stun:1,stunTurns:1,attr:'agi',weapons:['dagger','twin_dagger','bow','crossbow'],icon:'✨',tier:'mid',desc:'80%伤害并眩晕目标1回合',school:'nature',license:'restricted'},
+  /* -- 猎手游侠(high) -- */
+  sticky_trap:{name:'粘性陷阱',cd:6,type:'dmg',mult:1.0,slow:0.25,slowTurns:2,vuln:0.2,vulnTurns:2,attr:'agi',weapons:['dagger','twin_dagger','bow','crossbow'],icon:'🕸️',tier:'high',desc:'100%伤害+减速25%+易伤20%',school:'nature',license:'restricted'},
+  hunters_call:{name:'猎杀时刻',cd:7,type:'buff',turns:4,val:0.25,spdBoost:0.25,attr:'agi',weapons:['dagger','twin_dagger','bow','crossbow'],icon:'🦅',tier:'high',desc:'4回合内攻击+25%、攻速+25%',school:'nature',license:'restricted'},
 
-  /* ===================== 智力系（印杖/仪杖/咒律书/禁卷） ===================== */
+  /* ============================================================
+     智力系（印杖/仪杖/咒律书/禁卷）· 17 技能
+     ------------------------------------------------------------
+     路线A · 元素毁灭者：火雷爆发/范围
+     路线B · 圣言守护者：治疗/护盾/光系
+     共享核心(7)：火球术 霜新星 圣光术 闪电链 寒冰护盾 奥术飞弹 禁咒·破
+     ============================================================ */
+  /* -- 核心(base) -- */
   fireball:{name:'火球术',cd:3,type:'dmg',mult:1.7,attr:'int',weapons:['wand','staff','grimoire','tome'],icon:'🔥',tier:'base',desc:'造成170%智力火焰伤害',school:'fire',license:'registered'},
-  frost_nova:{name:'霜新星',cd:4,type:'dmg',mult:2.0,slow:0.2,slowTurns:2,attr:'int',weapons:['wand','staff','grimoire','tome'],icon:svgIcon('frost_nova'),tier:'base',desc:'造成200%智力魔法伤害并减速敌人',school:'ice',license:'registered'},
+  frost_nova:{name:'霜新星',cd:4,type:'dmg',mult:2.0,slow:0.2,slowTurns:2,attr:'int',weapons:['wand','staff','grimoire','tome'],icon:svgIcon('frost_nova'),tier:'base',desc:'200%伤害并减速20%（2回合）',school:'ice',license:'registered'},
   heal_light:{name:'圣光术',cd:5,type:'heal',heal:0.18,attr:'int',weapons:['wand','staff','grimoire','tome'],icon:svgIcon('heal_light'),tier:'base',desc:'恢复18%最大生命值',school:'holy',license:'registered'},
-  chain_lightning:{name:'闪电链',cd:5,type:'dmg',mult:1.9,vuln:0.15,vulnTurns:2,attr:'int',weapons:['wand','staff','grimoire','tome'],icon:'⚡',tier:'mid',desc:'190%智力伤害并令目标易伤15%',school:'lightning',license:'registered'},
+  /* -- 核心(mid) -- */
+  chain_lightning:{name:'闪电链',cd:5,type:'dmg',mult:1.9,vuln:0.15,vulnTurns:2,attr:'int',weapons:['wand','staff','grimoire','tome'],icon:'⚡',tier:'mid',desc:'190%伤害并令目标易伤15%',school:'lightning',license:'registered'},
   ice_barrier:{name:'寒冰护盾',cd:5,type:'buff',turns:1,shield:0.15,attr:'int',weapons:['wand','staff','grimoire','tome'],icon:'🧊',tier:'mid',desc:'获得相当于15%最大生命的护盾',school:'ice',license:'registered'},
+  arcane_missile:{name:'奥术飞弹',cd:3,type:'dmg',mult:1.3,hits:3,attr:'int',weapons:['wand','staff','grimoire','tome'],icon:svgIcon('arcane_missile'),tier:'mid',desc:'三重飞弹，每击130%伤害',school:'arcane',license:'registered'},
+  /* -- 核心(high) -- */
+  arcane_rupture:{name:'禁咒·破',cd:7,type:'dmg',mult:2.5,vuln:0.25,vulnTurns:2,attr:'int',weapons:['wand','staff','grimoire','tome'],icon:'💥',tier:'high',desc:'250%伤害并令目标易伤25%',school:'arcane',license:'restricted'},
+  /* -- 元素毁灭者(mid) -- */
+  firestorm:{name:'烈焰风暴',cd:6,type:'dmg',mult:2.3,vuln:0.2,vulnTurns:2,attr:'int',weapons:['wand','staff','grimoire','tome'],icon:'🌋',tier:'mid',desc:'230%火焰伤害并令目标易伤20%',school:'fire',license:'registered'},
+  thunderbolt:{name:'雷击',cd:7,type:'dmg',mult:2.5,stun:1,stunTurns:1,attr:'int',weapons:['wand','staff','grimoire','tome'],icon:'🌩️',tier:'mid',desc:'250%雷电伤害并眩晕1回合',school:'lightning',license:'registered'},
+  /* -- 元素毁灭者(high) -- */
+  meteor:{name:'陨石术',cd:8,type:'dmg',mult:3.2,attr:'int',weapons:['wand','staff','grimoire','tome'],icon:'☄️',tier:'high',desc:'造成320%智力火焰伤害',school:'fire',license:'restricted'},
+  elemental_overload:{name:'元素过载',cd:6,type:'buff',turns:3,val:0.35,attr:'int',weapons:['wand','staff','grimoire','tome'],icon:'🌪️',tier:'high',desc:'3回合内攻击+35%',school:'arcane',license:'restricted'},
+  elemental_torrent:{name:'元素洪流',cd:5,type:'dmg',mult:2.0,hits:2,attr:'int',weapons:['wand','staff','grimoire','tome'],icon:'⚡',tier:'high',desc:'双重洪流，每击200%伤害',school:'lightning',license:'restricted'},
+  /* -- 圣言守护者(mid) -- */
+  hallow_heal:{name:'圣言·愈',cd:6,type:'heal',heal:0.25,attr:'int',weapons:['wand','staff','grimoire','tome'],icon:svgIcon('hallow_heal'),tier:'mid',desc:'恢复25%最大生命值',school:'holy',license:'registered'},
+  hallow_shield:{name:'圣言·盾',cd:6,type:'buff',turns:2,shield:0.3,attr:'int',weapons:['wand','staff','grimoire','tome'],icon:svgIcon('hallow_shield'),tier:'mid',desc:'获得相当于30%最大生命的护盾',school:'holy',license:'registered'},
+  hallow_bless:{name:'圣言·佑',cd:7,type:'buff',turns:3,val:0.15,shield:0.18,attr:'int',weapons:['wand','staff','grimoire','tome'],icon:svgIcon('hallow_bless'),tier:'mid',desc:'攻击+15%并获得18%生命护盾',school:'holy',license:'registered'},
+  /* -- 圣言守护者(high) -- */
+  purify:{name:'净化',cd:5,type:'heal',heal:0.12,attr:'int',weapons:['wand','staff','grimoire','tome'],icon:'✨',tier:'high',desc:'恢复12%最大生命并清除负面效果',school:'holy',license:'registered'},
+  holy_judgment:{name:'神圣审判',cd:6,type:'dmg',mult:2.2,heal:0.1,attr:'int',weapons:['wand','staff','grimoire','tome'],icon:'⚖️',tier:'high',desc:'220%伤害并回复10%最大生命',school:'holy',license:'registered'},
 
   /* ===================== 禁咒（Boss 专属，不限武器，tier:'boss'） ===================== */
   boundary_wrath:{name:'界桩之怒',cd:6,type:'dmg',mult:2.6,stun:1,stunTurns:1,attr:null,weapons:null,icon:'🌋',tier:'boss',desc:'260%攻击伤害并眩晕1回合【锈冠牡鹿】',school:'nature',license:'restricted'},
   blackmarket_toxin:{name:'黑市毒刃',cd:4,type:'dot',mult:0.7,turns:4,vuln:0.2,attr:null,weapons:null,icon:'🧪',tier:'boss',desc:'4回合持续伤害并易伤20%【三指奥兹】',school:'poison',license:'illicit'},
   silent_hymn:{name:'无声圣咏',cd:7,type:'dmg',mult:2.4,heal:0.10,attr:null,weapons:null,icon:'🎵',tier:'boss',desc:'240%攻击伤害并回复10%生命【缄默圣女】',school:'dark',license:'illicit'},
 
-  /* ===================== 通用技（无武器/属性要求，任意角色可学可用，基础阶） ===================== */
+  /* ===================== 通用技（无武器/属性要求，任意角色可学可用） ===================== */
   uni_strike:{name:'通用·重击',cd:3,type:'dmg',mult:1.8,attr:null,weapons:null,icon:'💥',tier:'base',desc:'造成180%攻击伤害，不受武器类型限制',school:'physical',license:'none'},
   uni_guard:{name:'通用·守护',cd:5,type:'buff',turns:1,shield:0.12,attr:null,weapons:null,icon:'🛡️',tier:'base',desc:'获得相当于12%最大生命的护盾',school:'physical',license:'none'},
   uni_mend:{name:'通用·急救',cd:5,type:'heal',heal:0.12,attr:null,weapons:null,icon:'💚',tier:'base',desc:'恢复12%最大生命值',school:'holy',license:'none'},
 
   /* ===================== 光环技能书（全地图精英5%掉落，常驻被动，不占施法轮次） ===================== */
   aura_atk:{name:'加攻光环',cd:0,type:'aura',auraStat:'atk',val:0.03,attr:null,weapons:null,icon:svgIcon('aura_atk'),tier:'aura',desc:'常驻光环：每级提升3%攻击力',school:'arcane',license:'none'},
-  aura_spd:{name:'疾行光环',cd:0,type:'aura',auraStat:'spd',val:0.03,attr:null,weapons:null,icon:svgIcon('aura_spd'),tier:'aura',desc:'常驻光环：每级提升3%攻击速度',school:'arcane',license:'none'},
+  aura_spd:{name:'疾行光环',cd:0,type:'aura',auraStat:'spd',val:0.02,attr:null,weapons:null,icon:svgIcon('aura_spd'),tier:'aura',desc:'常驻光环：每级提升2%攻击速度',school:'arcane',license:'none'},
   aura_cast:{name:'通咒光环',cd:0,type:'aura',auraStat:'skillDmg',val:0.04,attr:null,weapons:null,icon:svgIcon('aura_cast'),tier:'aura',desc:'常驻光环：每级提升4%技能伤害',school:'arcane',license:'none'},
-  aura_crit:{name:'破绽光环',cd:0,type:'aura',auraStat:'crit',val:0.01,attr:null,weapons:null,icon:svgIcon('aura_crit'),tier:'aura',desc:'常驻光环：每级提升1%物理与法术暴击',school:'arcane',license:'none'},
+  aura_crit:{name:'破绽光环',cd:0,type:'aura',auraStat:'crit',val:0.01,attr:null,weapons:null,icon:svgIcon('aura_crit'),tier:'aura',desc:'常驻光环：每级提升1%双暴击',school:'arcane',license:'none'},
 };
 const AURA_STAT_LABEL = {atk:'攻击力', spd:'攻速', skillDmg:'技能伤害', crit:'双暴击'};
 /* 技能与当前武器是否匹配：weapons=null 不限；否则须装备指定类型武器 */
@@ -1465,19 +1560,73 @@ function skillWeaponOk(def){
   const wp = G && G.player && G.player.equip && G.player.equip.weapon;
   return !!(wp && def.weapons.indexOf(wp.wType)>=0);
 }
+/* 卸下所有与当前武器不匹配的已装备主动技能 */
+function purgeInvalidSkills(){
+  if(!G||!G.player) return;
+  const es=G.player.equippedSkills||[];
+  for(let i=es.length-1;i>=0;i--){
+    const d=SKILLS[es[i]];
+    if(d && d.weapons && !skillWeaponOk(d)){
+      pushLog('sys','⚠️ 武器更换，【'+d.name+'】已自动卸下（武器不匹配）');
+      es.splice(i,1);
+    }
+  }
+  G.player.equippedSkills=es;
+}
+/* 装备技能到主动栏 */
+function equipSkill(id){
+  const es=G.player.equippedSkills||[];
+  if(es.indexOf(id)>=0){toast('该技能已装备'); return;}
+  if(es.length>=5){toast('最多装备5个主动技能'); return;}
+  const d=SKILLS[id]; if(!d||d.type==='aura'){toast('光环请使用光环栏装备'); return;}
+  es.push(id); G.player.equippedSkills=es;
+  toast('已装备【'+d.name+'】');
+  save(); renderAll();
+}
+/* 卸下技能 */
+function unequipSkill(id){
+  const es=G.player.equippedSkills||[];
+  const i=es.indexOf(id); if(i<0) return;
+  es.splice(i,1); G.player.equippedSkills=es;
+  save(); renderAll();
+}
+/* 装备光环 */
+function equipAura(id){
+  const ea=G.player.equippedAuras||[];
+  if(ea.indexOf(id)>=0){toast('该光环已装备'); return;}
+  if(ea.length>=2){toast('最多装备2个光环'); return;}
+  const d=SKILLS[id]; if(!d||d.type!=='aura'){toast('这不是光环技能'); return;}
+  ea.push(id); G.player.equippedAuras=ea;
+  toast('已装备【'+d.name+'】');
+  save(); renderAll();
+}
+/* 卸下光环 */
+function unequipAura(id){
+  const ea=G.player.equippedAuras||[];
+  const i=ea.indexOf(id); if(i<0) return;
+  ea.splice(i,1); G.player.equippedAuras=ea;
+  save(); renderAll();
+}
 function weaponsLabel(def){
   if(!def || !def.weapons) return '不限';
   return def.weapons.map(w=>WEAPON_TYPES[w]?WEAPON_TYPES[w].name:w).join('/');
 }
-/* 光环加成汇总（常驻被动，随技能等级成长） */
+/* 光环加成汇总（常驻被动，仅已装备的 2 个光环生效） */
 function auraBonuses(){
   const b={atk:0, spd:0, skillDmg:0, crit:0};
-  if(!G || !G.player || !G.player.skills) return b;
-  for(const id in G.player.skills){
+  if(!G || !G.player) return b;
+  (G.player.equippedAuras||[]).forEach(function(id){
     const d=SKILLS[id];
     if(d && d.type==='aura' && b[d.auraStat]!==undefined) b[d.auraStat]+=d.val*skillLevel(id);
-  }
+  });
   return b;
+}
+/* 技能学习属性门槛：按 tier 与属性归属自动计算，base=3 / mid=10 / high=18 / 其他=0 */
+const SKILL_ATTR_REQ = {base:3, mid:10, high:18};
+function skillReq(id){
+  const d=SKILLS[id]; if(!d) return {str:0, agi:0, int:0};
+  const r=SKILL_ATTR_REQ[d.tier]||0;
+  return {str: d.attr==='str'?r:0, agi: d.attr==='agi'?r:0, int: d.attr==='int'?r:0};
 }
 
 /* BOSS 专属掉落表：技能书爆率5%、敕造装备3%，同场最多一件（先书后装备） */
@@ -1496,8 +1645,8 @@ const BOSS_DROPS = {
                     mythic:{id:'myth_edna_charm', slot:'amulet', name:'缄口·逆咏牌符', reqLv:26, base:{hp:190,crit:0.05}, skill:'silent_hymn',
                       desc:'无声圣咏伤害转护盾；未受击则下回合炸为全场真伤(上限30%最大生命)', cost:'不再回血'}},
   /* 新 7 王：仅红色未录 mythic（book 见任务 #13，本期不实现） */
-  varuk:            {mythic:{id:'myth_forge_hammer', slot:'weapon', wType:'warhammer', name:'熔印·锻律锤', reqLv:28, base:{atk:48}, skill:'berserk',
-                      desc:'狂暴结束不进CD；每次施放叠1层「锻痕」(本场,上限8)，每层攻击+4%、受伤+5%', cost:'越锤越硬，也越脆'}},
+  varuk:            {mythic:{id:'myth_forge_hammer', slot:'weapon', wType:'warhammer', name:'熔印·锻律锤', reqLv:28, base:{atk:48}, skill:'blood_frenzy',
+                      desc:'血怒结束不进CD；每次施放叠1层「锻痕」(本场,上限8)，每层攻击+4%、受伤+5%', cost:'越锤越硬，也越脆'}},
   sevlan:           {mythic:{id:'myth_codex_staff', slot:'weapon', wType:'staff', name:'掌典·禁页杖', reqLv:36, base:{atk:30}, skill:'chain_lightning',
                       desc:'闪电链命中标"已归档"3回合：受伤+25%且死亡必掉1件随机装备', cost:'被标记者仇恨转向你'}},
   null_seventh:     {mythic:{id:'myth_erase_seal', slot:'ring', name:'削籍·失名印', reqLv:44, base:{atk:30,crit:0.06}, skill:'uni_guard',
@@ -1733,8 +1882,8 @@ const UNIQ_EFFECTS = {
   myth_forge_hammer:{
     battleStart:function(c){ c.u._forgeStacks=0; },
     postCast:function(c){
-      if(!c.sk || c.sk.id!=='berserk') return;
-      c.sk.cd=0;                                   /* 循环引擎：狂暴不进 CD（保留） */
+      if(!c.sk || c.sk.id!=='blood_frenzy') return;
+      c.sk.cd=0;                                   /* 循环引擎：血怒不进 CD（保留） */
       const TU=UNIQ_TUNING.MYTH_FORGE;
       const cur=c.a._forgeStacks||0;
       if(cur<TU.maxStacks){
@@ -2514,7 +2663,7 @@ function newGame(charName, originKey){
       equip:{weapon:null, head:null, armor:null, hands:null, feet:null, ring:null, amulet:null},
       flasks:{hp:null, mp:null}, /* 药水瓶槽：回血/回蓝各一 */
       mythicStr:0, mythicHp:0, /* 已废弃（GDD 05b §6）：未录不再跨战斗永久叠加，恒为 0，仅留兼容 */
-      skills:{}, inventory:[]
+      skills:{}, equippedSkills:[], equippedAuras:[], inventory:[]
     },
     mapId:0, mapTier:0, encounter:0, autoChain:false, navTab:'char',
     unlocked:0, eliteDone:false, bossDone:false, mapEliteAt:null, mapBossAt:null,
@@ -3372,16 +3521,17 @@ function playerUnit(){
   const cdr    = clamp(s.cdr||0,    0, AFFIX_CAPS.cdr);
   const atk=Math.round((s.atk+wp.atk)*(1+aura.atk)*(1+atkPct));
   const matk=Math.round((s.matk+wp.matk)*(1+aura.atk)*(1+atkPct));
-  /* 可释放技能：排除光环（常驻被动）与武器不匹配技能（可学习保留等级，但不会释放）。
+  /* 可释放技能：仅已装备的 5 个主动技能（排除光环 / 武器不匹配）。
      cdr 生效点：CD 是整数、按行动次数递减，effCd = max(1, ceil(cd/(1+cdr)))；
      castSkill 赋 CD 时读 cdBase（缺省回退 def.cd，保证外部构造的技能对象仍可用）。 */
-  const skills=Object.keys(G.player.skills)
-    .filter(id=>{ const d=SKILLS[id]; return d && d.type!=='aura' && skillWeaponOk(d); })
-    .map(id=>({
-      id, lv:skillLevel(id), cd:0, def:SKILLS[id],
-      cdBase:Math.max(1, Math.ceil((SKILLS[id].cd||1)/(1+cdr))),
-      cost:8+(SKILLS[id].cd||1)*3 /* 法力消耗：CD 越长的技能越耗蓝 */
-    }));
+  const equipped=(G.player.equippedSkills||[]).filter(function(id){
+    const d=SKILLS[id]; return d && skillWeaponOk(d) && skillLevel(id)>0;
+  });
+  const skills=equipped.map(function(id){ return {
+    id, lv:skillLevel(id), cd:0, def:SKILLS[id],
+    cdBase:Math.max(1, Math.ceil((SKILLS[id].cd||1)/(1+cdr))),
+    cost:8+(SKILLS[id].cd||1)*3
+  }; });
   const maxMp=Math.round(s.mp);
   return {
     name:G.player.name, side:'player', emoji:'🗡️',
@@ -3691,7 +3841,7 @@ function castSkill(a,t,sk){
     pushLog(a.side,'📢 '+a.name+' 施放【'+def.name+'】'+lv+'级，能力提升！');
   }
   /* 护盾赋予释放者自身；眩晕施加于目标（支持辅助/控制类技能） */
-  if(def.shield){ const sh=Math.round(a.maxHp*def.shield); a.shield += sh; }
+  if(def.shield){ const sh=Math.round(a.maxHp*def.shield); a.shield = Math.min(Math.round(a.maxHp*0.5), a.shield + sh); }
   if(def.stun)  t.buffs.push({type:'stun', turns:def.stunTurns||1});
   /* cdr 生效点（GDD 05b §12 #12）：cdBase 由 playerUnit 预算好；外部构造的技能对象回退 def.cd */
   sk.cd=(typeof sk.cdBase==='number' && sk.cdBase>0) ? sk.cdBase : def.cd;
@@ -3983,6 +4133,8 @@ function applyEquip(uid){
   G.player.equip[slot]=it;G.player.inventory.splice(idx,1);
   if(prev) G.player.inventory.push(prev);
   syncMythicSkills(); /* 敕令共鸣：未录装备自动授予绑定技能（skillLevel 再额外 +1） */
+  /* 武器更换时自动卸下不再匹配的技能 */
+  if(slot==='weapon') purgeInvalidSkills();
   const s=totalStats();if(G.player.hp>s.hp)G.player.hp=s.hp;
   pushLog('sys','📦 装备了 '+it.name);
   if(it.mythic&&it.mythic.skill&&SKILLS[it.mythic.skill]) pushLog('sys','🔴 敕令共鸣：【'+SKILLS[it.mythic.skill].name+'】+1 级并改写其行为', {hl:true, color:'#e6443b'});
@@ -3992,6 +4144,7 @@ function applyUnequip(slot){
   INSPECT=null;
   const it=G.player.equip[slot];if(!it)return;
   G.player.equip[slot]=null;G.player.inventory.push(it);
+  if(slot==='weapon') purgeInvalidSkills();
   const s=totalStats();if(G.player.hp>s.hp)G.player.hp=s.hp;
   save();renderAll();
 }
@@ -4001,6 +4154,12 @@ function applyUseBook(invIndex){
   if(!it||it.type!=='book')return;
   const sk=it.skill,cur=G.player.skills[sk]||0;
   if(cur>=10){toast('该技能已满级(10)');return;}
+  const req=skillReq(sk), p=G.player;
+  if(p.str<req.str||p.agi<req.agi||p.int<req.int){
+    const need=[]; if(req.str) need.push('力量 '+req.str); if(req.agi) need.push('敏捷 '+req.agi); if(req.int) need.push('智力 '+req.int);
+    toast('属性不足，无法学习【'+SKILLS[sk].name+'】。需要：'+need.join('、'));
+    return;
+  }
   G.player.skills[sk]=cur+1;
   G.player.inventory.splice(invIndex,1);
   pushLog('sys','📖 学会/升级【'+SKILLS[sk].name+'】至 '+(cur+1)+' 级');
@@ -4510,6 +4669,10 @@ function applyCompat(){
   }catch(e){}
   if(G.battle){ G.battle=null; G.battleTimer=null; } /* 刷新时清除残留战斗 */
   try{ syncMythicSkills(); }catch(e){} /* 敕令共鸣：读档后回填未录授予的绑定技能 */
+  /* 技能槽系统兼容（v2.1）：旧档无 equippedSkills / equippedAuras���自动回填空数组。
+     不会自动装填——需玩家手动从技能页装备技能。 */
+  if(!Array.isArray(G.player.equippedSkills)) G.player.equippedSkills=[];
+  if(!Array.isArray(G.player.equippedAuras)) G.player.equippedAuras=[];
 }
 
 /* ==================== 视图切换 ==================== */
@@ -4659,7 +4822,7 @@ function tabBag(){
       : ARMOR_SLOTS.find(a=>a.key===slotKey)||{name:slotKey,icon:'📦'};
     if(it){
       const ro2=rarObj(it.rarity);
-      wornHtml+=invCell({ rarity:it.rarity, q:slInfo.name, icon:itemBadgeSVG(it,40),
+      wornHtml+=invCell({ rarity:it.rarity, q:slInfo.name, icon:itemBadgeSVG(it,52),
         name:it.name, color:ro2.color, title:it.name, onClick:'selectBag(\'worn\',\''+slotKey+'\')', sel:(INSPECT&&INSPECT.kind==='worn'&&INSPECT.uid===slotKey) });
     } else {
       wornHtml+=invCell({ empty:true, q:slInfo.name, icon:slInfo.icon, name:'空' });
@@ -4672,10 +4835,10 @@ function tabBag(){
 
   /* --- 货币（分格） --- */
   html+=invSection('\u{1F4B0} 货币','currency',
-    invCell({ icon:coinSVG(30), name:'金币', color:'#c9a227', q:(''+p.gold), title:'金币：'+p.gold }));
+    invCell({ icon:coinSVG(42), name:'金币', color:'#c9a227', q:(''+p.gold), title:'金币：'+p.gold }));
 
   /* --- 锻造材料（分格） --- */
-  let matHtml=Object.keys(SHARD_TYPES).map(t=>invCell({ icon:shardSVG(t,28), name:SHARD_TYPES[t].name, color:SHARD_TYPES[t].color, q:(''+matGet(t)), title:SHARD_TYPES[t].name+'：'+matGet(t) })).join('');
+  let matHtml=Object.keys(SHARD_TYPES).map(t=>invCell({ icon:shardSVG(t,38), name:SHARD_TYPES[t].name, color:SHARD_TYPES[t].color, q:(''+matGet(t)), title:SHARD_TYPES[t].name+'：'+matGet(t) })).join('');
   html+=invSection('\u{2692}\u{FE0F} 锻造材料','mats',matHtml);
 
   /* --- 背包分栏：装备 / 技能书 / 药水（点击标签切换） --- */
@@ -4690,12 +4853,12 @@ function tabBag(){
   } else {
     if(bagCat==='equip'){
       equips.forEach(it=>{ const ri=rarObj(it.rarity);
-        bagHtml+=invCell({ rarity:it.rarity, icon:itemBadgeSVG(it,40), name:it.name, color:ri.color, title:it.name, onClick:'selectBag(\'equip\','+it.uid+')', sel:(INSPECT&&INSPECT.kind==='equip'&&INSPECT.uid===it.uid) }); });
+        bagHtml+=invCell({ rarity:it.rarity, icon:itemBadgeSVG(it,52), name:it.name, color:ri.color, title:it.name, onClick:'selectBag(\'equip\','+it.uid+')', sel:(INSPECT&&INSPECT.kind==='equip'&&INSPECT.uid===it.uid) }); });
     } else if(bagCat==='book'){
       books.forEach(b=>{ const realIdx=p.inventory.indexOf(b), def=SKILLS[b.skill], lv=p.skills[b.skill]||0;
-        bagHtml+=invCell({ icon:bookBadgeSVG(b.skill,40), name:def.name, color:(SKILL_TIER_COLOR&&SKILL_TIER_COLOR[def.tier||'base'])||'#cfd8e2', title:b.name+(lv?('\n已学 '+lv+' 级'):''), count:(lv?lv+1:1), onClick:'selectBag(\'book\','+realIdx+')', sel:(INSPECT&&INSPECT.kind==='book'&&INSPECT.uid===realIdx) }); });
+        bagHtml+=invCell({ icon:bookBadgeSVG(b.skill,52), name:def.name, color:(SKILL_TIER_COLOR&&SKILL_TIER_COLOR[def.tier||'base'])||'#cfd8e2', title:b.name+(lv?('\n已学 '+lv+' 级'):''), count:(lv?lv+1:1), onClick:'selectBag(\'book\','+realIdx+')', sel:(INSPECT&&INSPECT.kind==='book'&&INSPECT.uid===realIdx) }); });
     } else {
-      flasks.forEach(f=>{ bagHtml+=invCell({ icon:flaskIconSVG(f.kind,30), name:f.name, color:FLASK_KINDS[f.kind].color, title:esc(flaskDesc(f)), onClick:'selectBag(\'flask\','+f.uid+')', sel:(INSPECT&&INSPECT.kind==='flask'&&INSPECT.uid===f.uid) }); });
+      flasks.forEach(f=>{ bagHtml+=invCell({ icon:flaskIconSVG(f.kind,38), name:f.name, color:FLASK_KINDS[f.kind].color, title:esc(flaskDesc(f)), onClick:'selectBag(\'flask\','+f.uid+')', sel:(INSPECT&&INSPECT.kind==='flask'&&INSPECT.uid===f.uid) }); });
     }
     const shown=(bagCat==='equip'?equips.length:(bagCat==='book'?books.length:flasks.length));
     let pad=(5-(shown%5))%5; if(pad===0&&shown>0) pad=5;
@@ -4791,32 +4954,82 @@ function filterItems(q){
 function tabSkills(){
   const p=G.player;
   const learned=Object.keys(p.skills);
-  const strSk=learned.filter(id=>SKILLS[id]?.attr==='str');
-  const agiSk=learned.filter(id=>SKILLS[id]?.attr==='agi');
-  const intSk=learned.filter(id=>SKILLS[id]?.attr==='int');
-  const otherSk=learned.filter(id=>!SKILLS[id]?.attr);
+  const es=G.player.equippedSkills||[], ea=G.player.equippedAuras||[];
 
   let html='';
 
+  /* 已装备技能栏 */
+  html+='<div style="margin-bottom:16px;padding:12px;background:var(--panel2);border-radius:8px;border:1px solid var(--line)">';
+  html+='<div style="font-size:13px;font-weight:600;color:var(--gold-soft);margin-bottom:8px;">⚔️ 已装备主动技能（5槽）</div>';
+  for(let i=0;i<5;i++){
+    const id=es[i];
+    if(id){
+      const def=SKILLS[id], lv=p.skills[id]||0;
+      const onCdColor='#e6443b', offCdColor='var(--dim)';
+      html+='<div style="display:flex;align-items:center;padding:6px 8px;margin:4px 0;background:var(--panel);border-radius:6px;gap:8px">'+
+        '<span style="font-size:18px;min-width:22px">'+(def.icon||'✨')+'</span>'+
+        '<span style="font-size:12px;font-weight:600;flex:1">'+def.name+'</span>'+
+        '<span style="font-size:10px;color:var(--dim)">CD '+def.cd+'回 · Lv'+lv+'</span>'+
+        '<button class="btn btn-sm" onclick="unequipSkill(\''+id+'\')" style="border-color:var(--crimson);color:var(--crimson)">卸下</button>'+
+        '</div>';
+    } else {
+      html+='<div style="color:var(--dim);font-size:11px;padding:4px 8px;text-align:center">槽位 '+(i+1)+' — 空</div>';
+    }
+  }
+  html+='<div style="font-size:13px;font-weight:600;color:var(--gold-soft);margin:12px 0 8px;">🌟 已装备光环（2槽）</div>';
+  for(let i=0;i<2;i++){
+    const id=ea[i];
+    if(id){
+      const def=SKILLS[id];
+      html+='<div style="display:flex;align-items:center;padding:6px 8px;margin:4px 0;background:var(--panel);border-radius:6px;gap:8px">'+
+        '<span style="font-size:18px;min-width:22px">'+(def.icon||'🌟')+'</span>'+
+        '<span style="font-size:12px;font-weight:600;flex:1">'+def.name+'</span>'+
+        '<span style="font-size:10px;color:var(--dim)">每级 +'+(def.val*100)+'% '+AURA_STAT_LABEL[def.auraStat]+'</span>'+
+        '<button class="btn btn-sm" onclick="unequipAura(\''+id+'\')" style="border-color:var(--crimson);color:var(--crimson)">卸下</button>'+
+        '</div>';
+    } else {
+      html+='<div style="color:var(--dim);font-size:11px;padding:4px 8px;text-align:center">光环槽 '+(i+1)+' — 空</div>';
+    }
+  }
+  html+='</div>';
+
   /* 力量技能 */
+  const strSk=learned.filter(id=>{const d=SKILLS[id];return d&&d.attr==='str';});
   if(strSk.length){
-    html+='<div style="margin-bottom:12px;"><div style="font-size:12px;font-weight:600;color:var(--str-color);margin-bottom:6px;font-size:15px;">'+svgIcon('str')+' 力量系</div>';
+    html+='<div style="margin-bottom:12px;"><div style="font-size:15px;font-weight:600;color:var(--str-color);margin-bottom:6px;">'+svgIcon('str')+' 力量系</div>';
     strSk.forEach(id=>html+=skillCardHTML(id));html+='</div>';
   }
-  /* 敏捷技能 */
+  const agiSk=learned.filter(id=>{const d=SKILLS[id];return d&&d.attr==='agi';});
   if(agiSk.length){
-    html+='<div style="margin-bottom:12px;"><div style="font-size:12px;font-weight:600;color:var(--agi-color);margin-bottom:6px;font-size:15px;">'+svgIcon('agi')+' 敏捷系</div>';
+    html+='<div style="margin-bottom:12px;"><div style="font-size:15px;font-weight:600;color:var(--agi-color);margin-bottom:6px;">'+svgIcon('agi')+' 敏捷系</div>';
     agiSk.forEach(id=>html+=skillCardHTML(id));html+='</div>';
   }
-  /* 智力技能 */
+  const intSk=learned.filter(id=>{const d=SKILLS[id];return d&&d.attr==='int';});
   if(intSk.length){
-    html+='<div style="margin-bottom:12px;"><div style="font-size:12px;font-weight:600;color:var(--int-color);margin-bottom:6px;font-size:15px;">'+svgIcon('int')+' 智力系</div>';
+    html+='<div style="margin-bottom:12px;"><div style="font-size:15px;font-weight:600;color:var(--int-color);margin-bottom:6px;">'+svgIcon('int')+' 智力系</div>';
     intSk.forEach(id=>html+=skillCardHTML(id));html+='</div>';
   }
-  /* 通用技能 */
+  const otherSk=learned.filter(id=>{const d=SKILLS[id];return d&&!d.attr&&d.type!=='aura';});
   if(otherSk.length){
-    html+='<div style="margin-bottom:12px;"><div style="font-size:12px;font-weight:600;color:var(--dim);margin-bottom:6px;">⚡ 通用</div>';
+    html+='<div style="margin-bottom:12px;"><div style="font-size:13px;font-weight:600;color:var(--dim);margin-bottom:6px;">⚡ 通用技</div>';
     otherSk.forEach(id=>html+=skillCardHTML(id));html+='</div>';
+  }
+  const auraSk=learned.filter(id=>{const d=SKILLS[id];return d&&d.type==='aura';});
+  if(auraSk.length){
+    html+='<div style="margin-bottom:12px;"><div style="font-size:13px;font-weight:600;color:var(--gold-soft);margin-bottom:6px;">🌟 光环</div>';
+    auraSk.forEach(id=>{
+      const def=SKILLS[id], lv=p.skills[id]||0;
+      const equipped=ea.indexOf(id)>=0;
+      html+='<div class="skill-card" style="border-left:3px solid #ffd66b">'+
+        '<div class="skill-icon">'+(def.icon||'🌟')+'</div>'+
+        '<div class="skill-info"><div class="skill-name" style="color:var(--gold-soft)">'+def.name+'</div>'+
+        '<div class="skill-desc">'+def.desc+'</div></div>'+
+        '<div class="skill-lv" style="background:#b8960a">'+lv+'级</div>'+
+        (equipped
+          ?'<button class="btn btn-sm" onclick="unequipAura(\''+id+'\')" style="border-color:var(--crimson);color:var(--crimson)">卸下</button>'
+          :'<button class="btn btn-sm btn-green" onclick="equipAura(\''+id+'\')">装备</button>')+
+        '</div>';
+    });html+='</div>';
   }
   if(!learned.length) html+='<p style="color:var(--dim);padding:20px;text-align:center;">尚未学会任何技能<br><span style="font-size:12px">打怪掉落技能书即可学习</span></p>';
 
@@ -4825,15 +5038,18 @@ function tabSkills(){
   html+='<h3 style="color:var(--gold-soft);font-size:14px;margin:16px 0 10px;">📖 技能书（使用升级，最高10级）</h3>';
   if(!books.length) html+='<p style="color:var(--dim)">背包中暂无技能书</p>';
   else books.forEach((b,idx)=>{
-    const realIdx=p.inventory.indexOf(b),def=SKILLS[b.skill];
+    const realIdx=p.inventory.indexOf(b),def=SKILLS[b.skill], req=skillReq(b.skill);
+    const canLearn=(p.str>=req.str&&p.agi>=req.agi&&p.int>=req.int);
+    const attrNeed=[];
+    if(req.str) attrNeed.push('力量'+req.str); if(req.agi) attrNeed.push('敏捷'+req.agi); if(req.int) attrNeed.push('智力'+req.int);
     html+='<div class="skill-card">'+
       '<div class="skill-icon">'+(def.icon||'📖')+'</div>'+
       '<div class="skill-info"><div class="skill-name">'+b.name+'</div>'+
-      '<div class="skill-desc">'+def.desc+'</div></div>'+
-      '<button class="skill-lv btn-purple" onclick="applyUseBook('+realIdx+')">'+(p.skills[b.skill]?'→'+(p.skills[b.skill]+1)+'级':'学习')+'</button>'+
+      (canLearn?'<div class="skill-desc">'+def.desc+'</div>':'<div class="skill-desc" style="color:var(--crimson)">⚠ 属性不足：需 '+attrNeed.join('、')+'</div>')+
+      '</div>'+
+      '<button class="skill-lv btn-purple" onclick="applyUseBook('+realIdx+')" '+(canLearn?'':'disabled style="opacity:0.4"')+'>'+(p.skills[b.skill]?'→'+(p.skills[b.skill]+1)+'级':'学习')+'</button>'+
     '</div>';
   });
-
   return html;
 }
 function skillCardHTML(id){
@@ -4841,22 +5057,30 @@ function skillCardHTML(id){
   const mult=(def.mult+(lv-1)*0.08).toFixed(2);
   const attrColor=def.attr?ATTRS[def.attr].color:'var(--gold-soft)';
   const wOk=skillWeaponOk(def);
+  const es=G.player.equippedSkills||[];
+  const equipped=es.indexOf(id)>=0;
+  const slotNum=equipped?es.indexOf(id)+1:0;
   const TIER_LABEL={base:'基础',mid:'中级',high:'高级',boss:'BOSS',aura:'光环'};
   const TIER_COLOR={base:'#9aa0a6',mid:'#4a9eff',high:'#ff9f3a',boss:'#b06bff',aura:'#ffd66b'};
   const tierTag=def.tier?' <span class="skill-tier" style="color:'+(TIER_COLOR[def.tier]||'#9aa0a6')+';border-color:'+(TIER_COLOR[def.tier]||'#9aa0a6')+'">'+TIER_LABEL[def.tier]+'</span>':'';
-  const reqLine = def.weapons
-    ? '<div style="font-size:10px;margin-top:3px;color:'+(wOk?'var(--dim)':'var(--crimson)')+'">'+
+  const reqLine=def.weapons
+    ?'<div style="font-size:10px;margin-top:3px;color:'+(wOk?'var(--dim)':'var(--crimson)')+'">'+
       (wOk?'✓ 武器要求: ':'⚠ 需装备: ')+weaponsLabel(def)+(wOk?'':'（当前不可用）')+'</div>'
-    : '';
+    :'';
   return '<div class="skill-card'+(def.weapons&&!wOk?' skill-locked':'')+'">'+
     '<div class="skill-icon">'+(def.icon||'✨')+'</div>'+
-    '<div class="skill-info"><div class="skill-name" style="color:'+attrColor+'">'+def.name+tierTag+'</div>'+
+    '<div class="skill-info"><div class="skill-name" style="color:'+attrColor+'">'+def.name+tierTag+
+    (equipped?' <span style="font-size:10px;color:'+attrColor+';border:1px solid '+attrColor+';border-radius:3px;padding:0 4px">已装备 #'+slotNum+'</span>':'')+
+    '</div>'+
     '<div class="skill-desc">'+def.desc+'</div>'+
     '<div style="font-size:10.5px;color:var(--dim);margin-top:2px;">倍率 '+mult+' · CD '+def.cd+'回'+
     (def.attr?' · '+ATTRS[def.attr].icon+' '+ATTRS[def.attr].name:'')+
-    (def.weapons?' · \u{1F5E1} '+weaponsLabel(def):'')+'</div>'+
+    (def.weapons?' · '+svgIcon('weapon')+' '+weaponsLabel(def):'')+'</div>'+
     reqLine+'</div>'+
     '<div class="skill-lv" style="background:'+attrColor+'">'+lv+'级</div>'+
+    (equipped
+      ?'<button class="btn btn-sm" onclick="unequipSkill(\''+id+'\')" style="border-color:var(--crimson);color:var(--crimson)">卸下</button>'
+      :'<button class="btn btn-sm btn-blue" onclick="equipSkill(\''+id+'\')" '+(wOk?'':'disabled style="opacity:0.4"')+'>装备</button>')+
   '</div>';
 }
 
@@ -4920,7 +5144,7 @@ function tabChar(){
       '</div>';
       if(!charCollapsed.has(slotKey)){
         equipHtml+='<div class="char-equip-detail">'+
-          '<div class="inspect-head" style="margin-bottom:8px;"><div class="inspect-icon">'+itemBadgeSVG(it,40)+'</div>'+
+          '<div class="inspect-head" style="margin-bottom:8px;"><div class="inspect-icon">'+itemBadgeSVG(it,52)+'</div>'+
           '<div><div class="inspect-name" style="color:'+ro.color+'">'+esc(it.name)+'</div>'+
           '<div class="inspect-sub">'+slInfo.name+' · '+ro.name+'</div></div></div>'+
           inspectBody(it)+
@@ -5233,6 +5457,45 @@ function buffBarHTML(u){
 }
 
 /* ==================== 战斗屏渲染（多敌双栏） ==================== */
+function renderSkillBar(b){
+  const p=b.player, es=G.player.equippedSkills||[], ea=G.player.equippedAuras||[];
+  let html='<div class="skill-bar">';
+  /* 5 主动技能 */
+  for(let i=0;i<5;i++){
+    const id=es[i];
+    if(id){
+      const def=SKILLS[id];
+      const sk=p.skills?p.skills.find(function(s){return s.id===id;}):null;
+      const cd=sk?sk.cd:0, cdBase=sk?(sk.cdBase||def.cd):def.cd;
+      const cdPct=cd>0?Math.round(cd/cdBase*360):0;
+      html+='<div class="skill-slot" title="'+def.name+' Lv'+(sk?sk.lv:0)+' CD'+def.cd+'回→'+(sk?sk.cd:0)+'">'+
+        (def.icon||'✨')+
+        (cd>0?'<div class="cd-ring active" style="--cd-pct:'+cdPct+'deg"></div>':'')+
+        (cd>0?'<div class="cd-text">'+cd+'</div>':'')+
+      '</div>';
+    } else {
+      html+='<div class="skill-slot empty" title="空槽位"></div>';
+    }
+  }
+  /* 分隔 */
+  html+='<div style="width:2px;height:30px;background:var(--line);margin:0 4px;flex-shrink:0"></div>';
+  /* 2 光环 */
+  for(let i=0;i<2;i++){
+    const id=ea[i];
+    if(id){
+      const def=SKILLS[id];
+      html+='<div class="skill-slot aura" title="'+def.name+'（光环·常驻生效）">'+
+        (def.icon||'🌟')+
+        '<div class="aura-ring"></div>'+
+      '</div>';
+    } else {
+      html+='<div class="skill-slot empty aura" title="空光环槽"></div>';
+    }
+  }
+  html+='</div>';
+  return html;
+}
+
 function renderBattleScreen(){
   const b=G.battle;if(!b)return;
   const p=b.player;
@@ -5292,8 +5555,11 @@ function renderBattleScreen(){
   '</div>';
 
   let partyHtml='';
+  /* 技能栏：5主动 + 2光环，带CD转圈 */
+  const skBarHtml=renderSkillBar(b);
   document.getElementById('battleBody').innerHTML =
-    partyHtml+playerHtml+'<div class="vs-mark">VS</div>'+'<div class="enemy-group">'+enemyGroup+'</div>';
+    partyHtml+playerHtml+'<div class="vs-mark">VS</div>'+'<div class="enemy-group">'+enemyGroup+'</div>'+
+    '<div style="margin-top:12px">'+skBarHtml+'</div>';
 
   /* 日志 */
   const logEl=document.getElementById('battleLog');
