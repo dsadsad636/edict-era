@@ -2686,13 +2686,7 @@ const MON_FEATURES = {
   }
 };
 
-function monsterSVG(def, px){
-  const sz=px?px+'px':'1em';
-  /* 优先用图片资源（assets/monsters/{key}.png） */
-  if(def && def.img){
-    return '<img class="mon-img" src="'+def.img+'" alt="'+esc(def.name||'')+'" style="width:'+sz+';height:'+sz+';object-fit:contain;">';
-  }
-  /* 回退到程序化 SVG（兼容旧数据） */
+function monsterSVGInner(def, sz){
   const a=(def&&def.art)||{};
   const c1=a.c1||'#6b7a5a', c2=a.c2||'#3e4a30', eye=a.eye||'#ffd24a';
   const body=MON_BODIES[a.body]||MON_BODIES.beast_quad;
@@ -2700,6 +2694,18 @@ function monsterSVG(def, px){
   const feat2=(a.feature2&&MON_FEATURES[a.feature2])?MON_FEATURES[a.feature2]:MON_FEATURES.none;
   let inner=body(c1,c2,eye)+feat(c1,c2,eye)+feat2(c1,c2,eye);
   return '<svg viewBox="0 0 24 24" width="'+sz+'" height="'+sz+'" style="vertical-align:middle;">'+inner+'</svg>';
+}
+function monsterSVGFallback(key, sz){
+  return monsterSVGInner(MONSTERS[key]||null, sz||'1em');
+}
+function monsterSVG(def, px){
+  const sz=px?px+'px':'1em';
+  /* 优先用图片资源：显式 img，或按 key 自动推导 assets/monsters/{key}.png；加载失败回落程序化 SVG，杜绝破图 */
+  const img = (def && def.img) || (def && def.key ? 'assets/monsters/'+def.key+'.png' : null);
+  if(img){
+    return '<img class="mon-img" src="'+img+'" alt="'+esc(def.name||'')+'" data-key="'+(def.key||'')+'" data-sz="'+sz+'" style="width:'+sz+';height:'+sz+';object-fit:contain;" onerror="this.onerror=null;this.insertAdjacentHTML(\'afterend\', monsterSVGFallback(this.getAttribute(\'data-key\'), this.getAttribute(\'data-sz\'))); this.remove();">';
+  }
+  return monsterSVGInner(def, sz);
 }
 
 /* 怪物 — 敕造纪元生态（3 张地图 / 每图 ≥7 种普通怪 + 精英 + BOSS） */
@@ -2822,7 +2828,7 @@ const MONSTERS = {
   the_first_edict: mkMon({name:'初敕·万物之名', emoji:'👑', hp:8400, atk:330, def:165, spd:48, crit:0.35, boss:true, family:'primordial', art:{body:'arcane_weave', feature:'crown', feature2:'runes_orbit', c1:'#ffffff', c2:'#8a8270', eye:'#b5342f'}}),
 };
 /* Boss 掉落改为 key 直传：为每条怪物定义回填自身 key，避免 10 Boss 后按名字匹配取错（T4 §6） */
-Object.keys(MONSTERS).forEach(function(k){ MONSTERS[k].key = k; });
+Object.keys(MONSTERS).forEach(function(k){ var m=MONSTERS[k]; m.key=k; if(!m.img) m.img='assets/monsters/'+k+'.png'; });
 /* ==================== 怪物技能池（独立于玩家 SKILLS） ====================
    小怪：基础技（1 种，简单直接）
    精英：精英技（2~3 种，带控制/增益/持续伤害）
