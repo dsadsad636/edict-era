@@ -1002,6 +1002,11 @@ body{
 /* 锻造铺 - 修理按钮 */
 .repair-btn{background:linear-gradient(180deg,#8e9aab,#5a687a);color:#fff;border:none;padding:8px 18px;border-radius:8px;cursor:pointer;font-size:13px;margin-top:8px;transition:.15s;}
 .repair-btn:hover{filter:brightness(1.1);}
+/* 管理员调试面板 */
+.debug-panel{display:none;position:fixed;top:80px;right:12px;z-index:99;width:200px;background:rgba(14,16,26,.95);border:1px solid var(--gold);border-radius:10px;padding:12px;font-size:11px;box-shadow:0 4px 20px rgba(0,0,0,.6);}
+.debug-panel h4{color:var(--gold);margin:0 0 8px;font-size:13px;}
+.debug-btn{display:block;width:100%;margin:3px 0;padding:5px 8px;background:var(--panel3);border:1px solid var(--line);border-radius:5px;color:var(--ink);cursor:pointer;text-align:left;font-size:11px;}
+.debug-btn:hover{border-color:var(--gold);color:var(--gold-soft);}
 </style>
 </head>
 <body>
@@ -6251,6 +6256,39 @@ function forgeTutorialMaybe(){
 /* 窗口resize时重新定位遮罩 */
 window.addEventListener('resize',function(){ if(_tutActive) tutorialRender(); });
 
+/* ==================== 管理员调试面板（F2 开关） ==================== */
+let _dbgVisible = false;
+function dbgToggle(){
+  _dbgVisible = !_dbgVisible;
+  const el = document.getElementById('debugPanel');
+  if(el) el.style.display = _dbgVisible ? 'block' : 'none';
+}
+document.addEventListener('keydown', function(e){ if(e.key==='F2'){ e.preventDefault(); dbgToggle(); } });
+
+function dbgCmd(cmd, val){
+  if(!G || !G.player) return;
+  switch(cmd){
+    case 'gold': G.player.gold += (val||10000); toast('💰 金币 +'+(val||10000)); break;
+    case 'level': G.player.level = Math.min(MAX_LEVEL, Math.max(1, val||10)); G.player.exp=0; G.player.attrPoints += (val||10)*2; G.player.hp=totalStats().hp; toast('📈 等级设为 ' + G.player.level); break;
+    case 'mats': const m=G.player.materials; m.common+=50; m.refined+=30; m.blue+=20; m.purple+=10; m.orange+=5; toast('🔧 材料 +50/30/20/10/5'); break;
+    case 'unlock': G.unlocked = Math.min(MAPS.length-1, G.unlocked+1); toast('🗺 解锁至地图 ' + G.unlocked); break;
+    case 'godmode': G.player.hp=999999; G.player.maxHp=999999; toast('👑 无敌模式'); break;
+    case 'clearInv': G.player.inventory=[]; G.player.runes=[]; toast('🗑 清空背包'); break;
+    case 'respec': G.player.str=10; G.player.agi=10; G.player.con=10; G.player.int=10; G.player.spi=10; G.player.attrPoints=G.player.level*3; toast('🔄 属性已重置'); break;
+  }
+  renderAll();
+}
 
 </script>
+<div class="debug-panel" id="debugPanel">
+  <h4>🛠 调试面板</h4>
+  <button class="debug-btn" onclick="dbgCmd('gold')">💰 金币 +10000</button>
+  <button class="debug-btn" onclick="var l=prompt('等级(1-60)','30');if(l)dbgCmd('level',parseInt(l))">📈 设置等级</button>
+  <button class="debug-btn" onclick="dbgCmd('mats')">🔧 全部材料+</button>
+  <button class="debug-btn" onclick="dbgCmd('unlock')">🗺 解锁下一地图</button>
+  <button class="debug-btn" onclick="dbgCmd('godmode')">👑 无敌模式</button>
+  <button class="debug-btn" onclick="dbgCmd('respec')">🔄 重置属性</button>
+  <button class="debug-btn" onclick="dbgCmd('clearInv')">🗑 清空背包</button>
+  <div style="color:var(--dim);margin-top:6px;font-size:10px;">按 F2 开关面板</div>
+</div>
 <div id="floatLog" class="float-log"><div class="fl-head"><span>战斗日志</span><div class="fl-btns"><button class="fl-btn fl-min" onclick="floatLogToggle()">-</button></div></div><div class="fl-body" id="flBody"></div></div>
