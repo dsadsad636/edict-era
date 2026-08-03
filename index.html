@@ -3004,12 +3004,12 @@ function totalStats(){
     if(it.base) ATTR_KEYS.forEach(function(k){ if(typeof it.base[k]==='number') add[k]+=it.base[k]; });
   }
 
-  /* 五主属性 = 基础 + 升级成长（每级 +2）+ 装备加成
-     注：mythicStr/mythicHp 已按 GDD 05b §6 废弃（未录不再跨战斗永久叠加），此处不再读取 */
-  const totalStr = p.str + lv*2 + add.str;
-  const totalAgi = p.agi + lv*2 + add.agi;
-  const totalCon = (p.con||0) + lv*2 + add.con;
-  const totalInt = p.int + lv*2 + add.int;
+  /* 五主属性 = 基础 + 装备加成（无自动成长，纯靠手动分配） */
+  const totalStr = p.str + add.str;
+  const totalAgi = p.agi + add.agi;
+  const totalCon = (p.con||0) + add.con;
+  const totalInt = p.int + add.int;
+  const totalSpi = (p.spi||0) + add.spi;
   const totalSpi = (p.spi||0) + lv*2 + add.spi;
 
   /* 次级属性核心值（按五属性公式推导） */
@@ -4656,14 +4656,13 @@ if(INSPECT.kind==='worn'){
   return '';
 }
 function allocAttr(attr){
-  if(G.player.allocLocked){toast('属性已锁定，需回溯石或等级<30重置');return;}
   if(G.player.attrPoints<=0){toast('没有可分配的属性点');return;}
   G.player.attrPoints--;
   G.player.pendingPts[attr]=(G.player.pendingPts[attr]||0)+1;
   renderAll();
 }
 function undoAlloc(attr){
-  if(G.player.allocLocked) return;
+  if(G.player.allocLocked){toast('已确认锁定，不可减少。升级增加仍可继续');return;}
   if((G.player.pendingPts[attr]||0)<=0) return;
   G.player.pendingPts[attr]--;
   G.player.attrPoints++;
@@ -4674,9 +4673,10 @@ function confirmAlloc(){
   var total=pp.str+pp.agi+pp.con+pp.int+pp.spi;
   if(total<=0){toast('没有待确认的分配');return;}
   G.player.str+=pp.str; G.player.agi+=pp.agi; G.player.con+=pp.con; G.player.int+=pp.int; G.player.spi+=pp.spi;
-  G.player.allocLocked=true;
   pp.str=pp.agi=pp.con=pp.int=pp.spi=0;
-  toast('✅ 属性已确认锁定');
+  G.player.allocLocked=true;
+  G.player.attrPoints+=total; /* 点数保留，只锁减不减增 */
+  toast('✅ 已确认分配 '+total+' 点（可继续加，不可减）');
   save();renderAll();
 }
 function resetAlloc(){
