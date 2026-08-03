@@ -1007,6 +1007,10 @@ body{
 .debug-panel h4{color:var(--gold);margin:0 0 8px;font-size:13px;}
 .debug-btn{display:block;width:100%;margin:3px 0;padding:5px 8px;background:var(--panel3);border:1px solid var(--line);border-radius:5px;color:var(--ink);cursor:pointer;text-align:left;font-size:11px;}
 .debug-btn:hover{border-color:var(--gold);color:var(--gold-soft);}
+.attr-btn{width:20px;height:20px;border-radius:5px;border:1px solid var(--line);background:var(--panel3);color:var(--ink);cursor:pointer;font-weight:700;font-size:12px;text-align:center;line-height:18px;margin:0 2px;}
+.attr-btn-plus:hover{border-color:var(--green);color:var(--green);}
+.attr-btn-minus:hover{border-color:var(--crimson);color:var(--crimson);}
+.btn-gold{background:linear-gradient(135deg,#c9a227,#8b6914);color:#fff;border:none;}
 </style>
 </head>
 <body>
@@ -2926,6 +2930,7 @@ function newGame(charName, originKey){
       /* 五主属性 */
       str:10, agi:10, con:10, int:10, spi:10,
       attrPoints:0, /* 升级获得的可分配点数 */
+      allocLocked:false, pendingPts:{str:0,agi:0,con:0,int:0,spi:0}, /* 属性加点锁 & 待确认*/
       /* 基础次级属性（受五属性加成，具体由 totalStats 公式计算） */
       base:{hp:0, def:0, crit:0.02}, hp:200, mp:100,
       equip:{weapon:null, head:null, armor:null, hands:null, feet:null, ring:null, amulet:null},
@@ -4651,9 +4656,53 @@ if(INSPECT.kind==='worn'){
   return '';
 }
 function allocAttr(attr){
+  if(G.player.allocLocked){toast('属性已锁定，需回溯石或等级<30重置');return;}
   if(G.player.attrPoints<=0){toast('没有可分配的属性点');return;}
-  G.player[attr]++;
   G.player.attrPoints--;
+  G.player.pendingPts[attr]=(G.player.pendingPts[attr]||0)+1;
+  renderAll();
+}
+function undoAlloc(attr){
+  if(G.player.allocLocked) return;
+  if((G.player.pendingPts[attr]||0)<=0) return;
+  G.player.pendingPts[attr]--;
+  G.player.attrPoints++;
+  renderAll();
+}
+function confirmAlloc(){
+  const pp=G.player.pendingPts;
+  var total=pp.str+pp.agi+pp.con+pp.int+pp.spi;
+  if(total<=0){toast('没有待确认的分配');return;}
+  G.player.str+=pp.str; G.player.agi+=pp.agi; G.player.con+=pp.con; G.player.int+=pp.int; G.player.spi+=pp.spi;
+  G.player.allocLocked=true;
+  pp.str=pp.agi=pp.con=pp.int=pp.spi=0;
+  toast('✅ 属性已确认锁定');
+  save();renderAll();
+}
+function resetAlloc(){
+  if(!G.player.allocLocked){toast('属性尚未确认锁定');return;}
+  if(G.player.level>=30){
+    var idx=G.player.inventory.findIndex(function(i){return i.type==='respecStone';});
+    if(idx<0){toast('需要回溯石（商店购买）');return;}
+    G.player.inventory.splice(idx,1);
+    /* 退回5点到attrPoints */
+    var returned=0;
+    ['str','agi','con','int','spi'].forEach(function(k){
+      var take=Math.min(5-returned, G.player[k]-10);
+      if(take>0){ G.player[k]-=take; returned+=take; }
+    });
+    G.player.attrPoints+=returned;
+    G.player.allocLocked=false;
+    toast('退回 '+returned+' 属性点（回溯石-1）');
+  } else {
+    var oldStr=G.player.str,oldAgi=G.player.agi,oldCon=G.player.con,oldInt=G.player.int,oldSpi=G.player.spi;
+    G.player.str=10;G.player.agi=10;G.player.con=10;G.player.int=10;G.player.spi=10;
+    var back=(oldStr+oldAgi+oldCon+oldInt+oldSpi)-50;
+    G.player.attrPoints+=back;
+    G.player.allocLocked=false;
+    toast('🔄 已重置，退回 '+back+' 属性点（Lv30前免费）');
+  }
+  G.player.pendingPts={str:0,agi:0,con:0,int:0,spi:0};
   save();renderAll();
 }
 function healFull(){const s=totalStats();G.player.hp=s.hp;G.player.mp=Math.round(s.mp);save();renderAll();toast('生命与法力已恢复');}
@@ -4672,6 +4721,11 @@ function shopBuy(type){
     if(G.player.gold<150){toast('金币不足');return;}
     G.player.gold-=150;G.consumables.incense=(G.consumables.incense||0)+1;
     pushLog('sys','🛒 购入引魂香（持有 '+(G.consumables.incense)+' 个）');
+  } else if(type==='respecStone'){
+    if(G.player.gold<3000){toast('金币不足（需3000）');return;}
+    G.player.gold-=3000;
+    G.player.inventory.push({uid:itemUid++,type:'respecStone',name:'回溯石',emoji:'🔄'});
+    pushLog('sys','🔄 购入回溯石',{color:'#c9a227'});
   }
   save();renderAll();
 }
@@ -4974,6 +5028,8 @@ function applyCompat(){
   const _hadPerm = (G.player.mythicStr>0) || (G.player.mythicHp>0);
   G.player.mythicStr=0; G.player.mythicHp=0;
   if(typeof G.player._godMode!=='boolean') G.player._godMode=false;
+  if(typeof G.player.allocLocked==='undefined') G.player.allocLocked=false;
+  if(!G.player.pendingPts) G.player.pendingPts={str:0,agi:0,con:0,int:0,spi:0};
   if(_hadPerm){
     try{ pushLog('sys','⚙️ 未录已依新律重铸：整局永久力量/生命已回收，改为战斗内层数机制（锻痕 / 缚龙）。',
       {hl:true, color:'#e6443b'}); }catch(e){}
@@ -5463,19 +5519,40 @@ function tabCharStats(){
   '</div>';
 
   /* --- \u4e94\u4e3b\u5c5e\u6027 --- */
-  html+='<div class="cs-section"><div class="cs-sectitle">\u25b8 \u4e3b\u5c5e\u6027</div>';
+  var pts=p.attrPoints||0, locked=p.allocLocked, pp=p.pendingPts||{};
+  var pendingTotal=(pp.str||0)+(pp.agi||0)+(pp.con||0)+(pp.int||0)+(pp.spi||0);
+  html+='<div class="cs-section"><div class="cs-sectitle">\u25b8 \u4e3b\u5c5e\u6027'+
+    (pts>0||pendingTotal>0?' <span style="color:var(--gold-soft);font-weight:700;">\ud83d\udccc '+(pendingTotal>0?'\u23f3 '+pendingTotal+' \u5f85\u786e\u8ba4':pts+' \u672a\u5206\u914d')+'</span>':'')+
+    (locked?' <span style="color:var(--dim);">\ud83d\udd12 \u5df2\u9501\u5b9a</span>':'')+
+    '</div>';
   ['str','agi','con','int','spi'].forEach(function(key){
     var a=ATTRS[key], base=p[key]||0, total=s[key], bonus=total-base;
     var maxShow=50+p.level*5, pct=Math.min(100,total/maxShow*100);
+    var pend=(pp&&pp[key])||0;
     html+='<div class="cs-row">'+
       '<span class="cs-icon" style="color:'+a.color+'">'+a.icon+'</span>'+
       '<span class="cs-label">'+a.name+'</span>'+
       '<span class="cs-base">'+base+'</span>'+
       (bonus>0?'<span class="cs-bonus">+'+bonus+'</span>':'')+
-      '<span class="cs-total">'+total+'</span>'+
-      '<div class="cs-bar"><div class="cs-fill" style="width:'+pct+'%;background:'+a.color+'"></div></div>'+
+      '<span class="cs-total">'+total+'</span>';
+    if(!locked&&pts>0){
+      html+='<button class="attr-btn attr-btn-plus" onclick="allocAttr(\''+key+'\')">+</button>';
+      if(pend>0) html+='<span style="color:var(--gold-soft);font-size:11px;margin:0 2px;">+'+pend+'</span>';
+    }
+    if(!locked&&pend>0){
+      html+='<button class="attr-btn attr-btn-minus" onclick="undoAlloc(\''+key+'\')">\u2212</button>';
+    }
+    html+='<div class="cs-bar"><div class="cs-fill" style="width:'+pct+'%;background:'+a.color+'"></div></div>'+
     '</div>';
   });
+  if(!locked&&pendingTotal>0){
+    html+='<div style="text-align:center;margin-top:10px;">'+
+      '<button class="btn btn-gold" onclick="confirmAlloc()" style="padding:8px 24px;font-size:14px;">\u2705 \u786e\u8ba4\u5206\u914d '+pendingTotal+' \u70b9</button></div>';
+  }
+  if(locked){
+    html+='<div style="text-align:center;margin-top:10px;">'+
+      '<button class="btn" onclick="resetAlloc()" style="padding:6px 16px;font-size:12px;">'+(p.level<30?'\ud83c\udd93 \u514d\u8d39\u91cd\u7f6e':'\ud83d\udd04 \u56de\u6eaf\u77f3\u91cd\u7f6e\uff085\u70b9/\u9897\uff09')+'</button></div>';
+  }
   html+='</div>';
 
   /* --- \u6218\u6597\u5c5e\u6027 --- */
@@ -5610,6 +5687,11 @@ function tabShop(){
       '<div class="shop-desc">战斗中装备磨损≥50%时自动使用，修25%全身磨损。持有 '+(G.player.whetstones||0)+' 个</div></div>'+
       '<div class="shop-price">25 💰</div>'+
       '<button class="btn btn-sm" onclick="if(G.player.whetstones==null)G.player.whetstones=0;if(G.player.gold<25){toast(\'金币不足\');return;}G.player.gold-=25;G.player.whetstones++;toast(\'购买了打磨石\\n持有\\'+G.player.whetstones+'\');save();renderContent()">购买</button></div>'+
+    '<div class="shop-card"><div class="shop-icon">🔄</div>'+
+      '<div class="shop-info"><div class="shop-name">回溯石</div>'+
+      '<div class="shop-desc">使用后可退回 5 点已锁定属性（Lv30+）。持有 '+(G.player.inventory.filter(function(i){return i.type==='respecStone';}).length)+' 个</div></div>'+
+      '<div class="shop-price">3000 💰</div>'+
+      '<button class="btn btn-sm" onclick="shopBuy(\'respecStone\')">购买</button></div>'+
     '<div class="shop-card" style="flex-direction:column;align-items:stretch;margin-top:12px;">'+
       '<div class="shop-name" style="margin-bottom:8px;">📤 装备回收（按颜色一键出售）</div>'+
       '<div class="rar-chips">'+
