@@ -1,4 +1,5 @@
-<!DOCTYPE html>
+<!DOCTYP
+<div id="floatLog" class="float-log"><div class="fl-head"><span>战斗日志</span><div class="fl-btns"><button class="fl-btn fl-min" onclick="floatLogToggle()">-</button></div></div><div class="fl-body" id="flBody"></div></div>E html>
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
@@ -30,8 +31,8 @@ body{
     radial-gradient(1px 1px at 95% 55%, rgba(69,217,142,.3) 0, transparent 100%),
     radial-gradient(600px 400px at 50% -10%, #15182a 0%, var(--bg) 70%);
 }
-#app{display:grid; height:100vh; grid-template-columns:220px 1fr 300px; grid-template-rows:auto 1fr 248px;
-  grid-template-areas:"topbar topbar topbar" "left center right" "chat chat chat";}
+#app{display:grid; height:100vh; grid-template-columns:220px 1fr 300px; grid-template-rows:auto 1fr;
+  grid-template-areas:"topbar topbar topbar" "left center right";}
 
 /* ==================== 顶栏 ==================== */
 #topbar{
@@ -52,18 +53,27 @@ body{
 
 /* 按钮通用 */
 .btn{
-  background:var(--panel2); color:var(--ink); border:1px solid var(--line);
-  padding:6px 14px; border-radius:6px; cursor:pointer; font-size:12.5px;
-  transition:.15s; user-select:none;
+  background:linear-gradient(180deg, var(--panel2) 0%, var(--panel) 100%); color:var(--ink);
+  border:1px solid var(--line); padding:7px 16px; border-radius:8px;
+  cursor:pointer; font-size:13px; letter-spacing:.5px;
+  transition:all .15s; user-select:none; position:relative;
 }
-.btn:hover{border-color:var(--gold); color:var(--gold-soft);}
-.btn.on{background:linear-gradient(135deg,#c9a227,#a07d1a); color:#1a1408; border-color:var(--gold); font-weight:600;}
-.btn.danger:hover{border-color:var(--crimson); color:var(--crimson);}
-.btn-sm{padding:3px 10px; font-size:11.5px;}
-.btn-red{background:linear-gradient(135deg,#c0392b,#96281b); color:#fff; border:none;}
-.btn-blue{background:linear-gradient(135deg,#2980b9,#1a5276); color:#fff; border:none;}
-.btn-purple{background:linear-gradient(135deg,#8e44ad,#6c3483); color:#fff; border:none;}
-.btn-green{background:linear-gradient(135deg,#27ae60,#1e8449); color:#fff; border:none;}
+.btn::after{
+  content:''; position:absolute; inset:1px 1px auto 1px; height:1px;
+  background:linear-gradient(90deg, transparent, rgba(255,255,255,.08), transparent);
+  border-radius:6px 6px 0 0; pointer-events:none;
+}
+.btn:hover{border-color:var(--gold); color:var(--gold-soft); transform:translateY(-1px); box-shadow:0 3px 12px rgba(0,0,0,.3);}
+.btn:active{transform:translateY(0);}
+.btn.on{background:linear-gradient(180deg,#d4a82a,#a07818); color:#1a1208; border-color:#e8c840; font-weight:700; box-shadow:0 2px 10px rgba(201,162,39,.25);}
+.btn.on::after{background:linear-gradient(90deg, transparent, rgba(255,255,255,.15), transparent);}
+.btn.danger{background:rgba(192,57,43,.12); border-color:rgba(192,57,43,.35); color:var(--crimson);}
+.btn.danger:hover{background:rgba(192,57,43,.22); border-color:var(--crimson); color:#ff7060;}
+.btn-sm{padding:4px 12px; font-size:12px; border-radius:6px;}
+.btn-red{background:linear-gradient(180deg,#c0392b,#96281b); color:#fff; border:none; box-shadow:0 2px 8px rgba(192,57,43,.3);}
+.btn-blue{background:linear-gradient(180deg,#2980b9,#1a5276); color:#fff; border:none; box-shadow:0 2px 8px rgba(41,128,185,.3);}
+.btn-purple{background:linear-gradient(180deg,#8e44ad,#6c3483); color:#fff; border:none; box-shadow:0 2px 8px rgba(142,68,173,.3);}
+.btn-green{background:linear-gradient(180deg,#27ae60,#1e8449); color:#fff; border:none; box-shadow:0 2px 8px rgba(39,174,96,.3);}
 
 /* ==================== 主区（三栏布局） ==================== */
 #main{display:contents;}
@@ -71,9 +81,9 @@ body{
 #sidebarLeft{grid-area:left;}
 #centerArea{grid-area:center; min-height:0;}
 #sidebarRight{grid-area:right;}
-#chatDock{grid-area:chat; display:flex; min-height:0; border-top:1px solid var(--line); background:rgba(14,16,26,.97); overflow:hidden;}
-#app.battle-mode{grid-template-columns:1fr; grid-template-rows:auto 1fr 248px; grid-template-areas:"topbar" "center" "chat";}
-#app.battle-mode #sidebarLeft,#app.battle-mode #sidebarRight{display:none;}
+#chatDock{display:none;}
+#app.battle-mode{grid-template-columns:1fr; grid-template-rows:auto 1fr; grid-template-areas:"topbar" "center";}
+#app.battle-mode #sidebarLeft,#app.battle-mode #sidebarRight,#app.battle-mode #chatDock{display:none;}
 
 /* ---- 侧边栏（左/右通用） ---- */
 .sidebar{
@@ -302,17 +312,17 @@ body{
 /* 技能书卡片 */
 .book-card{border-left:3px solid var(--purple);}
 
-/* 背包分格（方形格子：固定4列，图标大、辨识清晰） */
-.inv-grid{display:grid; grid-template-columns:repeat(4, 1fr); gap:6px; margin-bottom:14px;}
+/* 背包分格（紧凑方格） */
+.inv-grid{display:grid; grid-template-columns:repeat(5, 1fr); gap:4px; margin-bottom:14px;}
 .inv-cell{
   position:relative; aspect-ratio:1/1; background:var(--panel3);
-  border:1px solid var(--line); border-radius:10px;
+  border:1px solid var(--line); border-radius:8px;
   display:flex; flex-direction:column; align-items:center; justify-content:center;
-  padding:6px; cursor:pointer; transition:.15s; overflow:hidden;
+  padding:3px; cursor:pointer; transition:.15s; overflow:hidden;
 }
 .inv-cell:hover{border-color:var(--gold); transform:translateY(-2px); box-shadow:0 4px 12px rgba(0,0,0,.45); background:var(--panel2);}
-.inv-cell .cell-icon{width:48px; height:48px; display:flex; align-items:center; justify-content:center; flex-shrink:0; line-height:1;}
-.inv-cell .cell-name{font-size:10px; font-weight:600; color:var(--ink); max-width:100%; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-top:4px; line-height:1.2;}
+.inv-cell .cell-icon{width:100%; height:auto; max-height:70%; display:flex; align-items:center; justify-content:center; flex-shrink:1; line-height:1;}
+.inv-cell .cell-name{font-size:9.5px; font-weight:600; color:var(--ink); max-width:100%; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-top:2px; line-height:1.2;}
 .inv-cell .cell-q{position:absolute; top:3px; left:5px; font-size:9px; color:var(--dim); pointer-events:none;}
 .inv-cell .cell-count{position:absolute; bottom:3px; right:4px; background:var(--crimson); color:#fff; font-size:10px; font-weight:700; min-width:16px; height:16px; line-height:16px; border-radius:8px; padding:0 4px;}
 .inv-cell.empty{opacity:.32; cursor:default; border-style:dashed;}
@@ -384,61 +394,76 @@ body{
   display:flex; flex-direction:column; height:100%; position:relative;
 }
 .battle-nav{
-  display:flex; gap:4px; padding:8px 16px 0; background:rgba(14,16,26,.85);
-  border-bottom:1px solid var(--line);
+  display:flex; gap:6px; padding:10px 18px 0; background:rgba(12,16,26,.9);
+  border-bottom:1px solid rgba(180,160,120,.12);
 }
 .battle-nav-btn{
-  padding:7px 16px; font-size:13px; cursor:pointer; color:var(--dim);
-  border:1px solid transparent; border-bottom:none; border-radius:8px 8px 0 0;
-  background:none; transition:.15s;
+  padding:9px 18px; font-size:13px; cursor:pointer; color:var(--dim);
+  border:1px solid transparent; border-bottom:none; border-radius:10px 10px 0 0;
+  background:none; transition:all .2s; letter-spacing:.5px;
 }
-.battle-nav-btn.active{color:var(--gold-soft); background:var(--panel2); border-color:var(--line); font-weight:600;}
-.battle-body{flex:1; display:flex; align-items:center; justify-content:center; gap:32px; padding:20px 24px; overflow:auto;}
+.battle-nav-btn:hover{color:var(--ink); background:rgba(255,255,255,.04);}
+.battle-nav-btn.active{color:var(--gold-soft); background:linear-gradient(180deg, rgba(201,162,39,.12), transparent); border-color:rgba(201,162,39,.25); font-weight:600; box-shadow:0 -2px 8px rgba(201,162,39,.08);}
+.battle-body{flex:1; display:flex; align-items:center; justify-content:center; gap:32px; padding:20px 24px 56px; overflow:auto; position:relative;}
+.battle-skillbar-wrap{position:absolute; bottom:8px; right:14px; z-index:5;}
 
-/* ---- 战斗单位面板（卡片化） ---- */
+/* ---- 战斗单位面板（卡片化·精致金属边框） ---- */
 .fighter-panel{
-  width:252px; text-align:center; display:flex; flex-direction:column; align-items:center; gap:8px;
-  background:rgba(18,21,34,.82); border:1px solid var(--line); border-radius:16px;
-  padding:16px 14px 14px; box-shadow:0 10px 30px rgba(0,0,0,.38);
+  width:280px; text-align:center; display:flex; flex-direction:column; align-items:center; gap:10px;
+  background:linear-gradient(180deg, rgba(22,26,40,.92) 0%, rgba(16,20,34,.95) 100%);
+  border:1px solid rgba(180,160,120,.15); border-radius:18px;
+  padding:18px 16px 16px; box-shadow:0 12px 36px rgba(0,0,0,.5), inset 0 1px 0 rgba(255,255,255,.03);
 }
-.fighter-name{font-size:15px; font-weight:700; letter-spacing:1px;}
+.fighter-name{font-size:16px; font-weight:700; letter-spacing:1.5px;}
 .fighter-hp-bar{
-  width:100%; height:22px; background:#000; border-radius:11px; overflow:hidden;
+  width:100%; height:26px; background:#000; border-radius:13px; overflow:hidden;
   border:1px solid #333; position:relative;
 }
-.filler-hp{height:100%; transition:width .3s; border-radius:10px;}
-.hp-player{background:linear-gradient(90deg,#1a5276,#2980b9);}
-.hp-enemy{background:linear-gradient(90deg,#7b241c,#c0392b);}
+.fighter-hp-bar::after{
+  content:''; position:absolute; inset:2px 2px auto 2px; height:8px;
+  background:linear-gradient(180deg, rgba(255,255,255,.12), transparent);
+  border-radius:8px 8px 0 0; pointer-events:none;
+}
+.filler-hp{height:100%; transition:width .35s; border-radius:12px;}
+.hp-player{background:linear-gradient(90deg,#124068,#2176ae,#3498db);}
+.hp-enemy{background:linear-gradient(90deg,#681818,#a82020,#d63a3a);}
 .hp-text{
   position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
-  font-size:11px; font-weight:700; color:#fff; text-shadow:0 1px 2px #000;
+  font-size:12px; font-weight:700; color:#fff; text-shadow:0 1px 3px #000; letter-spacing:.5px;
 }
 .fighter-mp-bar{
-  width:100%; height:14px; background:#000; border-radius:7px; overflow:hidden;
-  border:1px solid #333; margin-top:2px;
+  width:100%; height:10px; background:#111; border-radius:5px; overflow:hidden;
+  border:1px solid #2a2a38; margin-top:0;
 }
-.filler-mp{height:100%; transition:width .3s; border-radius:6px;
-  background:linear-gradient(90deg,#1a5276,#3498db);}
+.filler-mp{height:100%; transition:width .35s; border-radius:4px;
+  background:linear-gradient(90deg,#1a3a5a,#2e6a9e,#5b9bd5);}
 .fighter-avatar{
-  width:120px; height:120px; border-radius:16px; display:flex; align-items:center; justify-content:center;
-  font-size:56px; background:var(--panel2); border:2px solid var(--line);
-  box-shadow:0 0 20px rgba(0,0,0,.4); position:relative;
+  width:110px; height:110px; border-radius:20px; display:flex; align-items:center; justify-content:center;
+  font-size:56px; background:radial-gradient(circle at 50% 35%, var(--panel), var(--bg));
+  border:2px solid var(--line); box-shadow:0 0 24px rgba(0,0,0,.5), inset 0 0 8px rgba(255,255,255,.02);
+  position:relative;
 }
-.avatar-player{border-color:#2980b9; box-shadow:0 0 20px rgba(41,128,185,.2);}
-.avatar-enemy{border-color:#c0392b; box-shadow:0 0 20px rgba(192,57,43,.2);}
+.avatar-player{border-color:#3498db; box-shadow:0 0 28px rgba(52,152,219,.18), 0 0 8px rgba(52,152,219,.08);}
+.avatar-enemy{border-color:#c0392b; box-shadow:0 0 28px rgba(192,57,43,.18), 0 0 8px rgba(192,57,43,.08);}
 .elite-badge{
-  position:absolute; top:-8px; right:-8px; background:var(--purple); color:#fff;
+  position:absolute; top:-6px; left:-6px; background:var(--purple); color:#fff;
   font-size:10px; font-weight:700; padding:2px 8px; border-radius:10px;
+  animation:badgePulse 2s ease-in-out infinite;
 }
 .boss-badge{
-  position:absolute; top:-8px; right:-8px; background:var(--orange); color:#fff;
-  font-size:10px; font-weight:700; padding:2px 8px; border-radius:10px;
+  position:absolute; top:-6px; left:-6px; background:var(--orange); color:#1a1000;
+  font-size:10px; font-weight:700; padding:3px 9px; border-radius:10px;
+  animation:badgePulse 1.5s ease-in-out infinite;
 }
+@keyframes badgePulse{0%,100%{opacity:1;} 50%{opacity:.7;}}
 .fighter-action{
-  padding:6px 24px; border-radius:8px; font-size:13px; font-weight:600;
-  color:#fff; border:none; cursor:pointer; min-width:140px;
+  padding:7px 28px; border-radius:8px; font-size:13px; font-weight:600;
+  color:var(--dim); background:rgba(255,255,255,.03); border:1px solid rgba(255,255,255,.06);
+  cursor:default; min-width:150px; letter-spacing:1px;
 }
-.action-player{background:linear-gradient(135deg,#2980b9,#1a5276);}
+.vs-mark{font-size:22px; font-weight:900; color:var(--gold-soft); opacity:.55; text-shadow:0 0 12px rgba(201,162,39,.3); letter-spacing:2px;}
+.action-player{background:rgba(52,152,219,.08); border-color:rgba(52,152,219,.2); color:rgba(52,152,219,.6);}
+.action-enemy{background:rgba(192,57,43,.06); border-color:rgba(192,57,43,.15); color:rgba(192,57,43,.5);}
 .action-enemy{background:linear-gradient(135deg,#c0392b,#96281b);}
 
 /* ---- 行动读条（ATB） ---- */
@@ -486,7 +511,42 @@ body{
 .md-title{font-size:11.5px; color:var(--gold-soft); margin-bottom:6px; font-weight:700;}
 .md-row{font-size:11px; color:var(--ink); line-height:1.7;}
 
-/* ---- 战斗日志 ---- */
+/* ---- 战斗日志（悬浮窗·可缩放） ---- */
+.float-log{
+  display:none; position:fixed; bottom:12px; left:12px; z-index:50; width:320px; height:180px;
+  min-width:200px; min-height:100px; max-width:50vw; max-height:55vh;
+  background:rgba(14,16,26,.92); backdrop-filter:blur(8px);
+  border:1px solid rgba(180,160,120,.15); border-radius:12px;
+  box-shadow:0 8px 32px rgba(0,0,0,.5); overflow:hidden; flex-direction:column; display:none;
+}
+.float-log.show{display:flex;}
+.fl-head{
+  display:flex; align-items:center; justify-content:space-between;
+  padding:6px 12px; background:rgba(0,0,0,.25); border-bottom:1px solid rgba(255,255,255,.06);
+  font-size:12px; color:var(--dim); cursor:move; user-select:none;
+}
+.fl-btns{display:flex; gap:4px;}
+.fl-btn{
+  background:none; border:none; color:var(--dim); cursor:pointer;
+  width:22px; height:22px; border-radius:5px; font-size:14px; line-height:22px; text-align:center;
+  transition:.15s;
+}
+.fl-btn:hover{background:rgba(255,255,255,.1); color:var(--ink);}
+.fl-body{
+  overflow:auto; font-size:12px; line-height:1.7;
+}
+.fl-body .log-p{color:#9fc6ff;} .fl-body .log-e{color:#e08a86;} .fl-body .log-s{color:var(--gold-soft);}
+.fl-body .log-hl{background:linear-gradient(90deg, rgba(201,162,39,.16), rgba(201,162,39,.02)); border-left:3px solid var(--gold); padding:2px 8px; margin:2px 0; border-radius:3px;}
+.fl-body>div{padding:2px 12px;}
+.fl-resize{
+  position:absolute; bottom:0; right:0; width:16px; height:16px;
+  cursor:nwse-resize;
+}
+.float-log.collapsed .fl-body,.float-log.collapsed .fl-resize{display:none;}
+.float-log.collapsed{min-width:0; min-height:0; width:auto!important; height:auto!important;}
+.float-log.collapsed .fl-head{border-bottom:none; border-radius:12px;}
+
+/* ---- 战斗日志（旧嵌入式，保留兼容） ---- */
 .battle-log{
   max-height:160px; overflow:auto; background:rgba(0,0,0,.4); border:1px solid var(--line);
   border-radius:8px; padding:8px 12px; margin-top:12px; font-size:12px;
@@ -573,18 +633,19 @@ body{
 .toast.show{opacity:1;}
 
 /* ==================== 战斗技能栏 CD 转圈 ==================== */
-.skill-bar{display:flex; gap:8px; padding:6px 10px; background:rgba(14,16,26,.95); border-radius:8px; border:1px solid var(--line); align-items:center;}
-.skill-slot{position:relative; width:44px; height:44px; border-radius:50%; background:var(--panel); border:2px solid var(--line); display:flex; align-items:center; justify-content:center; font-size:20px; cursor:default; flex-shrink:0;}
-.skill-slot.aura{border-color:var(--gold); border-style:dashed;}
-.skill-slot.empty{border-style:dotted; opacity:0.4;}
-.skill-slot .cd-ring{position:absolute; top:-3px; left:-3px; width:50px; height:50px; border-radius:50%; pointer-events:none;}
+.skill-bar{display:flex; gap:8px; padding:8px 14px; background:rgba(12,16,26,.85); backdrop-filter:blur(6px); border-radius:12px; border:1px solid rgba(180,160,120,.12); align-items:center; box-shadow:0 4px 20px rgba(0,0,0,.4);}
+.skill-slot{position:relative; width:46px; height:46px; border-radius:50%; background:radial-gradient(circle at 55% 40%, var(--panel2), var(--bg)); border:2px solid rgba(180,160,120,.15); display:flex; align-items:center; justify-content:center; font-size:21px; cursor:default; flex-shrink:0; box-shadow:inset 0 1px 3px rgba(0,0,0,.5);}
+.skill-slot.aura{border-color:rgba(201,162,39,.3); border-style:solid; animation:auraGlow 3s ease-in-out infinite;}
+@keyframes auraGlow{0%,100%{box-shadow:inset 0 1px 3px rgba(0,0,0,.5), 0 0 6px rgba(201,162,39,.1);} 50%{box-shadow:inset 0 1px 3px rgba(0,0,0,.5), 0 0 14px rgba(201,162,39,.2);}}
+.skill-slot.empty{border-style:dotted; opacity:0.3;}
+.skill-slot .cd-ring{position:absolute; top:-3px; left:-3px; width:52px; height:52px; border-radius:50%; pointer-events:none;}
 .skill-slot .cd-ring.active{
-  background:conic-gradient(var(--blue) var(--cd-pct,0%), transparent var(--cd-pct,0%));
-  mask:radial-gradient(transparent 62%, black 63%);
-  -webkit-mask:radial-gradient(transparent 62%, black 63%);
+  background:conic-gradient(transparent 0deg, var(--gold-soft) calc(var(--cd-pct,0deg) + 10deg), var(--gold) var(--cd-pct,0deg));
+  mask:radial-gradient(transparent 60%, black 61%);
+  -webkit-mask:radial-gradient(transparent 60%, black 61%);
 }
-.skill-slot .cd-text{position:absolute; bottom:-2px; right:-2px; font-size:9px; background:var(--bg); color:var(--blue); padding:0 3px; border-radius:3px; font-weight:700; min-width:16px; text-align:center;}
-.skill-slot .aura-ring{position:absolute; top:-4px; left:-4px; width:52px; height:52px; border-radius:50%; border:2px solid var(--gold); opacity:0.6;}
+.skill-slot .cd-text{position:absolute; bottom:-3px; right:-3px; font-size:11px; background:var(--bg); color:var(--gold-soft); padding:1px 4px; border-radius:4px; font-weight:700; min-width:16px; text-align:center; border:1px solid rgba(201,162,39,.3);}
+.skill-slot .aura-ring{position:absolute; top:-4px; left:-4px; width:54px; height:54px; border-radius:50%; border:1.5px solid rgba(201,162,39,.4);}
 /* ==================== 空闲主页 ==================== */
 .idle-home{text-align:center; padding:40px 20px;}
 .idle-title{font-size:26px; color:var(--gold-soft); letter-spacing:4px; margin-bottom:8px;}
@@ -669,6 +730,58 @@ body{
 .origin-card .oi{display:block; width:26px; height:26px; margin:0 auto 6px; color:var(--gold-soft);}
 .origin-card .on2{font-size:13px; color:#e8eaf0;}
 .origin-card .od{font-size:10.5px; color:var(--dim); margin-top:3px;}
+
+/* 出身选择：竖排手风琴 */
+.origin-accordion{display:flex; flex-direction:column; gap:6px; margin-bottom:8px;}
+.origin-row{
+  background:var(--panel2); border:1px solid var(--line); border-radius:12px;
+  padding:10px 14px; cursor:pointer; transition:.2s; overflow:hidden;
+}
+.origin-row:hover{border-color:var(--gold); background:var(--panel3);}
+.origin-row.sel{border-color:var(--gold-soft); background:rgba(201,162,39,.08);}
+.origin-row .or-head{display:flex; align-items:center; gap:10px; min-height:36px;}
+.origin-row .or-icon{width:28px; height:28px; flex-shrink:0; color:var(--gold-soft);}
+.origin-row .or-name{font-size:15px; font-weight:700; color:var(--gold-soft); letter-spacing:1px; flex:1;}
+.origin-row .or-desc{font-size:11px; color:var(--dim); white-space:nowrap; margin-right:4px;}
+.origin-row .or-caret{font-size:12px; color:var(--dim); transition:.2s;}
+.origin-row.sel .or-caret{transform:rotate(180deg);}
+.origin-row .or-body{display:none; padding-top:12px;}
+.origin-row.sel .or-body{display:block;}
+.or-art{
+  position:relative; border-radius:10px; overflow:hidden; margin-bottom:10px;
+  max-height:260px; display:flex; align-items:center; justify-content:center;
+}
+.or-art img{width:100%; height:100%; object-fit:cover; border-radius:10px;}
+.or-art .or-overlay{
+  position:absolute; inset:0; background:linear-gradient(180deg, rgba(8,9,15,.35) 0%, rgba(8,9,15,.75) 65%, rgba(8,9,15,.92) 100%);
+}
+.or-art .or-story{
+  position:absolute; bottom:0; left:0; right:0; padding:20px 16px 16px;
+  font-size:12.5px; color:#e8e0d0; line-height:1.8; text-shadow:0 1px 4px rgba(0,0,0,.7);
+}
+.or-bonus{display:flex; gap:12px; flex-wrap:wrap; padding:8px 0; border-top:1px solid var(--line);}
+.or-bonus span{font-size:12px; font-weight:600;}
+.or-armor{font-size:10.5px; color:var(--dim); margin-top:2px;}
+
+/* ===== 教程引导层 ===== */
+#tutOverlay{display:none; position:fixed; inset:0; z-index:999;}
+.tut-shade{position:absolute; background:rgba(0,0,0,.72); pointer-events:all;}
+.tut-bubble{
+  position:absolute; z-index:2; background:var(--panel2); border:1px solid var(--gold-soft);
+  border-radius:14px; padding:18px 20px; min-width:280px; max-width:380px;
+  box-shadow:0 8px 32px rgba(0,0,0,.6);
+}
+.tut-step{font-size:11px; color:var(--gold-soft); margin-bottom:6px; font-weight:600;}
+.tut-text{font-size:13.5px; color:var(--ink); line-height:1.7; margin-bottom:14px;}
+.tut-actions{display:flex; gap:8px; justify-content:flex-end;}
+.tut-btn{
+  padding:7px 16px; border-radius:8px; border:none; cursor:pointer; font-size:13px;
+  transition:.15s;
+}
+.tut-skip{background:transparent; color:var(--dim);}
+.tut-skip:hover{color:var(--crimson);}
+.tut-next{background:linear-gradient(135deg,#c9a227,#a07d1a); color:#1a1408; font-weight:600;}
+.tut-next:hover{filter:brightness(1.1);}
 
 /* ===== 锻造铺 ===== */
 .sub-tab-row{display:flex; gap:8px; margin-bottom:14px;}
@@ -797,7 +910,48 @@ body{
 
 /* 爆物横幅样式已移除（掉落改战斗信息栏高亮行） */
 
-/* 背包：侧面板详情 + 半透明操作键 */
+/* 背包外框（双层边框 + 标题） */
+.bag-box{
+  border:2px solid rgba(180,160,120,.2); border-radius:12px;
+  padding:10px 12px 8px; background:var(--panel3); box-shadow:inset 0 0 0 1px rgba(255,255,255,.02);
+}
+.bag-box-title{font-size:11px; color:var(--dim); padding-bottom:8px; margin-bottom:4px; border-bottom:1px solid var(--line); letter-spacing:2px; text-align:center;}
+
+/* 统一人物页：状态面板 */
+.char-unified{display:flex; gap:16px; flex-wrap:wrap;}
+.cs-section{background:var(--panel2); border:1px solid var(--line); border-radius:12px; padding:12px 14px; margin-bottom:10px; flex:1; min-width:260px;}
+.cs-sectitle{font-size:12px; font-weight:600; color:var(--gold-soft); margin-bottom:8px; letter-spacing:1px;}
+.cs-row{display:flex; align-items:center; gap:8px; padding:4px 0; border-bottom:1px dashed rgba(255,255,255,.04); font-size:12px;}
+.cs-icon{font-size:14px; width:20px; text-align:center; flex-shrink:0;}
+.cs-label{flex:1; color:var(--dim); min-width:60px;}
+.cs-base{color:var(--ink); min-width:22px; text-align:center;}
+.cs-bonus{color:var(--green); font-weight:600; min-width:30px; text-align:center;}
+.cs-total{color:var(--ink); font-weight:700; min-width:22px; text-align:center;}
+.cs-val{font-weight:600; text-align:right;}
+.cs-bar{width:44px; height:5px; background:rgba(0,0,0,.3); border-radius:3px; overflow:hidden; flex-shrink:0;}
+.cs-fill{height:100%; border-radius:3px; transition:width .3s;}
+
+/* 人物页子标签 */
+.char-subs{display:flex; gap:6px; margin-bottom:12px;}
+.char-subtab{flex:1; padding:8px 14px; border-radius:9px; cursor:pointer; font-size:13px; text-align:center; background:var(--panel2); border:1px solid var(--line); color:var(--dim); font-weight:600; transition:.15s;}
+.char-subtab:hover{border-color:var(--gold); color:var(--ink);}
+.char-subtab.on{background:linear-gradient(180deg, rgba(201,162,39,.15), rgba(201,162,39,.04)); border-color:rgba(201,162,39,.3); color:var(--gold-soft);}
+/* 背包页装备槽（2列竖排，角色图右侧） */
+.equip-slots{display:grid; grid-template-columns:1fr 1fr; gap:4px; flex:0 0 130px; width:130px; align-content:start;}
+.e-slot{
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  padding:4px 2px; border-radius:8px; border:1px solid var(--line); background:var(--panel3);
+  aspect-ratio:1/1; cursor:pointer; transition:.15s; gap:1px; min-height:54px;
+}
+.e-slot:hover{border-color:var(--gold); transform:translateY(-1px);}
+.e-slot.sel{border-color:var(--gold-soft); box-shadow:0 0 0 2px rgba(201,162,39,.3);}
+.e-filled{border-color:rgba(180,160,120,.2);}
+.e-empty{cursor:default; opacity:.35; border-style:dashed;}
+.e-empty:hover{transform:none; border-color:var(--line);}
+.e-empty-icon{width:18px; height:18px; color:var(--dim);}
+.e-slot-name{font-size:9px; color:var(--dim); font-weight:600; line-height:1; white-space:nowrap;}
+.e-filled .e-slot-name{color:var(--ink);}
+
 .bag-layout{display:flex;gap:16px;align-items:flex-start;}
 .bag-main{flex:1;min-width:0;}
 .bag-inspect{flex:0 0 300px;width:300px;position:sticky;top:8px;align-self:flex-start;
@@ -846,6 +1000,10 @@ body{
 .char-equip-slot{flex:0 0 auto;font-size:10.5px;color:var(--dim);}
 .char-equip-caret{flex:0 0 auto;font-size:10px;color:var(--gold-soft);}
 .char-equip-detail{padding:10px 12px;margin:-2px 0 9px;border:1px solid var(--gold);border-radius:9px;background:rgba(201,162,39,.05);}
+.e-wear-dot{width:6px;height:6px;border-radius:50%;margin-top:1px;}
+/* 锻造铺 - 修理按钮 */
+.repair-btn{background:linear-gradient(180deg,#8e9aab,#5a687a);color:#fff;border:none;padding:8px 18px;border-radius:8px;cursor:pointer;font-size:13px;margin-top:8px;transition:.15s;}
+.repair-btn:hover{filter:brightness(1.1);}
 </style>
 </head>
 <body>
@@ -945,12 +1103,11 @@ body{
 
       <!-- 选择职业 -->
       <div id="gateOrigin" style="display:none;">
-        <div style="font-size:13px;color:var(--dim);margin-bottom:14px;text-align:center;line-height:1.6;">选择你的出身，开启缉私之旅</div>
-        <div class="origin-grid" id="gateOrigins"></div>
-        <input id="gateCharName" class="gate-input" placeholder="角色名（可留空，默认「持牌者」）" maxlength="8" value="持牌者" style="margin-top:12px;">
-        <button class="gate-btn" onclick="gateStartGame()">缔 结 誓 约 · 开 始</button>
-        <div style="text-align:center;margin-top:10px;">
-          <a href="javascript:void(0)" style="font-size:11.5px;color:var(--dim);" onclick="gateBackLanding()">返回</a>
+        <div class="origin-accordion" id="gateOrigins"></div>
+        <input id="gateCharName" class="gate-input" placeholder="角色名（可留空，默认「持牌者」）" maxlength="8" value="持牌者" style="margin-top:14px;">
+        <button class="gate-btn gate-btn-big" onclick="gateStartGame()">签 署 持 牌 状 · 开 始 缉 私</button>
+        <div style="text-align:center;margin-top:8px;">
+          <a href="javascript:void(0)" style="font-size:11.5px;color:var(--dim);" onclick="gateBackLanding()">← 返回</a>
         </div>
       </div>
     </div>
@@ -1127,11 +1284,11 @@ function itemInnerSVG(it){
   return svgInner(m[it.slot]||'_box');
 }
 function badgeWrap(px, color, innerSVG, glow){
-  const sz=px||48;
+  const sz=px||52;
   const gw=glow?('filter:drop-shadow(0 0 6px '+color+');'):'';
   return '<span class="item-badge" style="--bc:'+color+';width:'+sz+'px;height:'+sz+'px;'+gw+'">'+
-    '<svg viewBox="0 0 24 24" width="'+Math.round(sz*0.72)+'" height="'+Math.round(sz*0.72)+'" '+
-    'fill="none" stroke="#f4ecd8" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">'+innerSVG+'</svg></span>';
+    '<svg viewBox="0 0 24 24" width="'+Math.round(sz*0.88)+'" height="'+Math.round(sz*0.88)+'" '+
+    'fill="none" stroke="#f4ecd8" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">'+innerSVG+'</svg></span>';
 }
 function itemBadgeSVG(it, px){ return badgeWrap(px, (rarObj(it.rarity)||RARITY[0]).color, itemInnerSVG(it), true); }
 function bookBadgeSVG(skillId, px){
@@ -1241,10 +1398,90 @@ function equipName(it){
 /* 玩家头像：使用 AI 生成的手绘风 PNG 素材 */
 function playerAvatarSVG(px){
   const sz = px ? px+'px' : '1em';
-  return '<img class="mon-img" src="assets/player/player.png" alt="玩家" style="width:'+sz+';height:'+sz+';object-fit:contain;vertical-align:middle;border-radius:6px;">';
+  return buildPlayerAvatar(sz);
+}
+/* Q版纸娃娃形象：根据装备实时生成SVG，每部位分层叠加 */
+function buildPlayerAvatar(sz){
+  const eq=G&&G.player?G.player.equip:{};
+  let aura='none', hiRar=0;
+  for(const k in eq){ const it=eq[k]; if(it){
+    const ri=RARITY.findIndex(r=>r.key===it.rarity)+1;
+    if(ri>hiRar){ hiRar=ri; aura=(rarObj(it.rarity)||RARITY[0]).color; }
+  }}
+  const helm=eq['head'], body=eq['armor'], wp=eq['weapon'];
+  const atHelm=helm?helm.armorType:'none';
+  const atBody=body?body.armorType:'none';
+  const ARM_COL={plate:'#8899aa', cloth:'#d8c39a', leather:'#8b7355'};
+  const bodyC=ARM_COL[atBody]||'#556688';
+  const helmC=ARM_COL[atHelm]||bodyC;
+  /* 武器 */
+  let wpSvg='';
+  if(wp){
+    const wC=(rarObj(wp.rarity)||RARITY[0]).color;
+    wpSvg='<line x1="80" y1="62" x2="102" y2="42" stroke="'+wC+'" stroke-width="4.5" stroke-linecap="round"/>'+
+      '<line x1="102" y1="42" x2="106" y2="38" stroke="'+wC+'" stroke-width="3" stroke-linecap="round"/>'+
+      '<rect x="74" y="56" width="10" height="12" rx="3" fill="#7a5a3a"/>';
+  }
+  const s='<svg viewBox="0 0 120 150" width="'+sz+'" height="'+sz+'" style="vertical-align:middle;flex-shrink:0;">'+
+    /* 光晕 */
+    (aura!='none'?'<ellipse cx="60" cy="70" rx="52" ry="68" fill="'+aura+'" opacity="0.10"/>':'')+
+    /* 披风（最底层） */
+    '<path d="M42 40 L78 40 L88 105 L75 108 L60 100 L45 108 L32 105 Z" fill="'+bodyC+'" opacity="0.35"/>'+
+    /* 腿 */
+    '<rect x="48" y="102" width="11" height="16" rx="5" fill="#3a2f28"/><rect x="61" y="102" width="11" height="16" rx="5" fill="#3a2f28"/>'+
+    '<rect x="45" y="116" width="13" height="6" rx="4" fill="#5a4030"/><rect x="62" y="116" width="13" height="6" rx="4" fill="#5a4030"/>'+
+    /* 身体 */
+    '<ellipse cx="60" cy="76" rx="20" ry="26" fill="'+bodyC+'"/>'+
+    '<rect x="40" y="54" width="40" height="24" rx="6" fill="'+bodyC+'"/>'+
+    (atBody==='plate'?'<line x1="60" y1="54" x2="60" y2="76" stroke="#fff" stroke-width="1" opacity="0.18"/>':'' )+
+    (atBody==='cloth'?'<line x1="50" y1="58" x2="50" y2="72" stroke="#fff" stroke-width="0.8" opacity="0.2"/><line x1="70" y1="58" x2="70" y2="72" stroke="#fff" stroke-width="0.8" opacity="0.2"/>':'' )+
+    /* 手臂（从躯干两侧伸出） */
+    '<path d="M42 60 L34 72 L30 82" stroke="#e8d4be" stroke-width="9" stroke-linecap="round" fill="none"/>'+
+    '<path d="M78 60 L86 72 L90 82" stroke="#e8d4be" stroke-width="9" stroke-linecap="round" fill="none"/>'+
+    /* 手 */
+    '<circle cx="30" cy="83" r="5.5" fill="#e8d4be"/><circle cx="90" cy="83" r="5.5" fill="#e8d4be"/>'+
+    /* 武器（在右手上） */
+    wpSvg+
+    /* 头部 */
+    '<ellipse cx="60" cy="38" rx="18" ry="21" fill="#f0dcc0"/>'+
+    /* 头发（只盖头顶，不遮脸） */
+    '<ellipse cx="60" cy="24" rx="20" ry="11" fill="#4a3028"/>'+
+    '<path d="M42 24 Q36 36 38 48 Q36 50 34 46" stroke="#4a3028" stroke-width="7" fill="none" stroke-linecap="round"/>'+
+    '<path d="M78 24 Q84 36 82 48 Q84 50 86 46" stroke="#4a3028" stroke-width="7" fill="none" stroke-linecap="round"/>'+
+    /* 头盔 */
+    (helm?'<path d="M42 35 Q42 14 60 10 Q78 14 78 35 Z" fill="'+helmC+'" opacity="0.82"/>'
+      +'<rect x="38" y="33" width="44" height="6" rx="2" fill="'+helmC+'" opacity="0.9"/>'
+      +(atHelm==='plate'?'<line x1="60" y1="12" x2="60" y2="28" stroke="#fff" stroke-width="1" opacity="0.25"/>':'')
+      +(atHelm==='cloth'?'<circle cx="56" cy="22" r="3" fill="#fff" opacity="0.2"/>':'')
+      :'' )+
+    /* 眼睛 */
+    '<circle cx="54" cy="37" r="2.5" fill="#2a1a10"/><circle cx="66" cy="37" r="2.5" fill="#2a1a10"/>'+
+    '<circle cx="54.8" cy="36" r="1" fill="#fff"/><circle cx="66.8" cy="36" r="1" fill="#fff"/>'+
+    /* 眉毛 */
+    '<line x1="51" y1="31" x2="57" y2="32" stroke="#3a2f28" stroke-width="1.2" stroke-linecap="round"/>'+
+    '<line x1="63" y1="32" x2="69" y2="31" stroke="#3a2f28" stroke-width="1.2" stroke-linecap="round"/>'+
+    /* 腮红 */
+    '<ellipse cx="50" cy="44" rx="3.5" ry="2.5" fill="#e8a0a0" opacity="0.35"/>'+
+    '<ellipse cx="70" cy="44" rx="3.5" ry="2.5" fill="#e8a0a0" opacity="0.35"/>'+
+    /* 嘴 */
+    '<path d="M56 47 Q60 49 64 47" stroke="#6a4030" stroke-width="1.2" fill="none" stroke-linecap="round"/>'+
+    /* 装备徽章 */
+    (aura!='none'?'<circle cx="98" cy="14" r="13" fill="'+aura+'" opacity="0.12"/><text x="98" y="18" text-anchor="middle" font-size="11" fill="'+aura+'" font-weight="700">'+hiRar+'</text>':'')+
+  '</svg>';
+  return s;
 }
 
 /* 三主属性 */
+
+/* 符文类型（5种×3稀有度） */
+const RUNE_TYPES = {
+  fire:  {name:'炎火', icon:'🔥', color:'#e85d4c', stat:'skillDmg', vals:{normal:0.03, rare:0.06, epic:0.10}, combo:'点燃——攻击附加伤害'},
+  ice:   {name:'冰霜', icon:'❄️', color:'#5bc0de', stat:'cdr',       vals:{normal:0.02, rare:0.04, epic:0.07}, combo:'冻结——命中后概率降速'},
+  life:  {name:'生命', icon:'💚', color:'#27ae60', stat:'lifesteal',  vals:{normal:0.02, rare:0.04, epic:0.07}, combo:'汲取——吸血效果翻倍'},
+  storm: {name:'风暴', icon:'⚡', color:'#f39c12', stat:'spdPct',     vals:{normal:0.03, rare:0.06, epic:0.10}, combo:'疾风——攻速额外提升'},
+  earth: {name:'大地', icon:'🪨', color:'#8e6e4e', stat:'dmgReduce',  vals:{normal:0.02, rare:0.04, epic:0.07}, combo:'坚壁——减伤效果提升'},
+};
+const RUNE_RARITY = {normal:{name:'普通',mult:1}, rare:{name:'稀有',mult:1.5}, epic:{name:'史诗',mult:2.2}};
 const ATTRS = {
   str:{name:'力量', icon:svgIcon('str'), color:'#e85d4c', desc:'持械与破甲的本钱。执戟与缉捕者的立身之基'},
   agi:{name:'敏捷', icon:svgIcon('agi'), color:'#45d98e', desc:'出手快慢、命中与闪避。走脚人靠这个活命'},
@@ -1753,6 +1990,27 @@ function rollBossLoot(bossKey, loot){
     G.player.bossLegendaryStreak=st+1;
   }
   return false;
+}
+/* 即时版（killEnemy 用）：物品直接入背包而非走 loot 对象 */
+function rollBossLootInstant(bossKey){
+  const bd=BOSS_DROPS[bossKey]; if(!bd) return;
+  mythicState();
+  if(bd.mythic && !mythicOwned(bossKey)){
+    const streak=G.bossKillStreak[bossKey]||0;
+    if(streak>=20||Math.random()<0.05){
+      const it=genMythic(bossKey); if(it){ G.player.inventory.push(it);
+        G.ownedMythic[bossKey]=true; G.bossKillStreak[bossKey]=0;
+        pushLog('sys','🔴 未录降世！【'+it.name+'】'+(streak>=20?'（保底）':''), {hl:true, color:'#e6443b'}); return; }
+    }
+    G.bossKillStreak[bossKey]=streak+1;
+  }
+  if(bd.book&&SKILLS[bd.book]&&Math.random()<0.05){ giveBook(bd.book); pushLog('sys','🔥 BOSS技能书【'+SKILLS[bd.book].name+'】'); }
+  if(bd.equip){
+    const st=G.player.bossLegendaryStreak||0;
+    if(st>=10||Math.random()<0.03){ const u=genBossUnique(bossKey); if(u){ G.player.inventory.push(u);
+      pushLog('sys','🔥 敕造装备【'+u.name+'】'+(st>=10?'（保底）':'')); G.player.bossLegendaryStreak=0; }
+    } else { G.player.bossLegendaryStreak=st+1; }
+  }
 }
 
 /* ---- 敕令共鸣（§9.4 授予 + 强化 + 改写） ----
@@ -2573,10 +2831,11 @@ const LEFT_TABS = [
   {key:'party', label:'组队',   icon:'<svg class="gi"><use href="#gi-party"/></svg>'},
 ];
 const RIGHT_TABS = [
-  {key:'bag',    label:'背包', icon:'<svg class="gi"><use href="#gi-bag"/></svg>'},
+  {key:'char',   label:'人物', icon:'<svg class="gi"><use href="#gi-char"/></svg>'},
   {key:'skills', label:'技能', icon:'<svg class="gi"><use href="#gi-skills"/></svg>'},
-  {key:'char',   label:'角色', icon:'<svg class="gi"><use href="#gi-char"/></svg>'},
 ];
+var charSubTab='bag'; /* 人物子标签：bag / stats */
+function setCharSubTab(t){ charSubTab=t; renderContent(); }
 /* 兼容旧代码：全部标签 */
 const NAV_TABS = [...LEFT_TABS, ...RIGHT_TABS];
 
@@ -2588,11 +2847,16 @@ const Party = {
 
 /* ==================== 角色出身（账号首次绑定角色时选择） ==================== */
 const ORIGINS = [
-  {key:'warrior', name:'退役执戟', icon:'str', desc:'主力量 +4 · 副体质 +2 · 王庭 +1',   bonus:{str:4, con:2}},
-  {key:'assassin',name:'特赦囚徒', icon:'agi', desc:'主敏捷 +4 · 副力量 +2 · 私法者 +1', bonus:{agi:4, str:2}},
-  {key:'mage',    name:'注籍学徒', icon:'int', desc:'主智力 +4 · 副精神 +2 · 秘典庭 +1', bonus:{int:4, spi:2}},
-  {key:'tank',    name:'教团苦修', icon:'con', desc:'主体质 +4 · 副力量 +2 · 教团 +1',   bonus:{con:4, str:2}},
-  {key:'healer',  name:'巡回医僧', icon:'spi', desc:'主精神 +4 · 副智力 +2 · 中立',     bonus:{spi:4, int:2}},
+  {key:'warrior', name:'退役执戟', icon:'str', desc:'主力量 +4 · 副体质 +2 · 王庭 +1',   bonus:{str:4, con:2},
+    story:'曾是王庭执戟士，持重械、守城门、缉私法。退役后仍持一纸回收执照，靠查封无印魔物过活。重甲之下藏着一份对旧誓的偏执。', at:'plate', img:'assets/origins/warrior.png'},
+  {key:'assassin',name:'特赦囚徒', icon:'agi', desc:'主敏捷 +4 · 副力量 +2 · 私法者 +1', bonus:{agi:4, str:2},
+    story:'在削籍狱关了七年，罪名是"未经登记施用敏捷术"。特赦条件——以持牌者身份回收二十件违禁法器。身手是狱里练出来的，直觉是天生的。', at:'leather', img:'assets/origins/assassin.png'},
+  {key:'mage',    name:'注籍学徒', icon:'int', desc:'主智力 +4 · 副精神 +2 · 秘典庭 +1', bonus:{int:4, spi:2},
+    story:'秘典庭出身，十五岁通过注籍考试。知道每一条咒文的编号、分类与合法施用范围。也清楚——真正的力量从来不在考试范围里。', at:'cloth', img:'assets/origins/mage.png'},
+  {key:'tank',    name:'教团苦修', icon:'con', desc:'主体质 +4 · 副力量 +2 · 教团 +1',   bonus:{con:4, str:2},
+    story:'在铁证教团的石室里修行了十年。肉身即圣器，疼痛即祈祷。出山做持牌者不是信仰的延续，是信仰最诚实的结果——挨打。', at:'plate', img:'assets/origins/tank.png'},
+  {key:'healer',  name:'巡回医僧', icon:'spi', desc:'主精神 +4 · 副智力 +2 · 中立',     bonus:{spi:4, int:2},
+    story:'不属于任何一庭。在界桩村与黑印集市之间走了二十年，靠草药和违禁治愈术救人。持牌者执照是病人送的——'+"他们说我救人，也该合法地救。"+'', at:'cloth', img:'assets/origins/healer.png'},
 ];
 
 /* ==================== 药水瓶（非消耗品 · 能量制） ====================
@@ -2643,7 +2907,6 @@ function flaskIconSVG(kind,px){
 function flaskDesc(f){
   let s='容量 '+f.charge+'/'+f.cap+' · 回复效率 '+f.rate.toFixed(1)+'/能量';
   (f.affixes||[]).forEach(a=>{ s+='\n· '+a.name.replace('的','')+'：'+a.desc+(a.val?'（+'+Math.round(a.val*100)+'%）':''); });
-  return s;
 }
 
 /* ==================== 游戏状态 ==================== */
@@ -2685,6 +2948,9 @@ function newGame(charName, originKey){
   /* 开局赠送：无词缀简易药水瓶（回血+回蓝各一，非消耗品，击杀怪物充能） */
   G.player.flasks.hp = genFlask(0,'hp',true);
   G.player.flasks.mp = genFlask(0,'mp',true);
+  G.player.whetstones = 0;
+  G.tower = {highest:0, current:1, active:false};
+  G.player.runes = []; /* 打磨石初始0个 */
   const st=totalStats(); G.player.mp=Math.round(st.mp);
 }
 
@@ -2708,6 +2974,7 @@ function rarObj(key){ return RARITY.find(r=>r.key===key)||RARITY[0]; }
      Pass 2  用「基础 + 等级成长 + 装备属性」一次性推导 hp/mp/atk/def/crit/…（衍生量能吃到词缀）；
      Pass 3  再叠加【非属性词缀】与装备 base、套装。
    顺序是关键：属性词缀必须在衍生公式【之前】结算，否则 +30 力量不会变成 +72 攻击。 */
+
 function totalStats(){
   const p = G.player;
   const lv = p.level - 1;
@@ -2804,8 +3071,8 @@ function totalStats(){
   /* 五主属性取整输出（数值已在 Pass 1 结清，此处只做展示层取整） */
   s.str = Math.round(totalStr); s.agi = Math.round(totalAgi); s.con = Math.round(totalCon);
   s.int = Math.round(totalInt); s.spi = Math.round(totalSpi);
-
   return s;
+
 }
 function applyBonus(s,b){
   for(const k in b){
@@ -2986,6 +3253,7 @@ function decompose(uid){
   G.player.inventory.splice(idx,1);
   const txt=Object.keys(got).map(t=>SHARD_TYPES[t].icon+got[t]).join(' ');
   pushLog('sys','⚒️ 分解 '+it.name+' → '+txt); toast('分解获得 '+txt);
+  forgeTutorialMaybe(); /* 首次分解获得印屑后触发锻造教学 */
   save();renderAll();
 }
 function decomposeByRarity(rar){
@@ -2998,6 +3266,7 @@ function decomposeByRarity(rar){
   G.player.inventory=G.player.inventory.filter(i=>!ids.has(i.uid));
   const txt=Object.keys(tot).map(t=>SHARD_TYPES[t].icon+tot[t]).join(' ');
   pushLog('sys','⚒️ 批量分解 '+list.length+' 件 → '+txt); toast('分解 '+list.length+' 件，获得 '+txt);
+  forgeTutorialMaybe(); /* 批量分解同样触发 */
   save();renderAll();
 }
 function decomposeAllWhite(){ decomposeByRarity('common'); }
@@ -3505,8 +3774,19 @@ function genEquip(tier, forceRarity, forceSlot){
     armorType:armorType||undefined, tierIdx:(tierIdx!=null?tierIdx:undefined),
     reqLv:reqLv||undefined,
     reqStr:reqStr||undefined, reqAgi:reqAgi||undefined, reqInt:reqInt||undefined,
-    reqCon:reqCon||undefined, reqSpi:reqSpi||undefined,
+    reqCon:reqCon||undefined, reqSpi:reqSpi||undefined, wear:0, socketOpen:false, runes:[],
   };
+  /* 装备磨损衰减 */
+  var _wearMult=1;
+  for(const _sl in G.player.equip){
+    const _it=G.player.equip[_sl]; if(_it&&typeof _it.wear==='number'&&_it.wear>0){
+      _wearMult=Math.min(_wearMult, 1-_it.wear*0.006);
+    }
+  }
+  s.atk=Math.round(s.atk*_wearMult); s.matk=Math.round(s.matk*_wearMult);
+  s.def=Math.round(s.def*_wearMult); s.mdef=Math.round(s.mdef*_wearMult);
+  s.hp=Math.round(s.hp*_wearMult);
+  return s;
 }
 
 /* ==================== 战斗单位 ==================== */
@@ -3514,8 +3794,10 @@ function playerUnit(){
   const s=totalStats();
   const aura=auraBonuses(); /* 光环常驻加成 */
   const wp=weaponPower(s);
-  /* GDD 05b §12 #9/#11/#12/#14：三个新乘区在出口生效，并按 §4.4 全局上限表逐项夹取。
-     atkPct 是【全局】乘区：对所有武器等比生效，13 类武器的 DPS 等价性（GDD 02 §6）因此完好。 */
+  /* GDD 05b §12 #9/#11/#12/#14：三个新乘区在出口生效
+     atkPct 是【全局】乘区 */
+  /* 符文加成 */
+  var reff=runeComboEffect(); for(var rk in reff){ if(reff[rk]) s[rk]=(s[rk]||0)+reff[rk]; }
   const atkPct = Math.max(0, s.atkPct||0);
   const spdPct = clamp(s.spdPct||0, 0, AFFIX_CAPS.spdPct);
   const cdr    = clamp(s.cdr||0,    0, AFFIX_CAPS.cdr);
@@ -3766,6 +4048,8 @@ function dealDamage(a,t,power,magical){
   const vuln=t.buffs.find(x=>x.type==='vuln'&&x.turns>0);
   if(vuln) dmg=Math.round(dmg*(1+vuln.val));
   applyDamage(t,dmg,a);
+  /* 即时击杀奖励：每只怪死后立刻给经验和道具 */
+  if(t.hp<=0&&t.side==='enemy') killEnemy(t);
   if(a.lifesteal && !a.noHeal){
     let heal=Math.round(dmg*a.lifesteal);
     /* 单次回复 ≤ 3% 最大生命（GDD 02 §7.5 H1）：只约束玩家侧，
@@ -3871,44 +4155,10 @@ function endBattle(){
   if(b.result==='win'){
     const names=b.enemies.map(function(e){return e.name;}).join('、');
     pushLog('sys','🏆 击败了 '+names+'！');
-    G.player.hp=b.player.hp; /* 连战：保留剩余血量，不回复 */
-    G.player.mp=b.player.mp;
-    /* 击杀充能：两只药水瓶按最强怪物强度获得能量（汲取词缀额外加成） */
+    G.player.hp=b.player.hp; G.player.mp=b.player.mp;
+    if(G.tower&&G.tower.active){ towerEndBattle(); return; }
     const boss=b.enemies.some(function(e){return e.isBoss;});
-    const elite=b.enemies.some(function(e){return e.isElite;});
-    const chBase=boss?120:elite?50:18;
-    const gains=[];
-    ['hp','mp'].forEach(function(k){
-      const f=G.player.flasks&&G.player.flasks[k];
-      if(f&&f.charge<f.cap){
-        const g=Math.round(chBase*(1+flaskAffix(f,'killCharge')));
-        f.charge=Math.min(f.cap,f.charge+g);
-        gains.push(FLASK_KINDS[k].name+'+'+g);
-      }
-    });
-    if(gains.length) pushLog('sys','🧪 药水瓶充能：'+gains.join(' · '));
-    const loot=generateLoot(b.enemies);
-    applyLoot(loot);
-    let exp=0; b.enemies.forEach(function(e){ exp+= e.isBoss?130:e.isElite?60:22; });
-    /* 经验衰减（GDD 05b §9）：超出本图怪物等级后收益锐减，把玩家推去下一张图 */
-    const eMult=expScale(G.mapTier);
-    gainExp(Math.round(exp*eMult));
-    if(eMult<1){
-      const ML=ML_map(G.mapTier);
-      const nextMap=(G.mapId+1<MAPS.length) ? MAPS[G.mapId+1] : null;
-      pushLog('sys','⚠️ 经验衰减 ×'+eMult.toFixed(2)+'（你 Lv'+G.player.level+' 已超出【'+MAPS[G.mapId].name
-        +'】怪物等级 Lv'+ML+'）'+(nextMap?'，建议前往【'+nextMap.name+'】':'')+'。',
-        {color:'#ff9f3a'});
-      /* 引导闭环（GDD 05b §11.5D）：经验在衰减 + 毕业度不足 = 明确的"该留下打磨"信号 */
-      const gd=affixGradDetail(G.mapTier);
-      if(gd.pct < GRAD_GATE){
-        pushLog('sys','📉 且词缀毕业度仅 '+Math.round(gd.pct*100)+'% —— 建议留在本图刷装备/重铸'
-          +(gd.gapText?'（最缺：'+gd.gapText+'）':'')+'，而不是硬冲下一张图。', {color:'#ff9f3a'});
-      }
-    } else if(eMult>1){
-      pushLog('sys','🔥 越级挑战奖励 ×'+eMult.toFixed(2)+' 经验', {color:'#45d98e'});
-    }
-    G.lastLoot=loot;
+    /* BOSS击杀：解锁地图进度 */
     if(boss){
       G.encounter=0;G.eliteDone=false;G.bossDone=false;
       G.mapEliteAt=rand(6,9);G.mapBossAt=rand(15,30);
@@ -4018,6 +4268,74 @@ function selectEliteRarity(){
   if(r<0.70) return 'rare';
   return 'epic';
 }
+/* 击杀敌人即时奖励：每打死一只怪立刻给经验和道具，不想战后才结算 */
+function killEnemy(enemy){
+  const isElite=enemy.isElite,isBoss=enemy.isBoss;
+  const gf=(totalStats().goldFind)||0;
+  /* 金币 */
+  const noGold = !isBoss && hasMythic('myth_oz_ring');
+  if(!noGold){
+    const g=Math.round((isBoss?rand(150,300):isElite?rand(50,100):rand(10,30))*(1+gf));
+    G.player.gold+=g;
+    if(g) pushLog('sys','💰 获得 '+g+' 金币', {hl:true, color:'#c9a227'});
+  }
+  /* 材料 */
+  const mats=isBoss?rand(8,15):isElite?rand(3,6):rand(0,2);
+  if(mats){ matAdd('common',mats); pushLog('sys','🪨 获得 '+mats+' 材料', {color:'#9aa0a6'}); }
+  /* 装备掉落（每只怪独立判断，爆率约原值×0.6以补偿即时化） */
+  if(Math.random()<(isBoss?0.6:isElite?0.5:0.20)){
+    const rar=isBoss?(Math.random()<0.5?'epic':'legendary'):isElite?selectEliteRarity():null;
+    const it=genEquip(G.mapTier,rar);
+    G.player.inventory.push(it); const ro=rarObj(it.rarity)||RARITY[0];
+    pushLog('sys','🎁 获得【'+ro.name+'】'+it.name, {hl:true, color:ro.color});
+  }
+  /* 技能书（每只独立，爆率约原值×0.7） */
+  if((isBoss?Math.random()<0.4:isElite?Math.random()<0.2:Math.random()<0.04)){
+    const pool=Object.keys(SKILLS).filter(k=>SKILLS[k].tier==='base');
+    if(pool.length){ const sk=pool[rand(0,pool.length-1)]; giveBook(sk); }
+  }
+  if((isBoss?Math.random()<0.2:isElite?Math.random()<0.07:Math.random()<0.015)){
+    const pool=Object.keys(SKILLS).filter(k=>SKILLS[k].tier==='mid');
+    if(pool.length){ const sk=pool[rand(0,pool.length-1)]; giveBook(sk); }
+  }
+  /* BOSS专属 */
+  if(isBoss){
+    const bossKey=enemy.monKey||Object.keys(MONSTERS).find(k=>MONSTERS[k].boss&&MONSTERS[k].name===enemy.name);
+    if(bossKey&&BOSS_DROPS[bossKey]) rollBossLootInstant(bossKey);
+  }
+  /* 高级书 / 光环 */
+  if(isElite&&Math.random()<0.04){
+    const auras=Object.keys(SKILLS).filter(k=>SKILLS[k].type==='aura');
+    if(auras.length){ const sk=auras[rand(0,auras.length-1)]; giveBook(sk); pushLog('sys','✨ 精英掉落光环技能书【'+SKILLS[sk].name+'】'); }
+  }
+  if((isBoss&&Math.random()<0.10)||(isElite&&Math.random()<0.03)){
+    const pool=Object.keys(SKILLS).filter(k=>SKILLS[k].tier==='high');
+    if(pool.length){ const sk=pool[rand(0,pool.length-1)]; giveBook(sk); pushLog('sys','🌟 稀世掉落！高级技能书【'+SKILLS[sk].name+'】'); }
+  }
+  /* 药水瓶 */
+  if(Math.random()<(isBoss?0.45:isElite?0.18:0.05)){
+    const lvl=clamp(G.mapTier*2+((isBoss||isElite)?1:rand(0,1)),0,FLASK_TIERS.length-1);
+    const fl=genFlask(lvl,Math.random()<0.5?'hp':'mp',false);
+    G.player.inventory.push(fl); pushLog('sys','🧪 获得 '+fl.name, {color:'#7fd6a0'});
+  }
+  /* 经验：即时获得 */
+  let exp=isBoss?130:isElite?60:22;
+  const eMult=expScale(G.mapTier);
+  gainExp(Math.round(exp*eMult));
+  /* 药水瓶充能 */
+  ['hp','mp'].forEach(function(k){
+    const f=G.player.flasks&&G.player.flasks[k];
+    if(f&&f.charge<f.cap){
+      const g=Math.round((isBoss?60:isElite?25:9)*(1+flaskAffix(f,'killCharge')));
+      f.charge=Math.min(f.cap,f.charge+g);
+    }
+  });
+  save();
+}
+function giveBook(sk){
+  G.player.inventory.push({type:'book',skill:sk,name:'技能书·'+SKILLS[sk].name});
+}
+
 function generateLoot(enemies){
   if(!Array.isArray(enemies)) enemies=[enemies];
   const dm=1;
@@ -4197,9 +4515,7 @@ function invSection(title, foldKey, innerHtml){
 /* ---------- 背包：点击选中 -> 侧栏展示详情与对比，半透明按键直接操作 ---------- */
 var INSPECT=null;
 var bagCat='equip';
-var charCollapsed = new Set(); // 默认展开所有已穿戴部位；点某行折叠/展开该件
 function setBagCat(c){ bagCat=c; renderContent(); }
-function toggleCharSlot(slot){ if(charCollapsed.has(slot)) charCollapsed.delete(slot); else charCollapsed.add(slot); renderContent(); }
 function selectBag(kind, uid){
   if(INSPECT && INSPECT.kind===kind && INSPECT.uid===uid){ INSPECT=null; }
   else { INSPECT={kind:kind, uid:uid}; }
@@ -4243,7 +4559,18 @@ function flaskBody(f){
 function renderInspect(){
   if(!INSPECT) return '<div class="inspect-empty"><div class="inspect-empty-icon">'+svgIcon('bag')+'</div>点击左侧物品<br>查看属性与对比</div>';
   const p=G.player;
-  if(INSPECT.kind==='worn'){
+    if(INSPECT.kind==='rune'){
+    var ri=INSPECT.uid, r=G.player.runes[ri]; if(!r){INSPECT=null;return renderInspect();}
+    var rt=RUNE_TYPES[r.type]; if(!rt){INSPECT=null;return renderInspect();}
+    var h='<div class="inspect-head"><div class="inspect-icon" style="color:'+rt.color+';font-size:36px;">'+rt.icon+'</div>'+
+      '<div><div class="inspect-name" style="color:'+rt.color+';">'+rt.name+' '+RUNE_RARITY[r.rarity].name+'</div>'+
+      '<div class="inspect-sub">'+RUNE_TYPES[r.type].stat+' +'+Math.round(r.val*100)+'%</div></div></div>';
+    h+='<div class="inspect-body"><div class="inspect-desc">镶嵌至已开孔的装备上，提供属性加成。3/5/7件同类型符文激活组合效果。</div>';
+    h+='<div class="cmp-row flat"><span>组合需求</span><span>3件×1.5 / 5件×2.0 / 7件×2.5</span></div></div>';
+    h+='<button class="bag-act" onclick="embedRune(G.player.equip[G.player.equip.weapon?\'weapon\':\'head\'],'+ri+')">镶嵌至装备</button>';
+    return h;
+  }
+if(INSPECT.kind==='worn'){
     const slot=INSPECT.uid, it=p.equip[slot];
     if(!it){ INSPECT=null; return renderInspect(); }
     const ro=rarObj(it.rarity)||RARITY[0];
@@ -4251,7 +4578,10 @@ function renderInspect(){
       '<div><div class="inspect-name" style="color:'+ro.color+'">'+esc(it.name)+'</div>'+
       '<div class="inspect-sub">'+slotNameOf(slot)+' · '+ro.name+'</div></div></div>';
     h+=inspectBody(it);
-    h+='<button class="bag-act danger" data-slot="'+slot+'" onclick="applyUnequip(this.dataset.slot)">卸下</button>';
+    if(!it.socketOpen) h+='<button class="bag-act" onclick="socketEquip(G.player.equip[\''+slot+'\'])">凿孔（精炼印屑×5）</button>'; else if(it.runes&&it.runes.length===0) h+='<div style="font-size:11px;color:var(--dim);margin:6px 0;">符文孔已开，可镶嵌符文</div>';
+  h+='<button class="bag-act danger" data-slot="'+slot+'" onclick="applyUnequip(this.dataset.slot)">卸下</button>';  if(it.socketOpen&&it.runes&&it.runes.length>0){
+    var rr=it.runes[0], rt=RUNE_TYPES[rr.type]; if(rt) h+='<div style="font-size:11px;color:'+rt.color+';margin-top:4px;">💎 '+rt.icon+' '+rt.name+'·'+RUNE_RARITY[rr.rarity].name+'</div>';
+  }
     return h;
   }
   if(INSPECT.kind==='equip'){
@@ -4542,9 +4872,29 @@ function gateContinue(){
 /* 渲染职业网格 */
 function renderOriginGrid(){
   gateEl('gateOrigins').innerHTML=ORIGINS.map(function(o){
-    return '<div class="origin-card'+(o.key===_gateOrigin?' sel':'')+'" onclick="pickOrigin(\''+o.key+'\')">'+
-      '<span class="oi">'+svgIcon(o.icon)+'</span>'+
-      '<span class="on2">'+o.name+'</span><div class="od">'+o.desc+'</div></div>';
+    const sel=o.key===_gateOrigin;
+    const atC=o.at==='plate'?'#8899aa':o.at==='leather'?'#8b7355':'#d8c39a';
+    const atName=o.at==='plate'?'板甲':o.at==='leather'?'皮甲':'布甲';
+    const bonusHtml=Object.entries(o.bonus).map(function(e){
+      const a=ATTRS[e[0]]; return '<span style="color:'+a.color+'">'+a.icon+' '+a.name+' +'+e[1]+'</span>';
+    }).join('');
+    return '<div class="origin-row'+(sel?' sel':'')+'" onclick="pickOrigin(\''+o.key+'\')">'+
+      '<div class="or-head">'+
+        '<span class="or-icon">'+svgIcon(o.icon)+'</span>'+
+        '<span class="or-name">'+o.name+'</span>'+
+        '<span class="or-desc">'+o.desc+'</span>'+
+        '<span class="or-caret">▼</span>'+
+      '</div>'+
+      '<div class="or-body">'+
+        '<div class="or-art">'+
+          '<img src="'+o.img+'" alt="'+o.name+'">'+
+          '<div class="or-overlay"></div>'+
+          '<div class="or-story">'+o.story+'</div>'+
+        '</div>'+
+        '<div class="or-bonus">'+bonusHtml+'</div>'+
+        '<div class="or-armor">护甲类型：<b style="color:'+atC+'">'+atName+'</b></div>'+
+      '</div>'+
+    '</div>';
   }).join('');
 }
 function pickOrigin(k){ _gateOrigin=k; renderOriginGrid(); }
@@ -4570,6 +4920,7 @@ function enterGame(){
     document.addEventListener('visibilitychange', function(){ if(document.visibilityState==='hidden'){ try{ if(G) Auth.writeLocal(G); }catch(e){} } });
   }
   showNormalView();
+  setTimeout(function(){ tutorialStart(); }, 600); /* 等UI渲染完毕后再启动教程 */
 }
 /* 返回标题（顶栏按钮）：保存并返回入口 */
 function gateReturnTitle(){
@@ -4654,7 +5005,7 @@ function applyCompat(){
   if(!G.player.flasks.mp) G.player.flasks.mp=genFlask(0,'mp',true);
   if(typeof G.player.mp!=='number'){ const st=totalStats(); G.player.mp=Math.round(st.mp); }
   /* 装备/库存页签已合并为「背包」 */
-  if(G.navTab==='equip') G.navTab='bag';
+  if(G.navTab==='equip'||G.navTab==='bag') G.navTab='char';
   /* 阶位命名分化（A方案）：旧档中带 armorType+tierIdx 的装备按新命名表重算名字（敕造专属除外，已穿戴不强制脱下） */
   try{
     const renameFix=function(it){ if(it && !it.type && !it.unique && it.armorType && it.tierIdx!=null){ it.name=equipName(it); } };
@@ -4673,6 +5024,10 @@ function applyCompat(){
      不会自动装填——需玩家手动从技能页装备技能。 */
   if(!Array.isArray(G.player.equippedSkills)) G.player.equippedSkills=[];
   if(!Array.isArray(G.player.equippedAuras)) G.player.equippedAuras=[];
+  if(typeof G.player.whetstones!=='number') G.player.whetstones=0;
+  if(!G.tower) G.tower = {highest:0, current:1, active:false};
+  if(!Array.isArray(G.player.runes)) G.player.runes=[];
+  G.player.runes = [];
 }
 
 /* ==================== 视图切换 ==================== */
@@ -4680,18 +5035,18 @@ function showNormalView(){
   document.getElementById('normalView').style.display='flex';
   document.getElementById('battleView').style.display='none';
   document.getElementById('app').classList.remove('battle-mode');
-  /* 侧边栏在非战斗状态显示 */
   document.getElementById('sidebarLeft').style.display='';
   document.getElementById('sidebarRight').style.display='';
+  floatLogHide();
   renderAll();
 }
 function showBattleView(){
   document.getElementById('normalView').style.display='none';
   document.getElementById('battleView').style.display='flex';
   document.getElementById('app').classList.add('battle-mode');
-  /* 战斗时隐藏侧边栏，内容区全屏 */
   document.getElementById('sidebarLeft').style.display='none';
   document.getElementById('sidebarRight').style.display='none';
+  floatLogShow();
   renderBattleScreen();
 }
 
@@ -4778,13 +5133,13 @@ function renderRightBody(){
 function renderContent(){
   const c=document.getElementById('content');
   switch(G.navTab){
-    case 'bag': c.innerHTML=tabBag(); break;
     case 'skills': c.innerHTML=tabSkills(); break;
-    case 'char': c.innerHTML=tabChar(); break;
+    case 'char': c.innerHTML=tabCharUnified(); break;
     case 'map': c.innerHTML=tabMap(); break;
     case 'forge': c.innerHTML=tabForge(); break;
     case 'shop': c.innerHTML=tabShop(); break;
     case 'party': c.innerHTML=tabParty(); break;
+    case 'tower': c.innerHTML=tabTower(); break;
   }
 }
 
@@ -4795,82 +5150,81 @@ function tabBag(){
   const equips=p.inventory.filter(i=>!i.type);
   const books=p.inventory.filter(i=>i.type==='book');
   const flasks=p.inventory.filter(i=>i.type==='flask');
-
-  /* --- 人物形象（随穿戴实时变化） --- */
   const worn=ALL_SLOTS.filter(k=>p.equip[k]).length;
-  let html='<div style="display:flex;gap:18px;align-items:center;background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin-bottom:14px;">'+
-    '<div style="width:136px;height:136px;flex-shrink:0;border-radius:14px;background:radial-gradient(circle at 50% 30%,rgba(41,128,185,.15),rgba(0,0,0,.4));border:1px solid var(--line);display:flex;align-items:center;justify-content:center;color:var(--blue);">'+playerAvatarSVG(116)+'</div>'+
-    '<div style="flex:1;min-width:0;">'+
-      '<div style="font-size:16px;font-weight:700;color:var(--gold-soft);">'+esc(p.name)+' · Lv.'+p.level+'</div>'+
-      '<div style="font-size:11.5px;color:var(--dim);margin:4px 0 8px;">'+(G.account&&G.account.originName?'出身 '+G.account.originName+' · ':'')+worn+' / '+ALL_SLOTS.length+' 部位已装备 · 形象随穿戴实时变化</div>'+
-      ['hp','mp'].map(k=>{
-        const f=p.flasks&&p.flasks[k]; if(!f) return '';
-        const fp=Math.round(f.charge/f.cap*100);
-        return '<div class="flask-row" title="'+esc(flaskDesc(f))+'">'+flaskIconSVG(k,14)+
-          '<span style="color:'+FLASK_KINDS[k].color+';min-width:110px;">'+esc(f.name)+'</span>'+
-          '<div class="flask-bar"><div class="flask-fill-'+k+'" style="width:'+fp+'%"></div></div>'+
-          '<span>'+f.charge+'/'+f.cap+'</span></div>';
-      }).join('')+
-    '</div></div>';
-
-  html+='<div class="bag-layout"><div class="bag-main">'; /* --- 身上装备（分格） --- */
-  let wornHtml='';
-  ALL_SLOTS.forEach(slotKey=>{
-    const it=p.equip[slotKey];
-    const slInfo = slotKey==='weapon'
-      ? {name:'武器',icon:svgIcon('weapon')}
-      : ARMOR_SLOTS.find(a=>a.key===slotKey)||{name:slotKey,icon:'📦'};
+  var html='<div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;flex-wrap:wrap;">'+
+    '<span style="font-size:17px;font-weight:700;color:var(--gold-soft);">'+esc(p.name)+' \u00b7 Lv.'+p.level+'</span>'+
+    '<span style="font-size:11px;color:var(--dim);">'+(G.account&&G.account.originName?'\u51fa\u8eab '+G.account.originName+' \u00b7 ':'')+worn+' / '+ALL_SLOTS.length+' \u90e8\u4f4d\u5df2\u88c5\u5907</span>'+
+    ['hp','mp'].map(function(k){
+      var f=p.flasks&&p.flasks[k]; if(!f) return '';
+      var fp=Math.round(f.charge/f.cap*100);
+      return '<span title="'+esc(flaskDesc(f))+'" style="display:flex;align-items:center;gap:4px;font-size:11px;">'+flaskIconSVG(k,13)+
+        '<span style="color:'+FLASK_KINDS[k].color+'">'+esc(f.name)+'</span>'+
+        '<span style="width:60px;height:8px;background:#222;border-radius:4px;display:inline-block;">'+
+        '<span style="display:block;height:100%;width:'+fp+'%;border-radius:4px;'+(k==='hp'?'background:#e85d4c;':'background:#4a9eff;')+'"></span></span>'+
+        '<span style="color:var(--dim);font-size:10px;">'+f.charge+'/'+f.cap+'</span></span>';
+    }).join('')+
+  '</div>';
+  html+='<div class="bag-layout">';
+  html+='<div style="flex:0 0 150px;text-align:center;">'+
+    '<div style="width:150px;height:180px;border-radius:14px;background:radial-gradient(circle at 50% 30%,rgba(41,128,185,.15),rgba(0,0,0,.4));border:1px solid var(--line);overflow:hidden;">'+playerAvatarSVG(138)+'</div>'+
+  '</div>';
+  html+='<div class="equip-slots">';
+  ALL_SLOTS.forEach(function(slotKey){
+    var it=p.equip[slotKey];
+    var sIcon=slotKey==='weapon'?svgIcon('weapon'):svgIcon(slotKey);
+    var sName=slotKey==='weapon'?'\u6b66\u5668':((ARMOR_SLOTS.find(function(a){return a.key===slotKey})||{name:slotKey}).name);
     if(it){
-      const ro2=rarObj(it.rarity);
-      wornHtml+=invCell({ rarity:it.rarity, q:slInfo.name, icon:itemBadgeSVG(it,52),
-        name:it.name, color:ro2.color, title:it.name, onClick:'selectBag(\'worn\',\''+slotKey+'\')', sel:(INSPECT&&INSPECT.kind==='worn'&&INSPECT.uid===slotKey) });
+      var ro=rarObj(it.rarity);
+      var sel=INSPECT&&INSPECT.kind==='worn'&&INSPECT.uid===slotKey;
+      html+='<div class="e-slot e-filled'+(sel?' sel':'')+'" style="--er:'+ro.color+'" title="'+esc(it.name)+'" onclick="selectBag(\'worn\',\''+slotKey+'\')">'+
+        itemBadgeSVG(it,36)+'<span class="e-slot-name">'+sName+'</span>'+
+    (it.wear>0?'<span class="e-wear-dot" style="background:'+(it.wear>=50?(it.wear>=80?'#c0392b':'#e67e22'):'var(--dim)')+'"></span>':'')+
+    '</div>';
     } else {
-      wornHtml+=invCell({ empty:true, q:slInfo.name, icon:slInfo.icon, name:'空' });
+      html+='<div class="e-slot e-empty" title="'+sName+'"><span class="e-empty-icon">'+sIcon+'</span><span class="e-slot-name">'+sName+'</span></div>';
     }
   });
-  html+=invSection('\u{1F9D1} 身上装备 ('+worn+'/'+ALL_SLOTS.length+')','worn',wornHtml);
-
-  /* --- 库存搜索 --- */
-  html+='<div class="search-box"><input placeholder="物品搜索..." oninput="filterItems(this.value)"></div>';
-
-  /* --- 货币（分格） --- */
-  html+=invSection('\u{1F4B0} 货币','currency',
-    invCell({ icon:coinSVG(42), name:'金币', color:'#c9a227', q:(''+p.gold), title:'金币：'+p.gold }));
-
-  /* --- 锻造材料（分格） --- */
-  let matHtml=Object.keys(SHARD_TYPES).map(t=>invCell({ icon:shardSVG(t,38), name:SHARD_TYPES[t].name, color:SHARD_TYPES[t].color, q:(''+matGet(t)), title:SHARD_TYPES[t].name+'：'+matGet(t) })).join('');
-  html+=invSection('\u{2692}\u{FE0F} 锻造材料','mats',matHtml);
-
-  /* --- 背包分栏：装备 / 技能书 / 药水（点击标签切换） --- */
-  const bagCats=[['equip','\u{1F5E1} 装备',equips.length],['book','\u{1F4D6} 技能书',books.length],['flask','\u{1F9EA} 药水',flasks.length]];
-  let tabsHtml='<div class="bag-tabs">';
+  html+='</div>';
+  html+='<div class="bag-main">';
+  
+  var runesHtml='';
+  G.player.runes.forEach(function(r,i){ var rt=RUNE_TYPES[r.type]; if(rt)
+    runesHtml+='<div style="display:flex;align-items:center;gap:6px;padding:4px 8px;cursor:pointer;'+
+      'border:1px solid var(--line);border-radius:6px;margin:2px 0;font-size:11px;'+
+      'background:var(--panel3);" onclick="selectBag(\'rune\','+i+')">'+
+      '<span style="font-size:16px;">'+rt.icon+'</span>'+
+      '<span style="color:'+rt.color+';">'+rt.name+' '+RUNE_RARITY[r.rarity].name+'</span>'+
+      '<span style="color:var(--dim);margin-left:auto;">+'+Math.round(RUNE_TYPES[r.type].vals[r.rarity]*100)+'%</span></div>';
+  });
+  if(runesHtml) html+=invSection('💎 符文','runes',runesHtml);
+var bagCats=[['equip','\u88c5\u5907',equips.length],['book','\u6280\u80fd\u4e66',books.length],['flask','\u836f\u6c34',flasks.length]];
+  var tabsHtml='<div class="bag-tabs">';
   bagCats.forEach(function(c){ tabsHtml+='<button class="bag-tab'+(bagCat===c[0]?' on':'')+'" onclick="setBagCat(\''+c[0]+'\')">'+c[1]+' <span class="bag-tab-n">'+c[2]+'</span></button>'; });
   tabsHtml+='</div>';
-  let bagHtml='';
-  const bagTotal=equips.length+books.length+flasks.length;
-  if(bagTotal===0){
-    bagHtml='<div style="grid-column:1/-1;color:var(--dim);padding:24px;text-align:center;">背包空空如也</div>';
+  var bagHtml='';
+  if(bagCat==='equip'){
+    equips.forEach(function(it){ var ri=rarObj(it.rarity);
+      bagHtml+=invCell({ rarity:it.rarity, icon:itemBadgeSVG(it,44), name:it.name, color:ri.color, title:it.name, onClick:'selectBag(\'equip\','+it.uid+')', sel:(INSPECT&&INSPECT.kind==='equip'&&INSPECT.uid===it.uid) }); });
+  } else if(bagCat==='book'){
+    books.forEach(function(b){ var realIdx=p.inventory.indexOf(b), def=SKILLS[b.skill], lv=p.skills[b.skill]||0;
+      bagHtml+=invCell({ icon:bookBadgeSVG(b.skill,44), name:def.name, color:(SKILL_TIER_COLOR[def.tier||'base'])||'#cfd8e2', title:b.name+(lv?('\u5df2\u5b66 '+lv+' \u7ea7'):''), count:(lv?lv+1:1), onClick:'selectBag(\'book\','+realIdx+')', sel:(INSPECT&&INSPECT.kind==='book'&&INSPECT.uid===realIdx) }); });
   } else {
-    if(bagCat==='equip'){
-      equips.forEach(it=>{ const ri=rarObj(it.rarity);
-        bagHtml+=invCell({ rarity:it.rarity, icon:itemBadgeSVG(it,52), name:it.name, color:ri.color, title:it.name, onClick:'selectBag(\'equip\','+it.uid+')', sel:(INSPECT&&INSPECT.kind==='equip'&&INSPECT.uid===it.uid) }); });
-    } else if(bagCat==='book'){
-      books.forEach(b=>{ const realIdx=p.inventory.indexOf(b), def=SKILLS[b.skill], lv=p.skills[b.skill]||0;
-        bagHtml+=invCell({ icon:bookBadgeSVG(b.skill,52), name:def.name, color:(SKILL_TIER_COLOR&&SKILL_TIER_COLOR[def.tier||'base'])||'#cfd8e2', title:b.name+(lv?('\n已学 '+lv+' 级'):''), count:(lv?lv+1:1), onClick:'selectBag(\'book\','+realIdx+')', sel:(INSPECT&&INSPECT.kind==='book'&&INSPECT.uid===realIdx) }); });
-    } else {
-      flasks.forEach(f=>{ bagHtml+=invCell({ icon:flaskIconSVG(f.kind,38), name:f.name, color:FLASK_KINDS[f.kind].color, title:esc(flaskDesc(f)), onClick:'selectBag(\'flask\','+f.uid+')', sel:(INSPECT&&INSPECT.kind==='flask'&&INSPECT.uid===f.uid) }); });
-    }
-    const shown=(bagCat==='equip'?equips.length:(bagCat==='book'?books.length:flasks.length));
-    let pad=(5-(shown%5))%5; if(pad===0&&shown>0) pad=5;
-    for(let i=0;i<pad+10;i++) bagHtml+=invCell({ empty:true, icon:'', name:'' });
+    flasks.forEach(function(f){ bagHtml+=invCell({ icon:flaskIconSVG(f.kind,32), name:f.name, color:FLASK_KINDS[f.kind].color, title:esc(flaskDesc(f)), onClick:'selectBag(\'flask\','+f.uid+')', sel:(INSPECT&&INSPECT.kind==='flask'&&INSPECT.uid===f.uid) }); });
   }
-  html+='<div class="fold-section"><div class="cat-header"><span class="cat-title">\u{1F392} 背包</span></div><div>'+tabsHtml+'<div class="inv-grid" id="bagGrid">'+bagHtml+'</div></div></div>';
-
-  html+='</div><aside class="bag-inspect" id="bagInspect">'+renderInspect()+'</aside></div>';
-
-
+  var shown=(bagCat==='equip'?equips.length:(bagCat==='book'?books.length:flasks.length));
+  var pad=(5-(shown%5))%5; if(pad===0&&shown>0) pad=5;
+  for(var i=0;i<pad;i++) bagHtml+=invCell({ empty:true, icon:'', name:'' });
+  html+='<div class="bag-box"><div class="bag-box-title">╔══ 背包 ══╗</div>'+tabsHtml+'<div class="inv-grid" id="bagGrid">'+bagHtml+'</div></div>';
+  html+='</div>';
+  html+='<aside class="bag-inspect" id="bagInspect">'+renderInspect()+'</aside>';
+  html+='</div>';
+  html+='<div style="display:flex;gap:5px;flex-wrap:wrap;margin-top:10px;">'+
+    invCell({ icon:coinSVG(36), name:'\u91d1\u5e01', color:'#c9a227', q:(''+p.gold), title:'\u91d1\u5e01\uff1a'+p.gold })+
+    Object.keys(SHARD_TYPES).map(function(t){ return invCell({ icon:shardSVG(t,32), name:SHARD_TYPES[t].name, color:SHARD_TYPES[t].color, q:(''+matGet(t)), title:SHARD_TYPES[t].name+'\uff1a'+matGet(t) }); }).join('')+
+  '</div>';
   return html;
 }
+
 function cardItem(icon,name,count,color){
   return '<div class="item-card"><div class="card-icon">'+icon+'</div>'+
     '<div class="card-name">'+name+'</div>'+
@@ -5085,102 +5439,82 @@ function skillCardHTML(id){
 }
 
 /* ---------- 角色（三属性） ---------- */
-function tabChar(){
-  const p=G.player,s=totalStats(),wp=weaponPower(s);
-
-  /* 五主属性行 */
-  const attrRows = ['str','agi','con','int','spi'].map(key => {
-    const a=ATTRS[key], val=s[key], maxShow=50+G.player.level*5;
-    const pct=Math.min(100,val/maxShow*100);
-    const cls=key==='str'?'attr-str':key==='agi'?'attr-agi':'attr-int';
-    return '<div class="attr-row">'+
-      '<div class="attr-icon '+cls+'">'+a.icon+'</div>'+
-      '<div class="attr-info"><div class="attr-name">'+a.name+'</div>'+
-      '<div class="attr-bar"><div class="attr-fill" style="width:'+pct+'%;background:'+a.color+'"></div></div></div>'+
-      '<div class="attr-val">'+val+'</div>'+
-      (p.attrPoints>0?'<button class="btn btn-sm" style="margin-left:6px;background:'+a.color+';color:#fff;border:none;" onclick="allocAttr(\''+key+'\')">+1</button>':'')+
-    '</div>';
-  }).join('');
-
-  /* 次级属性 */
-  const subStats = [
-    {name:'生命', icon:'❤️', val:Math.round(s.hp), cur:p.hp},
-    {name:'法力', icon:'🔷', val:Math.round(s.mp), cur:p.mp},
-    {name:'物理攻击', icon:'⚔️', val:Math.round(s.atk+wp.atk)},
-    {name:'魔法攻击', icon:'🔮', val:Math.round(s.matk+wp.matk)},
-    {name:'物理防御', icon:'🛡️', val:Math.round(s.def)},
-    {name:'魔法防御', icon:'🌀', val:Math.round(s.mdef)},
-    {name:'攻击速度', icon:'💨', val:Math.round(s.spd)},
-    {name:'命中', icon:'🎯', val:(s.hit*100).toFixed(0)+'%'},
-    {name:'闪避', icon:'🌫️', val:(s.eva*100).toFixed(0)+'%'},
-    {name:'暴击', icon:'🗡️', val:(s.crit*100).toFixed(0)+'%'},
-    {name:'暴击伤害', icon:'💥', val:'+'+(s.critDmg*100).toFixed(0)+'%'},
-    {name:'吸血', icon:'🩸', val:(s.lifesteal*100).toFixed(0)+'%'},
-    {name:'减伤', icon:'🛡', val:(s.dmgReduce*100).toFixed(0)+'%'},
-    {name:'财富', icon:'💰', val:'+'+(s.goldFind*100).toFixed(0)+'%'},
-  ].map(st =>
-    '<div class="attr-row">'+
-      '<div class="attr-icon" style="background:rgba(255,255,255,.05);border:1px solid var(--line);">'+st.icon+'</div>'+
-      '<div class="attr-info"><div class="attr-name">'+st.name+'</div></div>'+
-      '<div class="attr-val">'+(st.cur?st.cur+'/'+st.val:st.val)+'</div>'+
-    '</div>'
-  ).join('');
-
-  /* 身上装备（点击展开词条） */
-  let equipHtml='<div style="background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:14px;">'+
-    '<div style="font-size:12px;color:var(--dim);margin-bottom:10px;">▸ 身上装备（词条已展开，点行可折叠）</div>';
-  ALL_SLOTS.forEach(slotKey=>{
-    const it=p.equip[slotKey];
-    const slInfo = slotKey==='weapon'
-      ? {name:'武器',icon:svgIcon('weapon')}
-      : (ARMOR_SLOTS.find(a=>a.key===slotKey)||{name:slotKey,icon:'📦'});
-    if(it){
-      const ro=rarObj(it.rarity)||RARITY[0];
-      equipHtml+='<div class="char-equip-row" data-slot="'+slotKey+'" onclick="toggleCharSlot(this.dataset.slot)">'+
-        '<div class="char-equip-ic">'+itemBadgeSVG(it,28)+'</div>'+
-        '<div class="char-equip-name" style="color:'+ro.color+'">'+esc(it.name)+'</div>'+
-        '<div class="char-equip-slot">'+slInfo.name+'</div>'+
-        '<div class="char-equip-caret">'+(charCollapsed.has(slotKey)?'▼':'▲')+'</div>'+
-      '</div>';
-      if(!charCollapsed.has(slotKey)){
-        equipHtml+='<div class="char-equip-detail">'+
-          '<div class="inspect-head" style="margin-bottom:8px;"><div class="inspect-icon">'+itemBadgeSVG(it,52)+'</div>'+
-          '<div><div class="inspect-name" style="color:'+ro.color+'">'+esc(it.name)+'</div>'+
-          '<div class="inspect-sub">'+slInfo.name+' · '+ro.name+'</div></div></div>'+
-          inspectBody(it)+
-          '<button class="bag-act danger" style="margin-top:8px;" data-slot="'+slotKey+'" onclick="applyUnequip(this.dataset.slot)">卸下</button>'+
-        '</div>';
-      }
-    } else {
-      equipHtml+='<div class="char-equip-row empty">'+
-        '<div class="char-equip-ic" style="opacity:.4">'+slInfo.icon+'</div>'+
-        '<div class="char-equip-name" style="color:var(--dim)">空</div>'+
-        '<div class="char-equip-slot">'+slInfo.name+'</div>'+
-      '</div>';
-    }
-  });
-  equipHtml+='</div>';
-  const acc=G.account||{};
-  return '<h3 style="color:var(--gold-soft);font-size:15px;margin-bottom:12px;">🧑 '+p.name+' · Lv.'+p.level+
-    (p.attrPoints>0?' <span style="color:var(--orange);font-size:12px;">('+p.attrPoints+' 待分配)</span>':'')+'</h3>'+
-    '<div style="font-size:11.5px;color:var(--dim);margin-bottom:12px;padding:8px 12px;border:1px solid var(--line);border-radius:10px;background:rgba(255,255,255,.03);">'+
-      '存档 <b style="color:var(--gold-soft)">本机</b>'+
-      ' · 出身 <b style="color:#9ccbff">'+esc(acc.originName||'未知')+'</b>'+
-      ' · 存档位置 <b>本机</b>'+
-    '</div>'+
-    '<div style="background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:14px;">'+
-    '<div style="font-size:12px;color:var(--dim);margin-bottom:10px;">▸ 主属性（决定可用武器与技能强度）</div>'+attrRows+
-    '</div>'+
-    '<div style="background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:14px;">'+
-    '<div style="font-size:12px;color:var(--dim);margin-bottom:10px;">▸ 战斗属性</div>'+subStats+equipHtml+
-    '</div>'+
-    '<div style="font-size:11.5px;color:var(--dim);line-height:1.8;">'+
-    '<b style="color:var(--str-color);">💪 力量</b> → 剑/斧/锤 &nbsp;|&nbsp;'+
-    '<b style="color:var(--agi-color);">🏃 敏捷</b> → 弓/弩 &nbsp;|&nbsp;'+
-    '<b style="color:var(--int-color);">🔮 智力</b> → 法杖/魔导书/治疗'+
-    '</div>'+
-    '<button class="btn" style="margin-top:12px;width:100%;" onclick="healFull()">💉 恢复全部生命</button>';
+function tabCharUnified(){
+  var subs='<div class="char-subs">'+
+    '<button class="char-subtab'+(charSubTab==='bag'?' on':'')+'" onclick="setCharSubTab(\'bag\')">\ud83d\udcbc \u80cc\u5305</button>'+
+    '<button class="char-subtab'+(charSubTab==='stats'?' on':'')+'" onclick="setCharSubTab(\'stats\')">\ud83d\udcca \u72b6\u6001</button>'+
+  '</div>';
+  if(charSubTab==='bag') return subs+tabBag();
+  return subs+tabCharStats();
 }
+function tabCharStats(){
+  var p=G.player,s=totalStats(),wp=weaponPower(s);
+  var html='<div class="char-unified">';
+  /* --- 顶栏：角色 + 基础信息 --- */
+  html+='<div style="display:flex;gap:16px;align-items:center;margin-bottom:14px;flex-wrap:wrap;">'+
+    '<div style="width:90px;height:110px;border-radius:12px;background:radial-gradient(circle at 50% 30%,rgba(41,128,185,.15),rgba(0,0,0,.4));border:1px solid var(--line);overflow:hidden;">'+playerAvatarSVG(78)+'</div>'+
+    '<div>'+
+      '<div style="font-size:18px;font-weight:700;color:var(--gold-soft);">'+esc(p.name)+' <span style="font-size:13px;color:var(--dim);">Lv.'+p.level+'</span></div>'+
+      '<div style="font-size:11px;color:var(--dim);margin-top:2px;">'+(G.account&&G.account.originName?'\u51fa\u8eab '+G.account.originName:'')+'</div>'+
+      '<div style="font-size:12px;color:var(--ink);margin-top:4px;">\u751f\u547d '+Math.round(p.hp)+'/'+Math.round(s.hp)+'  |  \u6cd5\u529b '+Math.round(p.mp)+'/'+Math.round(s.mp)+'</div>'+
+    '</div>'+
+  '</div>';
+
+  /* --- \u4e94\u4e3b\u5c5e\u6027 --- */
+  html+='<div class="cs-section"><div class="cs-sectitle">\u25b8 \u4e3b\u5c5e\u6027</div>';
+  ['str','agi','con','int','spi'].forEach(function(key){
+    var a=ATTRS[key], base=p[key]||0, total=s[key], bonus=total-base;
+    var maxShow=50+p.level*5, pct=Math.min(100,total/maxShow*100);
+    html+='<div class="cs-row">'+
+      '<span class="cs-icon" style="color:'+a.color+'">'+a.icon+'</span>'+
+      '<span class="cs-label">'+a.name+'</span>'+
+      '<span class="cs-base">'+base+'</span>'+
+      (bonus>0?'<span class="cs-bonus">+'+bonus+'</span>':'')+
+      '<span class="cs-total">'+total+'</span>'+
+      '<div class="cs-bar"><div class="cs-fill" style="width:'+pct+'%;background:'+a.color+'"></div></div>'+
+    '</div>';
+  });
+  html+='</div>';
+
+  /* --- \u6218\u6597\u5c5e\u6027 --- */
+  var atk=Math.round(s.atk+wp.atk), matk=Math.round(s.matk+wp.matk);
+  html+='<div class="cs-section"><div class="cs-sectitle">\u25b8 \u6218\u6597\u5c5e\u6027</div>';
+  function csRow(icon,label,val,color){
+    return '<div class="cs-row"><span class="cs-icon">'+icon+'</span><span class="cs-label">'+label+'</span><span class="cs-val" style="color:'+(color||'var(--ink)')+'">'+val+'</span></div>';
+  }
+  html+=csRow('\u2694\ufe0f','\u7269\u7406\u653b\u51fb',atk);
+  html+=csRow('\ud83d\udd2e','\u9b54\u6cd5\u653b\u51fb',matk);
+  html+=csRow('\ud83d\udee1\ufe0f','\u7269\u7406\u9632\u5fa1',Math.round(s.def));
+  html+=csRow('\ud83c\udf00','\u9b54\u6cd5\u9632\u5fa1',Math.round(s.mdef));
+  html+=csRow('\ud83d\udca8','\u653b\u51fb\u901f\u5ea6',Math.round(s.spd));
+  html+=csRow('\ud83d\udc99','\u751f\u547d',Math.round(s.hp),'#e85d4c');
+  html+=csRow('\ud83d\udc99','\u6cd5\u529b',Math.round(s.mp),'#4a9eff');
+  html+='</div>';
+
+  /* --- \u6b21\u7ea7\u5c5e\u6027\uff08\u7cbe\u786e\u5230\u5c0f\u6570\u70b9\uff09 --- */
+  html+='<div class="cs-section"><div class="cs-sectitle">\u25b8 \u6b21\u7ea7\u5c5e\u6027</div>';
+  function csPct(icon,label,val,color){
+    var v=val||0, p=v*100, disp=p>=10?p.toFixed(0):p.toFixed(1);
+    return csRow(icon,label,disp+'%',color);
+  }
+  html+=csPct('\ud83d\udde1\ufe0f','\u66b4\u51fb\u7387',s.crit,'#ff9f3a');
+  html+=csPct('\ud83d\udca5','\u66b4\u51fb\u4f24\u5bb3',s.critDmg,'#ff9f3a');
+  html+=csPct('\ud83c\udfaf','\u547d\u4e2d',s.hit);
+  html+=csPct('\ud83c\udf2b\ufe0f','\u95ea\u907f',s.eva);
+  html+=csPct('\ud83e\ude78','\u5438\u8840',s.lifesteal);
+  html+=csPct('\ud83d\udee1','\u51cf\u4f24',s.dmgReduce);
+  html+=csPct('\u2728','\u6280\u80fd\u4f24\u5bb3',s.skillDmg);
+  html+=csPct('\ud83d\udc80','\u7cbe\u82f1/Boss\u4f24',s.eliteBossDmg);
+  html+=csPct('\ud83d\udcb0','\u8d22\u5bcc\u52a0\u6210',s.goldFind);
+  html+=csPct('\u23f3','\u51b7\u5374\u7f29\u51cf',s.cdr,'#00bcd4');
+  html+=csPct('\u2694','\u653b\u51fb\u52a0\u6210',s.atkPct,'#e85d4c');
+  html+=csPct('\ud83d\udca8','\u653b\u901f\u52a0\u6210',s.spdPct,'#45d98e');
+  html+=csPct('\u2764\ufe0f','\u6cbb\u7597\u6548\u679c',s.healEff,'#e91e63');
+  html+='</div>';
+  html+='</div>';
+  return html;
+}
+
 
 /* ---------- 地图 ---------- */
 function mapDropsHTML(mp){
@@ -5269,6 +5603,11 @@ function tabShop(){
       '<div class="shop-price">150 💰</div>'+
       '<button class="btn btn-purple btn-sm" onclick="shopBuy(\'incense\')">购买</button>'+
       (inc>0?'<button class="btn btn-sm" style="margin-left:6px;" onclick="useIncense()">点燃</button>':'')+'</div>'+
+    '<div class="shop-card"><div class="shop-icon">🪨</div>'+
+      '<div class="shop-info"><div class="shop-name">打磨石</div>'+
+      '<div class="shop-desc">战斗中装备磨损≥50%时自动使用，修25%全身磨损。持有 '+(G.player.whetstones||0)+' 个</div></div>'+
+      '<div class="shop-price">25 💰</div>'+
+      '<button class="btn btn-sm" onclick="if(G.player.whetstones==null)G.player.whetstones=0;if(G.player.gold<25){toast(\'金币不足\');return;}G.player.gold-=25;G.player.whetstones++;toast(\'购买了打磨石\\n持有\\'+G.player.whetstones+'\');save();renderContent()">购买</button></div>'+
     '<div class="shop-card" style="flex-direction:column;align-items:stretch;margin-top:12px;">'+
       '<div class="shop-name" style="margin-bottom:8px;">📤 装备回收（按颜色一键出售）</div>'+
       '<div class="rar-chips">'+
@@ -5286,9 +5625,25 @@ function sellChip(k){
 }
 
 /* ---------- 锻造铺（分解 / 锻造 / 重铸） ---------- */
+function repairAll(){
+  var cost=0,count=0;
+  for(const slot in G.player.equip){const it=G.player.equip[slot];if(it&&it.wear>0){count++;cost+=RARITY.findIndex(r=>r.key===it.rarity)*20+50;it.wear=0;}}
+  if(count===0){toast('装备无需修理');return;}
+  if(G.player.gold<cost){toast('金币不足（需 '+cost+'）');for(const s2 in G.player.equip){const i2=G.player.equip[s2];if(i2)i2.wear=Math.max(0,(i2.wear||0)-10);}return;}
+  G.player.gold-=cost;pushLog('sys','⚒ 修理 '+count+' 件装备，花费 '+cost+' 金币',{color:'#c9a227'});save();renderAll();
+}
 function tabForge(){
   const ft=(G.forge&&G.forge.tab)||'decomp';
   let html='<h3 style="color:var(--gold-soft);font-size:15px;margin-bottom:12px;">🔨 锻造铺</h3>';
+  /* 一键修理 */
+  var anyWear=false; for(const sl in G.player.equip){if(G.player.equip[sl]&&G.player.equip[sl].wear>0){anyWear=true;break;}}
+  if(anyWear){
+    var maxWear=0, worstItem=''; for(const s2 in G.player.equip){const i2=G.player.equip[s2];if(i2&&i2.wear>maxWear){maxWear=i2.wear;worstItem=i2.name;}}
+    html+='<div style="background:var(--panel2);border:1px solid '+(maxWear>=50?'var(--orange)':'var(--line)')+';border-radius:10px;padding:10px 14px;margin-bottom:10px;display:flex;align-items:center;gap:8px;">'+
+      '<span style="font-size:20px;">'+(maxWear>=50?'🔧':'⚙️')+'</span>'+
+      '<span style="flex:1;font-size:12px;color:var(--ink);">装备磨损中 · 最严重【'+worstItem+'】'+maxWear+'%</span>'+
+      '<button class="repair-btn" onclick="repairAll()">一键修理</button></div>';
+  }
   html+='<div class="sub-tab-row">'+
     subTabBtn('decomp','分解')+subTabBtn('forge','锻造')+subTabBtn('reforge','重铸')+'</div>';
   if(ft==='decomp') html+=forgeDecompHTML();
@@ -5414,6 +5769,102 @@ function forgeReforgeHTML(){
 }
 
 
+
+
+function rollRuneDrop(rarity){
+  if(!rarity) rarity = Math.random()<0.6?'normal':(Math.random()<0.7?'rare':'epic');
+  var keys=Object.keys(RUNE_TYPES), k=keys[rand(0,keys.length-1)];
+  var r={type:k, rarity:rarity, val:RUNE_TYPES[k].vals[rarity]||0.03};
+  G.player.runes.push(r);
+  pushLog('sys','💎 获得'+RUNE_RARITY[rarity].name+'符文【'+RUNE_TYPES[k].icon+' '+RUNE_TYPES[k].name+'】',{color:RUNE_TYPES[k].color});
+}
+function socketEquip(it){
+  if(!it||it.type) return;
+  if(it.socketOpen){toast('该装备已开孔');return;}
+  if(matGet('refined')<5){toast('需要精炼印屑×5');return;}
+  matAdd('refined',-5); it.socketOpen=true;
+  pushLog('sys','💎 '+it.name+' 已开凿符文孔'); save(); renderContent();
+}
+function embedRune(it, runeIdx){
+  if(!it||!it.socketOpen){toast('请先开凿符文孔');return;}
+  if(!Array.isArray(it.runes)) it.runes=[];
+  if(it.runes.length>=1){toast('已有符文，将覆盖（旧符文销毁）');}
+  var r=G.player.runes[runeIdx]; if(!r) return;
+  it.runes=[r]; G.player.runes.splice(runeIdx,1);
+  pushLog('sys','💎 '+'镶嵌'+RUNE_TYPES[r.type].icon+' '+RUNE_TYPES[r.type].name+'至 '+it.name); save(); renderContent();
+}
+function runeComboEffect(){
+  var cnt={}; for(var s in G.player.equip){var it=G.player.equip[s]; if(it&&it.runes&&it.runes.length>0){var t=it.runes[0].type; cnt[t]=(cnt[t]||0)+1;}}
+  var eff={atk:0,spd:0,skillDmg:0,lifesteal:0,cdr:0,dmgReduce:0,spdPct:0};
+  for(var t in cnt){ var n=cnt[t], rt=RUNE_TYPES[t]; if(!rt) continue;
+    var m=n>=7?2.5:n>=5?2.0:n>=3?1.5:1;
+    eff[rt.stat]=(eff[rt.stat]||0)+rt.vals.epic*m; /* 取最高品质值×组合倍率 */
+  }
+  return eff;
+}
+
+/* ---------- 无尽试炼塔 ---------- */
+const TOWER_EQUIPS = [
+  {floor:5,  slot:"hands",name:"试炼者护手",rarity:"rare"},
+  {floor:10, slot:"feet", name:"试炼者之靴",rarity:"rare"},
+  {floor:15, slot:"head", name:"试炼者头环",rarity:"epic"},
+  {floor:20, slot:"amulet",name:"试炼者牌符",rarity:"epic"},
+  {floor:25, slot:"ring",  name:"试炼者印戒",rarity:"epic"},
+  {floor:30, slot:"weapon",name:"试炼者终末",rarity:"legendary"},
+];
+function towerUnlocked(){ return G.unlocked>0||(G.gradeGate&&G.gradeGate.passedTier>0); }
+function towerEnemy(floor){
+  var scale=1+floor*0.05;
+  var hp=Math.round((30+floor*12)*scale), atk=Math.round((8+floor*2.5)*scale);
+  return {name:"试炼层"+floor+"守卫",emoji:"⚔️",hp:hp,atk:atk,def:Math.round((4+floor)*scale),
+    matk:Math.round(atk*0.6),mdef:Math.round((3+floor*0.7)*scale),spd:8+Math.floor(floor/2),
+    crit:0.05+floor*0.003,hit:0.85,eva:0.05,isBoss:(floor%5===0),isElite:(floor%5!==0&&floor>=3)};
+}
+function startTower(){
+  if(!towerUnlocked()){toast("击败任意BOSS后方可进入试炼塔");return;}
+  G.tower.current=G.tower.current||1; G.tower.active=true;
+  var floor=G.tower.current, en=towerEnemy(floor);
+  pushLog("sys","🗼 进入试炼塔第 "+floor+" 层");
+  startBattle(en,"试炼塔第"+floor+"层");
+}
+function towerEndBattle(){
+  if(!G.tower||!G.tower.active) return;
+  var b=G.battle; if(!b||b.result!=="win") {
+    G.tower.active=false; G.player.hp=Math.round(totalStats().hp*0.2);
+    G.player.mp=Math.round(totalStats().mp*0.3);
+    pushLog("sys","☠️ 试炼失败，止步第 "+G.tower.current+" 层",{hl:true,color:"var(--crimson)"});
+    G.tower.current=1; save(); return;
+  }
+  var floor=G.tower.current;
+  var gold=Math.round(rand(8+floor*3,15+floor*4)*(1+(totalStats().goldFind||0)));
+  G.player.gold+=gold; pushLog("sys","💰 获得 "+gold+" 金币",{color:"#c9a227"});
+  TOWER_EQUIPS.forEach(function(te){
+    if(te.floor===floor){ var it=genEquip(Math.min(9,Math.floor(floor/3)),te.rarity,te.slot); it.name=te.name;
+      G.player.inventory.push(it); var ro=rarObj(it.rarity)||RARITY[0];
+      pushLog("sys","🗼 获得塔专属装备【"+it.name+"】",{hl:true,color:ro.color}); }
+  });
+  G.tower.current++; if(G.tower.current>G.tower.highest) G.tower.highest=G.tower.current-1;
+  G.player.hp=Math.min(Math.round(totalStats().hp*0.95),Math.round(G.player.hp+totalStats().hp*0.3));
+  G.player.mp=Math.min(Math.round(totalStats().mp*0.95),Math.round(G.player.mp+totalStats().mp*0.5));
+  save();
+  G.battle=null; if(G.battleTimer){clearInterval(G.battleTimer);G.battleTimer=null;}
+  setTimeout(function(){ if(G.tower.active) startTower(); },600);
+}
+function towerQuit(){ G.tower.active=false; G.tower.current=1; save(); showNormalView(); pushLog("sys","🚪 退出试炼塔"); }
+function tabTower(){
+  if(!towerUnlocked()) return "<h3>🗼 试炼塔</h3><p style=\"color:var(--dim);padding:40px 0;text-align:center;\">击败任意 BOSS 后解锁</p>";
+  return "<h3 style=\"color:var(--gold-soft);font-size:15px;margin-bottom:12px;\">🗼 无尽试炼塔</h3>"+
+    "<div style=\"background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:16px;margin-bottom:12px;\">"+
+      "<div style=\"font-size:13px;color:var(--ink);margin-bottom:4px;\">最佳纪录：<b style=\"color:var(--gold-soft);\">第 "+(G.tower.highest||0)+" 层</b></div>"+
+      "<div style=\"font-size:11px;color:var(--dim);line-height:1.6;\">连续波次每层怪物递增层间恢复30HP50MP不给经验</div>"+
+      "<button class=\"btn on\" style=\"margin-top:10px;width:100%;\" onclick=\"startTower()\">进入试炼塔</button>"+
+    "</div>"+
+    "<div style=\"background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:14px;\">"+
+      "<div style=\"font-size:12px;color:var(--dim);margin-bottom:8px;\">塔层奖励预览：</div>"+
+      TOWER_EQUIPS.map(function(te){ var ro=rarObj(te.rarity)||RARITY[0];
+        return "<div style=\"font-size:11.5px;padding:3px 0;color:"+ro.color+";\">"+te.floor+"F "+ro.icon+" "+te.name+"</div>"; }).join("")+ "</div>";
+}
+
 /* ---------- 组队 ---------- */
 function tabParty(){
   return '<h3 style="color:var(--gold-soft);font-size:15px;margin-bottom:12px;">👥 组队系统</h3>'+
@@ -5459,7 +5910,7 @@ function buffBarHTML(u){
 /* ==================== 战斗屏渲染（多敌双栏） ==================== */
 function renderSkillBar(b){
   const p=b.player, es=G.player.equippedSkills||[], ea=G.player.equippedAuras||[];
-  let html='<div class="skill-bar">';
+  let html='<div class="skill-bar battle-skillbar-wrap">';
   /* 5 主动技能 */
   for(let i=0;i<5;i++){
     const id=es[i];
@@ -5526,7 +5977,7 @@ function renderBattleScreen(){
         (e.isBoss?'<div class="boss-badge">BOSS</div>':'')+'</div>'+
       buffBarHTML(e)+
       castBarHTML(e,false)+
-      '<button class="fighter-action action-enemy">'+(e.isBoss?'冬之降临':e.isElite?'世界树之怒':e.name)+'</button>'+
+      '<button class="fighter-action action-enemy">'+(e.isBoss?'⚔ 首领':'⚔ '+e.name)+'</button>'+
     '</div>';
   }).join('');
 
@@ -5551,24 +6002,18 @@ function renderBattleScreen(){
     buffBarHTML(p)+
     castBarHTML(p,true)+
     flaskHtml+
-    '<button class="fighter-action action-player">持牌者之誓</button>'+
+    '<button class="fighter-action action-player">⏳ 自动战斗中</button>'+
   '</div>';
 
   let partyHtml='';
-  /* 技能栏：5主动 + 2光环，带CD转圈 */
+  /* 技能栏固定在右下角 */
   const skBarHtml=renderSkillBar(b);
   document.getElementById('battleBody').innerHTML =
     partyHtml+playerHtml+'<div class="vs-mark">VS</div>'+'<div class="enemy-group">'+enemyGroup+'</div>'+
-    '<div style="margin-top:12px">'+skBarHtml+'</div>';
+    skBarHtml;
 
-  /* 日志 */
-  const logEl=document.getElementById('battleLog');
-  logEl.innerHTML=G.log.slice(-50).map(l=>{
-    const cls='log-'+(l.side==='sys'?'s':l.side==='player'?'p':'e')+(l.hl?' log-hl':'');
-    const inner=l.color?'<span style="color:'+l.color+';font-weight:700;">'+l.text+'</span>':l.text;
-    return '<div class="'+cls+'">'+inner+'</div>';
-  }).join('');
-  logEl.scrollTop=logEl.scrollHeight;
+  /* 日志 → 悬浮窗 */
+  floatLogRender();
 }
 
 /* ==================== 组队战斗函数已移除（纯单机模式） ==================== */
@@ -5605,7 +6050,48 @@ function openBattleBag(){
 }
 function closeBattleBag(){ const m=document.getElementById('battleBagModal'); if(m) m.remove(); }
 
-/* ==================== 折叠交互 ==================== */
+/* ==================== 悬浮战斗日志 ==================== */
+var _flDrag=false, _flW=320, _flH=180, _flCollapsed=false;
+function floatLogShow(){ const el=document.getElementById('floatLog'); el.classList.add('show'); el.style.width=_flW+'px'; el.style.height=_flH+'px'; }
+function floatLogHide(){ document.getElementById('floatLog').classList.remove('show'); }
+function floatLogToggle(){
+  _flCollapsed=!_flCollapsed;
+  const el=document.getElementById('floatLog');
+  const min=el.querySelector('.fl-min');
+  if(_flCollapsed){ el.classList.add('collapsed'); min.textContent='+'; }
+  else{ el.classList.remove('collapsed'); min.textContent='−'; floatLogApplySize(); }
+}
+function floatLogApplySize(){
+  const el=document.getElementById('floatLog');
+  el.style.width=_flW+'px'; el.style.height=_flH+'px';
+}
+function floatLogResizeStart(e){
+  _flDrag=true; e.preventDefault();
+  document.addEventListener('mousemove', floatLogResizeMove);
+  document.addEventListener('mouseup', floatLogResizeEnd);
+}
+function floatLogResizeMove(e){
+  if(!_flDrag) return;
+  _flW=Math.max(200, Math.min(window.innerWidth*.5, e.clientX-12));
+  _flH=Math.max(100, Math.min(window.innerHeight*.55, e.clientY-12));
+  floatLogApplySize();
+}
+function floatLogResizeEnd(){ _flDrag=false;
+  document.removeEventListener('mousemove', floatLogResizeMove);
+  document.removeEventListener('mouseup', floatLogResizeEnd);
+}
+/* 把 battleLog 内容灌入悬浮窗 */
+function floatLogRender(){
+  if(_flCollapsed) return;
+  const flEl=document.getElementById('flBody');
+  if(!flEl) return;
+  flEl.innerHTML=G.log.slice(-50).map(function(l){
+    const cls='log-'+(l.side==='sys'?'s':l.side==='player'?'p':'e')+(l.hl?' log-hl':'');
+    const inner=l.color?'<span style="color:'+l.color+';font-weight:700;">'+l.text+'</span>':l.text;
+    return '<div class="'+cls+'">'+inner+'</div>';
+  }).join('');
+  flEl.scrollTop=flEl.scrollHeight;
+}
 function toggleFold(key){
   G.folds[key]=!G.folds[key];
   const el=document.getElementById('sec_'+key);
@@ -5620,8 +6106,92 @@ window.onload=function(){
   document.getElementById('authGate').style.display='flex';
   bootGate();
 };
-</script>
+/* ==================== 教程引导系统 ==================== */
+var _tutIdx=0, _tutSteps=[], _tutActive=false;
+const TUT_STEPS = [
+  {sel:'#sbRightBody', tab:'char', msg:'这是你的角色面板。每个属性都有清晰的颜色标注——力量/敏捷/智力决定了你能使用的武器和技能强度。\n\n每升一级获得属性点，可自由分配。'},
+  {sel:'#sbRightBody', tab:'skills', msg:'技能页面顶部有5个主动技能槽和2个光环槽。\n\n点击已学技能的"装备"按钮，将其放入槽位。战斗中只会使用你已装备的技能。'},
+  {sel:'#sbRightBody', tab:'bag', msg:'背包是装备管理中心。顶部的"身上装备"展示当前穿戴——点击任意一件可在右侧查看详情并卸下。\n\n下方的分类标签可切换装备/技能书/药水。'},
+  {sel:'#sidebarLeft', tab:'map', msg:'地图界面选择你想挑战的区域。进入战斗后自动连战——击败普通怪物升级，击败精英获得高品质装备，击败 BOSS 解锁下��张地图。'},
+  {sel:'#battleBody', tab:null, msg:'这是战斗界面。下方显示敌方怪物（可能多只），右下角技能栏用环形动画显示 CD 冷却状态。\n\n击杀怪物立刻获得经验和道具，不必担心中途战败白打。'},
+];
+function tutEl(id){ return document.getElementById(id); }
+function tutorialHide(){ tutEl('tutOverlay').style.display='none'; }
+function tutorialShow(){ tutEl('tutOverlay').style.display=''; }
+function tutorialSkip(){
+  tutorialHide(); localStorage.setItem('edict_tutorial_done','1');
+  localStorage.setItem('edict_forge_tutorial_done','1'); _tutActive=false;
+}
+function tutorialStart(){
+  if(localStorage.getItem('edict_tutorial_done')==='1') return;
+  _tutIdx=0; _tutActive=true;
+  tutorialShow(); tutorialRender();
+}
+function tutorialNext(){
+  _tutIdx++;
+  if(_tutIdx>=TUT_STEPS.length){ tutorialSkip(); return; }
+  tutorialRender();
+}
+function tutorialRender(){
+  const st=TUT_STEPS[_tutIdx];
+  /* 切换标签 */
+  if(st.tab){
+    if(st.tab==='map'){ G.navTab='map'; }
+    else if(st.tab==='skills'){ G.navTab='skills'; }
+    else if(st.tab==='bag'){ G.navTab='char'; charSubTab='bag'; }
+    else if(st.tab==='char'){ G.navTab='char'; charSubTab='stats'; }
+    renderAll();
+  }
+  /* 高亮目标 */
+  const el=document.querySelector(st.sel);
+  if(el){
+    const r=el.getBoundingClientRect();
+    const shTop=r.top-2, shBot=r.top+r.height+2, shLeft=r.left-2, shRight=r.left+r.width+2;
+    tutEl('tutTop').style.cssText='top:0;left:0;right:0;height:'+shTop+'px';
+    tutEl('tutBot').style.cssText='top:'+shBot+'px;left:0;right:0;bottom:0';
+    tutEl('tutLeft').style.cssText='top:'+shTop+'px;left:0;width:'+shLeft+'px;height:'+(shBot-shTop)+'px';
+    tutEl('tutRight').style.cssText='top:'+shTop+'px;left:'+shRight+'px;right:0;height:'+(shBot-shTop)+'px';
+    /* 气泡位置：右侧或下方 */
+    const bub=tutEl('tutBubble');
+    if(shRight+320<window.innerWidth-20){
+      bub.style.cssText='top:'+Math.max(20,shTop-20)+'px;left:'+(shRight+16)+'px';
+    } else {
+      bub.style.cssText='top:'+(shBot+12)+'px;left:'+Math.max(20,shLeft)+'px';
+    }
+  }
+  tutEl('tutStep').textContent=(_tutIdx+1)+'/'+TUT_STEPS.length;
+  tutEl('tutText').textContent=st.msg;
+  tutEl('tutNextBtn').textContent=_tutIdx>=TUT_STEPS.length-1?'完成':'下一步 →';
+}
+/* 锻造教学（动态触发） */
+function forgeTutorialMaybe(){
+  if(localStorage.getItem('edict_forge_tutorial_done')==='1') return;
+  const m=G.player.materials||{};
+  const has=m.refined>0||m.blue>0||m.purple>0||m.orange>0;
+  if(!has) return;
+  if(_tutActive){ tutorialSkip(); } /* 冲突时先关掉前一个 */
+  _tutIdx=-1; _tutActive=true;
+  G.navTab='forge'; renderAll();
+  setTimeout(function(){
+    const el=document.querySelector('#centerArea');
+    if(el){
+      tutorialShow();
+      const r=el.getBoundingClientRect();
+      tutEl('tutTop').style.cssText='top:0;left:0;right:0;height:'+(r.top-2)+'px';
+      tutEl('tutBot').style.cssText='top:'+(r.top+r.height+2)+'px;left:0;right:0;bottom:0';
+      tutEl('tutLeft').style.cssText='top:'+(r.top-2)+'px;left:0;width:'+(r.left-2)+'px;height:'+(r.height+4)+'px';
+      tutEl('tutRight').style.cssText='top:'+(r.top-2)+'px;left:'+(r.left+r.width+2)+'px;right:0;height:'+(r.height+4)+'px';
+      tutEl('tutBubble').style.cssText='bottom:80px;left:50%;transform:translateX(-50%)';
+      tutEl('tutStep').textContent='锻造';
+      tutEl('tutText').textContent='击杀怪物可获得印屑碎片。在锻造铺可以用碎片锻造新装备，或重铸已有装备的词缀。消耗更高品质的碎片可提升装备稀有度，是后期提升战力的核心途径。';
+      tutEl('tutNextBtn').textContent='知道了';
+      tutEl('tutNextBtn').onclick=function(){ tutorialSkip(); localStorage.setItem('edict_forge_tutorial_done','1'); };
+    }
+  },400);
+}
+/* 窗口resize时重新定位遮罩 */
+window.addEventListener('resize',function(){ if(_tutActive) tutorialRender(); });
 
-<!-- MMO 实时客户端已移除：纯单机模式，无 WebSocket / 在线社交 / 组队 -->
-</body>
-</html>
+
+</script>
+<div id="floatLog" class="float-log"><div class="fl-head"><span>战斗日志</span><div class="fl-btns"><button class="fl-btn fl-min" onclick="floatLogToggle()">-</button></div></div><div class="fl-body" id="flBody"></div></div>
