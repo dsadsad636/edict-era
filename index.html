@@ -5534,7 +5534,7 @@ function tabBag(){
   '</div>';
   html+='<div class="bag-layout">';
   html+='<div style="flex:0 0 150px;text-align:center;">'+
-    '<div style="width:150px;height:180px;border-radius:14px;background:radial-gradient(circle at 50% 30%,rgba(41,128,185,.15),rgba(0,0,0,.4));border:1px solid var(--line);overflow:hidden;">'+playerAvatarSVG(138)+'</div>'+
+    '<div style="width:150px;height:180px;border-radius:14px;background:radial-gradient(circle at 50% 30%,rgba(41,128,185,.15),rgba(0,0,0,.4));border:1px solid var(--line);overflow:hidden;"><img src="assets/player/player.png" alt="'+esc(p.name)+'" style="width:150px;height:180px;object-fit:contain;"></div>'+
   '</div>';
   html+='<div class="equip-slots">';
   ALL_SLOTS.forEach(function(slotKey){
@@ -5811,7 +5811,7 @@ function tabCharStats(){
   var html='<div class="char-unified">';
   /* --- 顶栏：角色 + 基础信息 --- */
   html+='<div style="display:flex;gap:16px;align-items:center;margin-bottom:14px;flex-wrap:wrap;">'+
-    '<div style="width:90px;height:110px;border-radius:12px;background:radial-gradient(circle at 50% 30%,rgba(41,128,185,.15),rgba(0,0,0,.4));border:1px solid var(--line);overflow:hidden;">'+playerAvatarSVG(78)+'</div>'+
+    '<div style="width:90px;height:110px;border-radius:12px;background:radial-gradient(circle at 50% 30%,rgba(41,128,185,.15),rgba(0,0,0,.4));border:1px solid var(--line);overflow:hidden;"><img src="assets/player/player.png" alt="'+esc(p.name)+'" style="width:90px;height:110px;object-fit:contain;"></div>'+
     '<div>'+
       '<div style="font-size:18px;font-weight:700;color:var(--gold-soft);">'+esc(p.name)+' <span style="font-size:13px;color:var(--dim);">Lv.'+p.level+'</span></div>'+
       '<div style="font-size:11px;color:var(--dim);margin-top:2px;">'+(G.account&&G.account.originName?'\u51fa\u8eab '+G.account.originName:'')+'</div>'+
@@ -6450,7 +6450,7 @@ function renderBattleScreen(){
     '<div class="fighter-hp-bar"><div class="filler-hp hp-player" style="width:'+pPct+'%"></div>'+
       '<div class="hp-text">'+p.hp+'/'+p.maxHp+(p.shield>0?' 🛡'+p.shield:'')+'</div></div>'+
     '<div class="fighter-mp-bar" title="法力 '+p.mp+'/'+p.maxMp+'"><div class="filler-mp" style="width:'+mpPct+'%"></div></div>'+
-    '<div class="fighter-avatar avatar-player" style="color:var(--blue);">'+playerAvatarSVG(72)+'</div>'+
+    '<div class="fighter-avatar avatar-player" style="color:var(--blue);"><img class="mon-img" src="assets/player/player.png" alt="'+esc(p.name)+'" style="width:72px;height:72px;object-fit:contain;"></div>'+
     buffBarHTML(p)+
     castBarHTML(p,true)+
     flaskHtml+
