@@ -3,3 +3,4 @@ node_modules/
 *.bak*
 assets_bak/
 _syntax_check.txt
+id_*
