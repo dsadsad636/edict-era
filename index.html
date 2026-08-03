@@ -3840,7 +3840,7 @@ function playerUnit(){
     /* 未录·敕令共鸣：本次战斗生效的未录 id 列表 + 效果状态位 */
     uniq:mythicIds(), noHeal:false, _dmgAcc:0, _curSkill:null,
   };
-  if(G.player._godMode){ p.maxHp=999999; p.hp=999999; }
+  if(G.player._godMode){ p.maxHp=999999; p.hp=999999; p.atk=999999; p.matk=999999; }
   return p;
 }
 function enemyUnit(def, tier){
@@ -6273,7 +6273,8 @@ function dbgCmd(cmd, val){
   if(!G || !G.player) return;
   switch(cmd){
     case 'gold': G.player.gold += (val||10000); toast('💰 金币 +'+(val||10000)); break;
-    case 'level': G.player.level = Math.min(MAX_LEVEL, Math.max(1, val||10)); G.player.exp=0; G.player.attrPoints += (val||10)*2; G.player.hp=totalStats().hp; toast('📈 等级设为 ' + G.player.level); break;
+    case 'level': G.player.level = Math.min(MAX_LEVEL, Math.max(1, val||10)); G.player.exp=0; G.player.attrPoints += (G.player.level-1)*2; G.player.hp=totalStats().hp; toast('📈 等级设为 ' + G.player.level); break;
+    case 'level60': G.player.level=MAX_LEVEL; G.player.exp=0; G.player.attrPoints=118; G.player.str=10;G.player.agi=10;G.player.con=10;G.player.int=10;G.player.spi=10; G.player.hp=totalStats().hp; toast('📈 已升至满级 Lv60，118 点自由属性'); break;
     case 'mats': const m=G.player.materials; m.common+=50; m.refined+=30; m.blue+=20; m.purple+=10; m.orange+=5; toast('🔧 材料 +50/30/20/10/5'); break;
     case 'unlock': G.unlocked = Math.min(MAPS.length-1, G.unlocked+1); toast('🗺 解锁至地图 ' + G.unlocked); break;
     case 'godmode': G.player._godMode = !G.player._godMode; toast(G.player._godMode?'👑 无敌模式 开':'👑 无敌模式 关'); break;
@@ -6287,7 +6288,8 @@ function dbgCmd(cmd, val){
 <div class="debug-panel" id="debugPanel">
   <h4>🛠 调试面板</h4>
   <button class="debug-btn" onclick="dbgCmd('gold')">💰 金币 +10000</button>
-  <button class="debug-btn" onclick="var l=prompt('等级(1-60)','30');if(l)dbgCmd('level',parseInt(l))">📈 设置等级</button>
+  <button class="debug-btn" onclick="dbgCmd('level60')">📈 升到满级 Lv60</button>
+  <button class="debug-btn" onclick="var l=prompt('自定义等级(1-60)','30');if(l)dbgCmd('level',parseInt(l))">📈 自定义等级</button>
   <button class="debug-btn" onclick="dbgCmd('mats')">🔧 全部材料+</button>
   <button class="debug-btn" onclick="dbgCmd('unlock')">🗺 解锁下一地图</button>
   <button class="debug-btn" onclick="dbgCmd('godmode')">👑 无敌模式</button>
