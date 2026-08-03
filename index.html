@@ -762,10 +762,10 @@ body{
 .or-armor{font-size:10.5px; color:var(--dim); margin-top:2px;}
 
 /* ===== 教程引导层 ===== */
-#tutOverlay{display:none; position:fixed; inset:0; z-index:999;}
+#tutOverlay{display:none; position:fixed; inset:0; z-index:999; pointer-events:none;}
 .tut-shade{position:absolute; background:rgba(0,0,0,.72); pointer-events:all;}
 .tut-bubble{
-  position:absolute; z-index:2; background:var(--panel2); border:1px solid var(--gold-soft);
+  position:absolute; z-index:2; pointer-events:auto; background:var(--panel2); border:1px solid var(--gold-soft);
   border-radius:14px; padding:18px 20px; min-width:280px; max-width:380px;
   box-shadow:0 8px 32px rgba(0,0,0,.6);
 }
@@ -1011,6 +1011,25 @@ body{
 .attr-btn-plus:hover{border-color:var(--green);color:var(--green);}
 .attr-btn-minus:hover{border-color:var(--crimson);color:var(--crimson);}
 .btn-gold{background:linear-gradient(135deg,#c9a227,#8b6914);color:#fff;border:none;}
+/* ==================== 怪物图鉴 ==================== */
+.bs-group{margin-bottom:18px;}
+.bs-group-h{font-size:14px;font-weight:700;color:var(--gold-soft);margin:6px 0 8px;padding-bottom:4px;border-bottom:1px solid var(--line);}
+.bs-card{background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin-bottom:10px;transition:.15s;}
+.bs-card:hover{border-color:var(--gold);}
+.bs-head{display:flex;align-items:center;gap:10px;margin-bottom:8px;}
+.bs-emoji{font-size:30px;flex-shrink:0;}
+.bs-title{flex:1;min-width:0;}
+.bs-name{font-size:15px;font-weight:700;display:flex;align-items:center;gap:6px;flex-wrap:wrap;}
+.bs-badge{font-size:10px;font-weight:700;color:#1a1d28;padding:1px 7px;border-radius:6px;}
+.bs-fam{font-size:11px;color:var(--dim);background:rgba(255,255,255,.06);padding:1px 7px;border-radius:6px;}
+.bs-sub{font-size:11px;color:var(--dim);margin-top:2px;}
+.bs-lore{font-size:12.5px;line-height:1.7;color:var(--ink);}
+.bs-row{margin:2px 0;}
+.bs-k{display:inline-block;min-width:34px;color:var(--gold-soft);font-weight:600;margin-right:6px;font-size:11px;}
+.bs-story{margin-top:6px;padding:8px 10px;background:rgba(0,0,0,.22);border-left:2px solid var(--gold);border-radius:0 8px 8px 0;color:var(--dim);font-size:12px;line-height:1.7;}
+.bs-skills{margin-top:8px;line-height:1.9;}
+.bs-skills .bs-k{margin-bottom:2px;}
+.bs-chip{display:inline-flex;align-items:center;gap:4px;margin:0 5px 4px 0;padding:2px 9px;border-radius:14px;font-size:11.5px;background:rgba(74,158,255,.10);border:1px solid rgba(74,158,255,.25);color:#9fd0ff;}
 </style>
 </head>
 <body>
@@ -1133,6 +1152,34 @@ body{
     <div class="modal-actions">
       <button class="modal-btn ghost" onclick="friendModalClose()">取消</button>
       <button class="modal-btn" onclick="friendModalSubmit()">发送申请</button>
+    </div>
+  </div>
+</div>
+
+<!-- 创建角色覆盖确认（防误点创建丢失存档） -->
+<div class="modal-mask" id="createConfirmMask" style="display:none; z-index:300;" onclick="if(event.target===this) closeCreateConfirm();">
+  <div class="modal-box">
+    <div class="modal-title">⚠ 创建新角色</div>
+    <div id="createConfirmText" style="font-size:13px; line-height:1.75; color:var(--ink);"></div>
+    <div class="modal-actions">
+      <button class="modal-btn ghost" onclick="closeCreateConfirm()">取消</button>
+      <button class="modal-btn" onclick="confirmCreateChar()">确认创建</button>
+    </div>
+  </div>
+</div>
+
+<!-- 教程引导遮罩层 -->
+<div id="tutOverlay">
+  <div id="tutTop" class="tut-shade"></div>
+  <div id="tutBot" class="tut-shade"></div>
+  <div id="tutLeft" class="tut-shade"></div>
+  <div id="tutRight" class="tut-shade"></div>
+  <div id="tutBubble" class="tut-bubble">
+    <div id="tutStep" class="tut-step"></div>
+    <div id="tutText" class="tut-text"></div>
+    <div class="tut-actions">
+      <button id="tutSkipBtn" class="tut-btn tut-skip" onclick="tutorialSkip()">跳过</button>
+      <button id="tutNextBtn" class="tut-btn tut-next" onclick="tutorialNext()">下一步 →</button>
     </div>
   </div>
 </div>
@@ -2782,6 +2829,9 @@ Object.keys(MONSTERS).forEach(function(k){ MONSTERS[k].key = k; });
    BOSS：BOSS 技（3~4 种，高伤/眩晕/护盾/生命汲取/狂怒）
    字段完全兼容 castSkill（def.type/mult/cd/slow/vuln/hits/stun/shield/lifesteal/heal/val/spdBoost），
    与玩家 SKILLS 互不干扰、互不共享。 */
+/* 给每只怪物补上自身 key，便于战斗/图鉴按 key 查专属技能（亦修复 monKey 直传） */
+Object.keys(MONSTERS).forEach(function(k){ if(!MONSTERS[k].key) MONSTERS[k].key=k; });
+
 const MONSTER_SKILLS = {
   /* —— 小怪基础技 —— */
   mb_bite:  {name:'撕咬',   type:'dmg',  mult:1.25, cd:2},
@@ -2828,6 +2878,158 @@ const MAPS = [
     pool:['edict_echo','first_clerk','throne_seraph','void_unregistered','writ_drake','primal_construct','covenant_wraith','sceptre_elemental'], elite:'seat_warden', boss:'the_first_edict'},
 ];
 
+/* ==================== 怪物图鉴设定文本（创作内容，按怪物 key 索引） ====================
+   技能池 / 刷出等级 / 家族 / 类型 由代码自动派生（见 tabBestiary），此处仅存创作文本。
+   本切片先填「图1 · 界桩荒野」全部 10 只，确认格式后批量补其余地图。 */
+const MONSTER_LORE = {
+  border_hound: { height:'约 1.1 米（肩高）', weight:'约 38 公斤',
+    trait:'对褪色符文逸散的魔素异常敏感，成群游荡，噬咬带微弱腐蚀',
+    story:'界桩村的猎犬在符文褪色后渐渐变了形——毛皮长出苔斑，吠声里混着金属摩擦的杂音。它们仍记得“看家”的本分，只是把路过的活物都当成了该赶的野兽。' },
+  moss_scaler: { height:'约 0.8 米', weight:'约 12 公斤',
+    trait:'背覆硬苔甲，受击时鳞片吸能减伤，喜伏于界桩阴影下',
+    story:'它们把界桩的青苔当盔甲养，越老的界桩甲越厚。有猎人剥下整张苔甲，会发现底下还刻着早已失效的“禁猎”符文。' },
+  rot_pod: { height:'约 0.5 米（菌伞直径）', weight:'约 6 公斤',
+    trait:'体内充盈腐臭孢子，破裂时喷吐毒唾，行动迟缓',
+    story:'没人知道第一颗腐囊菌是谁种下的。它只在符文彻底死透的土里发芽，像大地在替被注销的名字哭。' },
+  thornling: { height:'约 0.6 米', weight:'约 9 公斤',
+    trait:'周身尖刺，受近身攻击时反伤，缓慢但顽固',
+    story:'守林人的旧册说它是“会走路的界桩”——把警告的刺，长在了活物身上。' },
+  rust_serpent: { height:'约 1.6 米', weight:'约 7 公斤',
+    trait:'鳞片锈蚀、迅捷，撕咬凌厉，喜伏击落单者',
+    story:'锈是这种蛇的牙。它专挑丢弃的兵器窝里蜕皮，于是每一寸鳞都带着别人用旧了的寒光。' },
+  etch_spider: { height:'约 0.4 米（足展 0.9 米）', weight:'约 3 公斤',
+    trait:'甲壳如蚀刻铜版，吐丝带火星，结网缠住猎物后慢慢灼烧',
+    story:'它的网不是丝，是融化的符文碎屑。困在网里的飞虫，翅膀上会浮现一行行谁也读不懂的小字。' },
+  mud_beast: { height:'约 1.0 米', weight:'约 55 公斤',
+    trait:'泥躯厚重、防御高、行动沉缓，近身难破其甲',
+    story:'传说它是被罚去界桩外挖泥的囚徒，泥没过头顶时忘了自己是谁，只剩一具还在挖的身子。' },
+  fade_moth: { height:'约 0.3 米（翼展 0.5 米）', weight:'约 0.2 公斤',
+    trait:'鳞粉能让附近符文短暂褪色，群飞时扰乱感知，脆弱但极烦人',
+    story:'它不咬人，只扑灯。可它扑的“灯”是界桩上残存的符文微光——翅一扇，一段登记就淡了一分。' },
+  stone_shin: { height:'约 2.2 米', weight:'约 420 公斤',
+    trait:'石质巨胫支撑的重甲守卫，粉碎击带减速，可再生自愈，难缠',
+    story:'界桩村的石匠把自己封进石胫，发誓“界桩不倒，我不退”。三百年后界桩早秃了，石胫还站在原地，把每个靠近的活物当成来拔桩的贼。' },
+  rust_stag: { height:'约 3.0 米（含角）', weight:'约 900 公斤',
+    trait:'锈冠巨鹿，BOSS 技全开（重击/震地/结界/汲取/怒吼/腐蚀），高伤且会吸血',
+    story:'王庭立界桩第一年，赐下一头鹿作“祥瑞”。鹿吃了界桩边的草，角上生了锈，从此每百年角脱一次，掉下的锈片被人拿去铸成第一把“合法”的刀。' },
+};
+
+/* ==================== 怪物专属技能（按身份设定，消除随机抽） ====================
+   每只怪固定携带的技能清单（键名取自 MONSTER_SKILLS）。
+   普通怪 1~2 个 / 精英 3 个 / BOSS 4 个；技能等级由类型决定（普通 lv1，精英·BOSS lv2）。
+   实战与图鉴统一读此表；漏配则回退 monSkillPool 类型通用池。 */
+const MONSTER_SKILL_SET = {
+  /* ===== 图1 · 界桩荒野（污染兽） ===== */
+  border_hound:['mb_bite','mb_howl'],
+  moss_scaler:['mb_claw','mb_slam'],
+  rot_pod:['mb_spit'],
+  thornling:['mb_slam','mb_claw'],
+  rust_serpent:['mb_claw','mb_bite'],
+  etch_spider:['mb_claw','mb_spit'],
+  mud_beast:['mb_slam','mb_bite'],
+  stone_shin:['me_crush','me_regen','me_maul'],
+  rust_stag:['mboss_smash','mboss_quake','mboss_barrier','mboss_decay'],
+  fade_moth:['mb_howl','mb_spit'],
+  /* ===== 图2 · 黑印集市（人型） ===== */
+  merc_hire:['mb_claw','mb_slam'],
+  private_mage:['mb_spit','mb_slam'],
+  smuggler:['mb_claw','mb_bite'],
+  broker:['mb_slam','mb_howl'],
+  mage_init:['mb_spit','mb_bite'],
+  enforcer:['mb_slam','mb_claw'],
+  scout:['mb_claw','mb_bite'],
+  black_hand:['me_crush','me_maul','me_fury'],
+  oz_threefinger:['mboss_smash','mboss_barrier','mboss_wrath','mboss_decay'],
+  seal_forger:['mb_slam','mb_spit'],
+  /* ===== 图3 · 缄默修道院（亡灵圣械） ===== */
+  silent_bone:['mb_claw','mb_slam'],
+  reliquary_guard:['mb_slam','mb_bite'],
+  cloister_wraith:['mb_spit','mb_howl'],
+  penitent_ghost:['mb_spit','mb_claw'],
+  rust_construct:['mb_slam','mb_claw'],
+  cowled_skeleton:['mb_claw','mb_bite'],
+  relic_sentry:['mb_slam','mb_claw'],
+  stern_elder:['me_crush','me_regen','me_fury'],
+  edna_silent:['mboss_smash','mboss_barrier','mboss_wrath','mboss_drain'],
+  choir_husk:['mb_spit','mb_howl'],
+  /* ===== 图4 · 灰铸厂（构装体） ===== */
+  foundry_golem:['mb_slam','mb_claw'],
+  slag_element:['mb_slam','mb_spit'],
+  rivet_guard:['mb_slam','mb_claw'],
+  forge_doll:['mb_slam','mb_bite'],
+  ash_construct:['mb_claw','mb_spit'],
+  sigil_knight:['mb_slam','mb_claw'],
+  anvil_ward:['mb_slam','mb_claw'],
+  scrap_remelt:['mb_claw','mb_spit'],
+  live_foreman:['me_crush','me_fury','me_maul'],
+  varuk:['mboss_smash','mboss_quake','mboss_wrath','mboss_decay'],
+  /* ===== 图5 · 禁卷回廊（秘术造物） ===== */
+  forbidden_tome:['mb_spit','mb_claw'],
+  corridor_drake:['mb_claw','mb_bite'],
+  page_doll:['mb_slam','mb_bite'],
+  spell_thread:['mb_spit','mb_claw'],
+  sealed_idol:['mb_slam','mb_claw'],
+  library_wraith:['mb_spit','mb_howl'],
+  forbidden_echo:['mb_spit','mb_slam'],
+  errata_wisp:['mb_claw','mb_spit'],
+  codex_clerk:['me_venom','me_maul','me_fury'],
+  sevlan:['mboss_smash','mboss_decay','mboss_barrier','mboss_wrath'],
+  /* ===== 图6 · 削籍狱（无名者） ===== */
+  unnamed_inmate:['mb_slam','mb_bite'],
+  strike_scribe:['mb_claw','mb_spit'],
+  gaol_warden:['mb_slam','mb_claw'],
+  erased_wretch:['mb_spit','mb_howl'],
+  ledger_hound:['mb_bite','mb_claw'],
+  blank_effigy:['mb_slam','mb_claw'],
+  gag_choir:['mb_spit','mb_howl'],
+  deed_burner:['mb_slam','mb_spit'],
+  warden_nameless:['me_crush','me_maul','me_regen'],
+  null_seventh:['mboss_smash','mboss_quake','mboss_drain','mboss_wrath'],
+  /* ===== 图7 · 敕墨深坑（渊墨） ===== */
+  ink_hauler:['mb_slam','mb_bite'],
+  ink_leech:['mb_claw','mb_bite'],
+  blot_ooze:['mb_spit','mb_slam'],
+  shaft_arachnid:['mb_claw','mb_spit'],
+  deep_canary:['mb_claw','mb_bite'],
+  vein_construct:['mb_slam','mb_claw'],
+  quill_elemental:['mb_spit','mb_claw'],
+  sump_dweller:['mb_bite','mb_claw'],
+  ink_overseer:['me_crush','me_maul','me_fury'],
+  first_wellspring:['mboss_smash','mboss_decay','mboss_barrier','mboss_drain'],
+  /* ===== 图8 · 初录龙冢（龙裔） ===== */
+  barrow_drake:['mb_claw','mb_bite'],
+  chained_wyrmling:['mb_claw','mb_bite'],
+  scale_curator:['mb_slam','mb_spit'],
+  wyrm_bone_knight:['mb_slam','mb_claw'],
+  ember_hatch:['mb_claw','mb_spit'],
+  hoard_wraith:['mb_spit','mb_howl'],
+  mausoleum_ooze:['mb_spit','mb_slam'],
+  sky_kin_scout:['mb_claw','mb_bite'],
+  seal_bearer_wyrm:['me_crush','me_maul','me_fury'],
+  vaerith_no1:['mboss_smash','mboss_quake','mboss_wrath','mboss_decay'],
+  /* ===== 图9 · 王庭档案宫（敕印者） ===== */
+  stamp_clerk:['mb_slam','mb_spit'],
+  file_wraith:['mb_spit','mb_howl'],
+  seal_knight:['mb_slam','mb_claw'],
+  quota_auditor:['mb_spit','mb_claw'],
+  archive_construct:['mb_slam','mb_claw'],
+  writ_serpent:['mb_claw','mb_bite'],
+  sealed_petitioner:['mb_slam','mb_bite'],
+  court_elemental:['mb_claw','mb_spit'],
+  grand_notary:['me_venom','me_maul','me_fury'],
+  chancellor_maerus:['mboss_smash','mboss_barrier','mboss_wrath','mboss_decay'],
+  /* ===== 图10 · 初敕之座（原初） ===== */
+  edict_echo:['mb_spit','mb_slam'],
+  first_clerk:['mb_slam','mb_spit'],
+  throne_seraph:['mb_slam','mb_howl'],
+  void_unregistered:['mb_spit','mb_howl'],
+  writ_drake:['mb_claw','mb_bite'],
+  primal_construct:['mb_slam','mb_claw'],
+  covenant_wraith:['mb_spit','mb_howl'],
+  sceptre_elemental:['mb_claw','mb_spit'],
+  seat_warden:['me_crush','me_maul','me_regen'],
+  the_first_edict:['mboss_smash','mboss_quake','mboss_barrier','mboss_drain'],
+};
 
 /* 导航标签（装备+库存已整合为「背包」） */
 /* 导航标签：左栏（探索） / 右栏（角色） */
@@ -2837,6 +3039,7 @@ const LEFT_TABS = [
   {key:'forge', label:'锻造铺', icon:'<svg class="gi"><use href="#gi-forge"/></svg>'},
   {key:'shop',  label:'商店',   icon:'<svg class="gi"><use href="#gi-shop"/></svg>'},
   {key:'party', label:'组队',   icon:'<svg class="gi"><use href="#gi-party"/></svg>'},
+  {key:'bestiary', label:'图鉴', icon:'📖'},
 ];
 const RIGHT_TABS = [
   {key:'char',   label:'人物', icon:'<svg class="gi"><use href="#gi-char"/></svg>'},
@@ -3870,12 +4073,11 @@ function enemyUnit(def, tier){
     isElite:!!def.elite, isBoss:!!def.boss,
     monKey:def.key||null, family:def.family||null /* key 直传：Boss 掉落与龙裔判定不再依赖名字 */
   };
-  /* 技能池分配（独立于玩家 SKILLS）：小怪基础技 / 精英技 / BOSS技 */
-  let pool, n, lv;
-  if(def.boss){ pool=['mboss_smash','mboss_quake','mboss_barrier','mboss_drain','mboss_wrath','mboss_decay']; n=rand(3,4); lv=2; }
-  else if(def.elite){ pool=['me_crush','me_venom','me_regen','me_fury','me_maul','mb_bite','mb_claw']; n=rand(2,3); lv=2; }
-  else { pool=['mb_bite','mb_claw','mb_slam','mb_spit','mb_howl']; n=1; lv=1; }
-  const picks=pool.slice().sort(()=>Math.random()-0.5).slice(0,n);
+  /* 专属技能（每只怪固定，见 MONSTER_SKILL_SET，按身份设定）；漏配则回退类型通用池 */
+  let picks, lv = def.boss?2:(def.elite?2:1);
+  const fixed = MONSTER_SKILL_SET[def.key||''];
+  if(fixed && fixed.length){ picks = fixed.slice(); }
+  else { const fb = monSkillPool(def.boss?'boss':def.elite?'elite':'normal'); picks = fb.keys; lv = fb.lv; }
   u.skills=picks.map(function(k){ return {def:MONSTER_SKILLS[k], lv:lv, cd:0, cost:0}; });
   if(picks.indexOf('mboss_drain')>=0) u.lifesteal=0.35; /* 生命汲取：技能吸血 */
   return u;
@@ -4911,7 +5113,8 @@ function gateMsg(txt, ok){
 }
 /* 启动：检测是否有存档 */
 function bootGate(){
-  const hasSave = !!localStorage.getItem(SAVE_KEY);
+  let hasSave=false;
+  try{ hasSave = !!localStorage.getItem(SAVE_KEY); }catch(e){ hasSave=false; }
   gateEl('gateContinue').style.display = hasSave ? '' : 'none';
   gateShow('landing');
   gateMsg('');
@@ -4926,7 +5129,7 @@ function gateContinue(){
     if(!raw){ bootGate(); return; }
     const d=JSON.parse(raw);
     if(!d||!d.player){ bootGate(); return; }
-    G=d; applyCompat(); enterGame();
+    G=d; applyCompat(); enterGame(false);
   }catch(e){ gateMsg('读取存档失败：'+e.message); console.error('gateContinue error:', e); }
 }
 /* 渲染职业网格 */
@@ -4958,20 +5161,51 @@ function renderOriginGrid(){
   }).join('');
 }
 function pickOrigin(k){ _gateOrigin=k; renderOriginGrid(); }
-/* 选职业 → 开始游戏 */
+/* 选职业 → 开始游戏（有存档先确认覆盖，防误点丢档） */
 function gateStartGame(){
   const nm=(gateEl('gateCharName').value||'').trim()||'持牌者';
   if(!/^[A-Za-z0-9_\u4e00-\u9fa5 ]{1,8}$/.test(nm)){ gateMsg('角色名需 1-8 位（字母/数字/下划线/中文）'); return; }
+  let raw=null;
+  try{ raw=localStorage.getItem(SAVE_KEY); }catch(e){ raw=null; }
+  if(raw){
+    try{
+      const d=JSON.parse(raw);
+      if(d && d.player){
+        showCreateConfirm(d.player.name||'持牌者', d.player.level||1, nm);
+        return;
+      }
+    }catch(e){ /* 存档损坏视为无，直接创建 */ }
+  }
+  doCreateChar(nm);
+}
+/* 真正执行创建（经确认 / 无存档时调用） */
+function doCreateChar(nm){
   newGame(nm, _gateOrigin);
   applyCompat();
   save();
-  enterGame();
+  try{ localStorage.removeItem('edict_tutorial_done'); }catch(e){}
+  enterGame(true);
   const o=ORIGINS.find(x=>x.key===_gateOrigin);
   toast('出身【'+(o?o.name:'')+'】· 缉私开始');
 }
+/* 创建覆盖确认弹窗 */
+function showCreateConfirm(oldName, oldLv, newName){
+  const mask=gateEl('createConfirmMask');
+  if(!mask){ /* 兜底：弹窗元素缺失时直接创建，避免卡死（旧缓存版本兼容） */
+    doCreateChar(newName||'持牌者'); return;
+  }
+  gateEl('createConfirmText').innerHTML='检测到已有存档【'+esc(oldName)+' · Lv'+oldLv+'】。<br>创建新角色【'+esc(newName)+'】将<b>覆盖</b>它，旧进度无法找回。<br><br>确定要创建新角色吗？';
+  mask.style.display='flex';
+}
+function closeCreateConfirm(){ gateEl('createConfirmMask').style.display='none'; }
+function confirmCreateChar(){
+  closeCreateConfirm();
+  const nm=(gateEl('gateCharName').value||'').trim()||'持牌者';
+  doCreateChar(nm);
+}
 /* 进入游戏界面 */
 let _hooksBound=false;
-function enterGame(){
+function enterGame(playTutorial){
   gateEl('authGate').style.display='none';
   document.getElementById('app').style.display='';
   if(!_hooksBound){
@@ -4980,7 +5214,7 @@ function enterGame(){
     document.addEventListener('visibilitychange', function(){ if(document.visibilityState==='hidden'){ try{ if(G) Auth.writeLocal(G); }catch(e){} } });
   }
   showNormalView();
-  setTimeout(function(){ tutorialStart(); }, 600); /* 等UI渲染完毕后再启动教程 */
+  if(playTutorial!==false) setTimeout(function(){ tutorialStart(); }, 600); /* 创建角色：必播教程；读档：不播 */
 }
 /* 返回标题（顶栏按钮）：保存并返回入口 */
 function gateReturnTitle(){
@@ -5083,7 +5317,7 @@ function applyCompat(){
   }catch(e){}
   if(G.battle){ G.battle=null; G.battleTimer=null; } /* 刷新时清除残留战斗 */
   try{ syncMythicSkills(); }catch(e){} /* 敕令共鸣：读档后回填未录授予的绑定技能 */
-  /* 技能槽系统兼容（v2.1）：旧档无 equippedSkills / equippedAuras���自动回填空数组。
+  /* 技能槽系统兼容（v2.1）：旧档无 equippedSkills / equippedAuras 字段时，自动回填空数组。
      不会自动装填——需玩家手动从技能页装备技能。 */
   if(!Array.isArray(G.player.equippedSkills)) G.player.equippedSkills=[];
   if(!Array.isArray(G.player.equippedAuras)) G.player.equippedAuras=[];
@@ -5204,7 +5438,71 @@ function renderContent(){
     case 'party': c.innerHTML=tabParty(); break;
     case 'tower': c.innerHTML=tabTower(); break;
     case 'rune':  c.innerHTML=tabRune(); break;
+    case 'bestiary': c.innerHTML=tabBestiary(); break;
   }
+}
+
+/* ==================== 怪物图鉴 ==================== */
+/* 怪物→地图/类型 反查：MONSTERS 不存自身所属地图，由 MAPS 推导 */
+const MONSTER_MAP = (function(){
+  const m={};
+  MAPS.forEach(function(mp,idx){
+    mp.pool.forEach(function(k){ m[k]={mapIdx:idx, type:'normal'}; });
+    if(mp.elite) m[mp.elite]={mapIdx:idx, type:'elite'};
+    if(mp.boss) m[mp.boss]={mapIdx:idx, type:'boss'};
+  });
+  return m;
+})();
+const MONSTER_SKILL_LABEL = {dmg:'伤害', dot:'持续', buff:'增益', heal:'治疗'};
+const FAMILY_LABELS = {polluted:'污染兽', humanoid:'人型', undead:'亡灵圣械', construct:'构装体', arcane:'秘术造物', nameless:'无名者', abyssal:'渊墨', drakeborn:'龙裔', sealbound:'敕印者', primordial:'初敕'};
+const MONSTER_TYPE_BADGE = {normal:{t:'普通', c:'#8a8578'}, elite:{t:'精英', c:'#c79bff'}, boss:{t:'BOSS', c:'#ff6b5e'}};
+function monSkillPool(type){
+  if(type==='boss')  return {keys:['mboss_smash','mboss_quake','mboss_barrier','mboss_drain','mboss_wrath','mboss_decay'], lv:2};
+  if(type==='elite') return {keys:['me_crush','me_venom','me_regen','me_fury','me_maul','mb_bite','mb_claw'], lv:2};
+  return {keys:['mb_bite','mb_claw','mb_slam','mb_spit','mb_howl'], lv:1};
+}
+function tabBestiary(){
+  if(!MONSTER_LORE) return '<p style="color:var(--dim)">图鉴数据未加载</p>';
+  const groups = MAPS.map(function(mp,idx){
+    const keys = Object.keys(MONSTER_MAP).filter(function(k){ return MONSTER_MAP[k].mapIdx===idx; });
+    if(!keys.length) return '';
+    const cards = keys.map(function(k){
+      const def=MONSTERS[k]; if(!def) return '';
+      const info=MONSTER_MAP[k];
+      const lore=MONSTER_LORE[k]||{};
+      const ownSkills=MONSTER_SKILL_SET[k]||monSkillPool(info.type).keys;
+      const skillLv=info.type==='boss'||info.type==='elite'?2:1;
+      const badge=MONSTER_TYPE_BADGE[info.type];
+      const fam=(FAMILY_LABELS&&FAMILY_LABELS[def.family])||def.family||'—';
+      const lvl=ML_map(idx);
+      const skillHTML = ownSkills.map(function(sk){
+        const s=MONSTER_SKILLS[sk]; if(!s) return '';
+        const lab=MONSTER_SKILL_LABEL[s.type]||s.type;
+        return '<span class="bs-chip" title="'+esc(s.name)+' · '+lab+'">'+esc(s.name)+
+          ' <i style="opacity:.65;font-style:normal;font-size:10px;">'+lab+'</i></span>';
+      }).join('');
+      return '<div class="bs-card">'+
+        '<div class="bs-head"><span class="bs-emoji">'+def.emoji+'</span>'+
+          '<div class="bs-title"><div class="bs-name">'+esc(def.name)+
+            ' <span class="bs-badge" style="background:'+badge.c+'">'+badge.t+'</span>'+
+            ' <span class="bs-fam">'+fam+'</span></div>'+
+            '<div class="bs-sub">刷出于 '+esc(mp.name)+' · T'+mp.tier+' → Lv'+lvl+' · 技能等级 lv'+skillLv+'</div></div></div>'+
+        '<div class="bs-lore">'+
+          (lore.height?'<div class="bs-row"><span class="bs-k">身长</span>'+esc(lore.height)+'</div>':'')+
+          (lore.weight?'<div class="bs-row"><span class="bs-k">体重</span>'+esc(lore.weight)+'</div>':'')+
+          (lore.trait?'<div class="bs-row"><span class="bs-k">特点</span>'+esc(lore.trait)+'</div>':'')+
+          (lore.story?'<div class="bs-story">'+esc(lore.story)+'</div>':'')+
+        '</div>'+
+        '<div class="bs-skills"><span class="bs-k">专属技能</span><br>'+skillHTML+'</div>'+
+      '</div>';
+    }).join('');
+    return '<div class="bs-group"><div class="bs-group-h">📍 '+esc(mp.name)+
+      ' <span style="color:var(--dim);font-size:12px;font-weight:400;">T'+mp.tier+' · 刷出 Lv'+ML_map(idx)+'</span></div>'+
+      cards+'</div>';
+  }).join('');
+  return '<h3 style="color:var(--gold-soft);font-size:15px;margin-bottom:4px;">📖 怪物图鉴</h3>'+
+    '<p style="color:var(--dim);font-size:12px;margin-bottom:12px;">已收录 '+Object.keys(MONSTERS).length+' 种怪物 · 技能与刷出等级由游戏数据自动生成，设定文本为创作内容（当前切片：图1 界桩荒野）</p>'+
+    groups;
 }
 
 /* ---------- 背包（装备栏 + 库存整合） ---------- */
@@ -6248,6 +6546,19 @@ function toggleFold(key){
   if(arr) arr.classList.toggle('open',G.folds[key]!==false);
 }
 
+/* ==================== 全局错误可视化（便于预览环境排查） ==================== */
+function showErrBanner(msg){
+  let b=document.getElementById('errBanner');
+  if(!b){
+    b=document.createElement('div');
+    b.id='errBanner';
+    b.style.cssText='position:fixed;top:0;left:0;right:0;z-index:99999;background:#c0392b;color:#fff;font:13px/1.6 monospace;padding:10px 14px;white-space:pre-wrap;box-shadow:0 2px 12px rgba(0,0,0,.5)';
+    (document.body||document.documentElement).appendChild(b);
+  }
+  b.textContent='⚠ 运行错误：'+(msg||'未知错误')+'  （请把这行红字发给我）';
+}
+window.onerror=function(m,src,line,col){ showErrBanner((m||'未知错误')+(line?(' @行'+line+':'+col):'')); return false; };
+window.addEventListener('error', function(ev){ if(ev && ev.message) showErrBanner(ev.message+(ev.lineno?(' @行'+ev.lineno):'')); });
 /* ==================== 启动：进入游戏 → 选职业 → 进游戏 ==================== */
 window.onload=function(){
   document.getElementById('app').style.display='none';
@@ -6260,18 +6571,23 @@ const TUT_STEPS = [
   {sel:'#sbRightBody', tab:'char', msg:'这是你的角色面板。每个属性都有清晰的颜色标注——力量/敏捷/智力决定了你能使用的武器和技能强度。\n\n每升一级获得属性点，可自由分配。'},
   {sel:'#sbRightBody', tab:'skills', msg:'技能页面顶部有5个主动技能槽和2个光环槽。\n\n点击已学技能的"装备"按钮，将其放入槽位。战斗中只会使用你已装备的技能。'},
   {sel:'#sbRightBody', tab:'bag', msg:'背包是装备管理中心。顶部的"身上装备"展示当前穿戴——点击任意一件可在右侧查看详情并卸下。\n\n下方的分类标签可切换装备/技能书/药水。'},
-  {sel:'#sidebarLeft', tab:'map', msg:'地图界面选择你想挑战的区域。进入战斗后自动连战——击败普通怪物升级，击败精英获得高品质装备，击败 BOSS 解锁下��张地图。'},
-  {sel:'#battleBody', tab:null, msg:'这是战斗界面。下方显示敌方怪物（可能多只），右下角技能栏用环形动画显示 CD 冷却状态。\n\n击杀怪物立刻获得经验和道具，不必担心中途战败白打。'},
+  {sel:'#sidebarLeft', tab:'map', msg:'地图界面选择你想挑战的区域。进入战斗后自动连战——击败普通怪物升级，击败精英获得高品质装备，击败 BOSS 解锁下一张地图。'},
+  {sel:'#centerArea', tab:null, msg:'这是主战斗区。进入关卡后，下方显示敌方怪物（可能多只），右下角技能栏用环形动画显示 CD 冷却状态。\n\n击杀怪物立刻获得经验和道具，不必担心中途战败白打。'},
 ];
 function tutEl(id){ return document.getElementById(id); }
 function tutorialHide(){ tutEl('tutOverlay').style.display='none'; }
-function tutorialShow(){ tutEl('tutOverlay').style.display=''; }
+function tutorialShow(){ tutEl('tutOverlay').style.display='block'; }
 function tutorialSkip(){
   tutorialHide(); localStorage.setItem('edict_tutorial_done','1');
   localStorage.setItem('edict_forge_tutorial_done','1'); _tutActive=false;
 }
 function tutorialStart(){
-  if(localStorage.getItem('edict_tutorial_done')==='1') return;
+  _tutIdx=0; _tutActive=true;
+  tutorialShow(); tutorialRender();
+}
+/* 重看教程：绕过 done 标记，便于测试 */
+function tutorialReplay(){
+  try{ localStorage.removeItem('edict_tutorial_done'); }catch(e){}
   _tutIdx=0; _tutActive=true;
   tutorialShow(); tutorialRender();
 }
@@ -6290,22 +6606,33 @@ function tutorialRender(){
     else if(st.tab==='char'){ G.navTab='char'; charSubTab='stats'; }
     renderAll();
   }
-  /* 高亮目标 */
+  const bub=tutEl('tutBubble');
   const el=document.querySelector(st.sel);
-  if(el){
-    const r=el.getBoundingClientRect();
-    const shTop=r.top-2, shBot=r.top+r.height+2, shLeft=r.left-2, shRight=r.left+r.width+2;
+  const r=el?el.getBoundingClientRect():null;
+  const valid=el && r && r.width>0 && r.height>0;
+  /* 先重置四遮罩（兜底：避免上次布局残留） */
+  ['tutTop','tutBot','tutLeft','tutRight'].forEach(function(id){ tutEl(id).style.display=''; });
+  if(valid){
+    const shTop=Math.max(0,r.top-2), shBot=r.top+r.height+2, shLeft=Math.max(0,r.left-2), shRight=r.left+r.width+2;
     tutEl('tutTop').style.cssText='top:0;left:0;right:0;height:'+shTop+'px';
     tutEl('tutBot').style.cssText='top:'+shBot+'px;left:0;right:0;bottom:0';
     tutEl('tutLeft').style.cssText='top:'+shTop+'px;left:0;width:'+shLeft+'px;height:'+(shBot-shTop)+'px';
     tutEl('tutRight').style.cssText='top:'+shTop+'px;left:'+shRight+'px;right:0;height:'+(shBot-shTop)+'px';
-    /* 气泡位置：右侧或下方 */
-    const bub=tutEl('tutBubble');
-    if(shRight+320<window.innerWidth-20){
+    /* 气泡位置：右侧 → 下方 → 左侧回退 */
+    if(shRight+340<window.innerWidth-20){
       bub.style.cssText='top:'+Math.max(20,shTop-20)+'px;left:'+(shRight+16)+'px';
-    } else {
+    } else if(shBot+260<window.innerHeight-20){
       bub.style.cssText='top:'+(shBot+12)+'px;left:'+Math.max(20,shLeft)+'px';
+    } else {
+      bub.style.cssText='top:'+Math.max(20,r.top-260)+'px;left:'+Math.max(20,shLeft)+'px';
     }
+  } else {
+    /* 兜底：目标拿不到时整屏变暗 + 气泡居中，不挖错位洞 */
+    tutEl('tutTop').style.cssText='top:0;left:0;right:0;bottom:0';
+    tutEl('tutBot').style.display='none';
+    tutEl('tutLeft').style.display='none';
+    tutEl('tutRight').style.display='none';
+    bub.style.cssText='top:50%;left:50%;transform:translate(-50%,-50%)';
   }
   tutEl('tutStep').textContent=(_tutIdx+1)+'/'+TUT_STEPS.length;
   tutEl('tutText').textContent=st.msg;
@@ -6375,6 +6702,7 @@ function dbgCmd(cmd, val){
   <button class="debug-btn" onclick="dbgCmd('godmode')">👑 无敌模式</button>
   <button class="debug-btn" onclick="dbgCmd('respec')">🔄 重置属性</button>
   <button class="debug-btn" onclick="dbgCmd('clearInv')">🗑 清空背包</button>
+  <button class="debug-btn" onclick="tutorialReplay()">📖 重看教程</button>
   <div style="color:var(--dim);margin-top:6px;font-size:10px;">按 F2 开关面板</div>
 </div>
 <div id="floatLog" class="float-log"><div class="fl-head"><span>战斗日志</span><div class="fl-btns"><button class="fl-btn fl-min" onclick="floatLogToggle()">-</button></div></div><div class="fl-body" id="flBody"></div></div>
