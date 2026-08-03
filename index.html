@@ -2931,6 +2931,7 @@ function newGame(charName, originKey){
       equip:{weapon:null, head:null, armor:null, hands:null, feet:null, ring:null, amulet:null},
       flasks:{hp:null, mp:null}, /* 药水瓶槽：回血/回蓝各一 */
       mythicStr:0, mythicHp:0, /* 已废弃（GDD 05b §6）：未录不再跨战斗永久叠加，恒为 0，仅留兼容 */
+      _godMode:false,
       skills:{}, equippedSkills:[], equippedAuras:[], inventory:[]
     },
     mapId:0, mapTier:0, encounter:0, autoChain:false, navTab:'char',
@@ -3820,7 +3821,7 @@ function playerUnit(){
     cost:8+(SKILLS[id].cd||1)*3
   }; });
   const maxMp=Math.round(s.mp);
-  return {
+  var p = {
     name:G.player.name, side:'player', emoji:'🗡️',
     maxHp:Math.round(s.hp), hp:Math.min(Math.round(G.player.hp>0?G.player.hp:s.hp), Math.round(s.hp)),
     maxMp, mp:Math.min(Math.round(typeof G.player.mp==='number'?G.player.mp:maxMp), maxMp),
@@ -3839,6 +3840,8 @@ function playerUnit(){
     /* 未录·敕令共鸣：本次战斗生效的未录 id 列表 + 效果状态位 */
     uniq:mythicIds(), noHeal:false, _dmgAcc:0, _curSkill:null,
   };
+  if(G.player._godMode){ p.maxHp=999999; p.hp=999999; }
+  return p;
 }
 function enemyUnit(def, tier){
   /* 🔴 难度冻结（GDD 05b §8.2，反无敌闸门 G2）：scale 改用每图固定的怪物等级 ML_map(tier)，
@@ -4969,6 +4972,7 @@ function applyCompat(){
      不返还属性点：该收益本就是设计错误，不是玩家的合法资产。 */
   const _hadPerm = (G.player.mythicStr>0) || (G.player.mythicHp>0);
   G.player.mythicStr=0; G.player.mythicHp=0;
+  if(typeof G.player._godMode!=='boolean') G.player._godMode=false;
   if(_hadPerm){
     try{ pushLog('sys','⚙️ 未录已依新律重铸：整局永久力量/生命已回收，改为战斗内层数机制（锻痕 / 缚龙）。',
       {hl:true, color:'#e6443b'}); }catch(e){}
@@ -6272,7 +6276,7 @@ function dbgCmd(cmd, val){
     case 'level': G.player.level = Math.min(MAX_LEVEL, Math.max(1, val||10)); G.player.exp=0; G.player.attrPoints += (val||10)*2; G.player.hp=totalStats().hp; toast('📈 等级设为 ' + G.player.level); break;
     case 'mats': const m=G.player.materials; m.common+=50; m.refined+=30; m.blue+=20; m.purple+=10; m.orange+=5; toast('🔧 材料 +50/30/20/10/5'); break;
     case 'unlock': G.unlocked = Math.min(MAPS.length-1, G.unlocked+1); toast('🗺 解锁至地图 ' + G.unlocked); break;
-    case 'godmode': G.player.hp=999999; G.player.maxHp=999999; toast('👑 无敌模式'); break;
+    case 'godmode': G.player._godMode = !G.player._godMode; toast(G.player._godMode?'👑 无敌模式 开':'👑 无敌模式 关'); break;
     case 'clearInv': G.player.inventory=[]; G.player.runes=[]; toast('🗑 清空背包'); break;
     case 'respec': G.player.str=10; G.player.agi=10; G.player.con=10; G.player.int=10; G.player.spi=10; G.player.attrPoints=G.player.level*3; toast('🔄 属性已重置'); break;
   }
