@@ -2834,6 +2834,7 @@ const LEFT_TABS = [
 const RIGHT_TABS = [
   {key:'char',   label:'人物', icon:'<svg class="gi"><use href="#gi-char"/></svg>'},
   {key:'skills', label:'技能', icon:'<svg class="gi"><use href="#gi-skills"/></svg>'},
+  {key:'rune',   label:'符文', icon:'💎'},
 ];
 var charSubTab='bag'; /* 人物子标签：bag / stats */
 function setCharSubTab(t){ charSubTab=t; renderContent(); }
@@ -5141,6 +5142,7 @@ function renderContent(){
     case 'shop': c.innerHTML=tabShop(); break;
     case 'party': c.innerHTML=tabParty(); break;
     case 'tower': c.innerHTML=tabTower(); break;
+    case 'rune':  c.innerHTML=tabRune(); break;
   }
 }
 
@@ -5188,16 +5190,7 @@ function tabBag(){
   html+='</div>';
   html+='<div class="bag-main">';
   
-  var runesHtml='';
-  G.player.runes.forEach(function(r,i){ var rt=RUNE_TYPES[r.type]; if(rt)
-    runesHtml+='<div style="display:flex;align-items:center;gap:6px;padding:4px 8px;cursor:pointer;'+
-      'border:1px solid var(--line);border-radius:6px;margin:2px 0;font-size:11px;'+
-      'background:var(--panel3);" onclick="selectBag(\'rune\','+i+')">'+
-      '<span style="font-size:16px;">'+rt.icon+'</span>'+
-      '<span style="color:'+rt.color+';">'+rt.name+' '+RUNE_RARITY[r.rarity].name+'</span>'+
-      '<span style="color:var(--dim);margin-left:auto;">+'+Math.round(RUNE_TYPES[r.type].vals[r.rarity]*100)+'%</span></div>';
-  });
-  if(runesHtml) html+=invSection('💎 符文','runes',runesHtml);
+  /* 符文已移至独立符文页（RIGHT_TABS > rune），此处不再混排 */
 var bagCats=[['equip','\u88c5\u5907',equips.length],['book','\u6280\u80fd\u4e66',books.length],['flask','\u836f\u6c34',flasks.length]];
   var tabsHtml='<div class="bag-tabs">';
   bagCats.forEach(function(c){ tabsHtml+='<button class="bag-tab'+(bagCat===c[0]?' on':'')+'" onclick="setBagCat(\''+c[0]+'\')">'+c[1]+' <span class="bag-tab-n">'+c[2]+'</span></button>'; });
@@ -5802,6 +5795,73 @@ function runeComboEffect(){
     eff[rt.stat]=(eff[rt.stat]||0)+rt.vals.epic*m; /* 取最高品质值×组合倍率 */
   }
   return eff;
+}
+
+/* ---------- 符文页 ---------- */
+function tabRune(){
+  var p=G.player, s=totalStats();
+  if(!Array.isArray(p.runes)) p.runes=[];
+  var activeRunes = []; /* 已镶嵌（装备上）的符文 */
+  ALL_SLOTS.forEach(function(slot){
+    var it = p.equip[slot]; if(!it || !it.runes) return;
+    it.runes.forEach(function(r){
+      var rt = RUNE_TYPES[r.type]; if(!rt) return;
+      activeRunes.push({slot:slot, rune:r, stat:rt, rarity:RUNE_RARITY[r.rarity]});
+    });
+  });
+
+  var html='<h3 style="margin-bottom:12px;">💎 符文</h3>';
+
+  /* 当前生效符文 */
+  if(activeRunes.length>0){
+    html+='<div style="margin-bottom:16px;background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:12px;">';
+    html+='<div style="font-size:12px;color:var(--gold-soft);margin-bottom:8px;">⚡ 已镶嵌（装备上的符文）</div>';
+    activeRunes.forEach(function(ar){
+      html+='<div style="display:flex;align-items:center;gap:8px;font-size:11px;padding:3px 0;">'+
+        '<span style="font-size:15px;">'+ar.stat.icon+'</span>'+
+        '<span style="color:'+ar.stat.color+';">'+ar.stat.name+'·'+ar.rarity.name+'</span>'+
+        '<span style="color:var(--dim);">'+ar.stat.stat+' +'+Math.round(RUNE_TYPES[ar.rune.type].vals[ar.rune.rarity]*100)+'%</span>'+
+        '<span style="color:var(--dim);margin-left:auto;">在 '+slotLabel(ar.slot)+' 上</span></div>';
+    });
+    html+='</div>';
+  }
+
+  /* 库存符文 */
+  html+='<div style="display:flex;flex-wrap:wrap;gap:8px;">';
+  if(p.runes.length===0){
+    html+='<div style="color:var(--dim);padding:40px;text-align:center;width:100%;">尚无符文，试炼塔和 BOSS 掉落获取</div>';
+  } else {
+    p.runes.forEach(function(r,i){
+      var rt=RUNE_TYPES[r.type]; if(!rt) return;
+      var rr=RUNE_RARITY[r.rarity];
+      html+='<div class="rune-card" onclick="selectBag(\'rune\','+i+')" style="'+
+        'display:flex;align-items:center;gap:8px;padding:10px 14px;'+
+        'border:2px solid var(--line);border-radius:10px;cursor:pointer;'+
+        'background:var(--panel3);min-width:140px;transition:border .15s;'+
+        '" onmouseover="this.style.borderColor=\''+rt.color+'\'" onmouseout="this.style.borderColor=\'var(--line)\'">'+
+        '<span style="font-size:24px;">'+rt.icon+'</span>'+
+        '<div><div style="font-size:13px;font-weight:700;color:'+rt.color+';">'+rt.name+'</div>'+
+        '<div style="font-size:11px;color:var(--dim);">'+rr.name+' · '+rt.stat+' +'+Math.round(rt.vals[r.rarity]*100)+'%</div>'+
+        '<div style="font-size:10px;color:var(--dim);margin-top:2px;">'+rt.combo+'</div></div></div>';
+    });
+  }
+  html+='</div>';
+
+  /* 符文图鉴 */
+  html+='<div style="margin-top:20px;">'+
+    '<div style="font-size:13px;color:var(--gold-soft);margin-bottom:10px;">📖 符文图鉴</div>'+
+    '<div style="display:flex;flex-wrap:wrap;gap:6px;">';
+  Object.keys(RUNE_TYPES).forEach(function(k){
+    var rt=RUNE_TYPES[k];
+    html+='<div style="flex:1;min-width:100px;background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:8px;text-align:center;">'+
+      '<span style="font-size:20px;">'+rt.icon+'</span>'+
+      '<div style="font-size:11px;color:'+rt.color+';font-weight:600;">'+rt.name+'</div>'+
+      '<div style="font-size:10px;color:var(--dim);">'+rt.stat+'</div>'+
+      '<div style="font-size:10px;color:var(--dim);">普'+Math.round(rt.vals.normal*100)+'% / 稀'+Math.round(rt.vals.rare*100)+'% / 史'+Math.round(rt.vals.epic*100)+'%</div>'+
+    '</div>';
+  });
+  html+='</div></div>';
+  return html;
 }
 
 /* ---------- 无尽试炼塔 ---------- */
