@@ -4209,6 +4209,7 @@ function enterMap(idx){
     return;
   }
   G.mapId=idx;G.mapTier=MAPS[idx].tier;
+  G.tower.active=false; /* 进入地图时退出试炼塔状态 */
   G.encounter=0;G.autoChain=true;G.eliteDone=false;G.bossDone=false;
   G.mapEliteAt=null;G.mapBossAt=null;
   pushLog('sys','🗺️ 进入【'+MAPS[idx].name+'】，连续遭遇已开启（击杀后自动接战，状态不回复）');
