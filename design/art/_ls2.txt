@@ -1,0 +1,35 @@
+﻿[
+    {
+        "Name":  "art-bible.md"
+    },
+    {
+        "Name":  "contrast-audit.md"
+    },
+    {
+        "Name":  "_cleanup_status.txt"
+    },
+    {
+        "Name":  "_contrast.txt"
+    },
+    {
+        "Name":  "_contrast2.txt"
+    },
+    {
+        "Name":  "_contrast3.txt"
+    },
+    {
+        "Name":  "_diag2.txt"
+    },
+    {
+        "Name":  "_fix7.ps1"
+    },
+    {
+        "Name":  "_fix7_status.txt"
+    },
+    {
+        "Name":  "_ls.txt"
+    },
+    {
+        "Name":  "_new7.md"
+    }
+]
