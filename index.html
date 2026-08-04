@@ -2722,12 +2722,24 @@ function monsterSVGInner(def, sz){
 function monsterSVGFallback(key, sz){
   return monsterSVGInner(MONSTERS[key]||null, sz||'1em');
 }
-function monsterSVG(def, px){
+function monsterSVG(def, px, transparent){
   const sz=px?px+'px':'1em';
-  /* 优先用图片资源：显式 img，或按 key 自动推导 assets/monsters/{key}.png；加载失败回落程序化 SVG，杜绝破图 */
-  const img = (def && def.img) || (def && def.key ? 'assets/monsters/'+def.key+'.png' : null);
+  /* 图鉴用实底 assets/monsters/{key}.png；战斗传 transparent=true 用透明 assets/monsters_alpha/{key}.png */
+  let img=null;
+  if(def && def.key){
+    img = transparent ? 'assets/monsters_alpha/'+def.key+'.png' : (def.img || 'assets/monsters/'+def.key+'.png');
+  } else if(def && def.img){
+    img = def.img;
+  }
   if(img){
-    return '<img class="mon-img" src="'+img+'" alt="'+esc(def.name||'')+'" data-key="'+(def.key||'')+'" data-sz="'+sz+'" style="width:'+sz+';height:'+sz+';object-fit:contain;" onerror="this.onerror=null;this.insertAdjacentHTML(\'afterend\', monsterSVGFallback(this.getAttribute(\'data-key\'), this.getAttribute(\'data-sz\'))); this.remove();">';
+    let onerr;
+    if(transparent && def.key){
+      /* 透明图缺失：先回落实底，杜绝空位（实底必存在） */
+      onerr = "this.onerror=null;this.src='assets/monsters/"+def.key+".png';";
+    } else {
+      onerr = "this.onerror=null;this.insertAdjacentHTML('afterend', monsterSVGFallback(this.getAttribute('data-key'), this.getAttribute('data-sz'))); this.remove();";
+    }
+    return '<img class="mon-img" src="'+img+'" alt="'+esc(def.name||'')+'" data-key="'+(def.key||'')+'" data-sz="'+sz+'" style="width:'+sz+';height:'+sz+';object-fit:contain;" onerror="'+onerr+'">';
   }
   return monsterSVGInner(def, sz);
 }
@@ -6885,7 +6897,7 @@ function renderBattleScreen(){
         (e.isBoss?' <span style="color:var(--orange);font-size:12px;">[BOSS]</span>':'')+'</div>'+
       '<div class="fighter-hp-bar"><div class="filler-hp hp-enemy" style="width:'+ePct+'%"></div>'+
         '<div class="hp-text">'+e.hp+'/'+e.maxHp+'</div></div>'+
-      '<div class="fighter-avatar avatar-enemy">'+(e.art?monsterSVG(e,72):(e.emoji||'💀'))+
+      '<div class="fighter-avatar avatar-enemy">'+(e.art?monsterSVG(e,72,true):(e.emoji||'💀'))+
         (e.isElite?'<div class="elite-badge">ELITE</div>':'')+
         (e.isBoss?'<div class="boss-badge">BOSS</div>':'')+'</div>'+
       buffBarHTML(e)+
