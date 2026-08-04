@@ -5592,6 +5592,8 @@ function preloadAtlas(){
     img.onload=img.onerror=function(){ _preloadDone++; if(_preloadDone>=_preloadTotal) _preloadReady=true; };
     img.src=urls[i];
   }
+  // 30 秒兜底超时：GitHub Pages 偶发卡大文件，超时后强制放行（图片在后台继续加载）
+  setTimeout(function(){ if(!_preloadReady){ _preloadDone=_preloadTotal; _preloadReady=true; } }, 30000);
   // 后台顺带预热缩略图（不阻塞，版本号与 monsterSVG 一致用 ?v=5）
   if(typeof ATLAS_MON!=='undefined' && ATLAS_MON.map){
     Object.keys(ATLAS_MON.map).forEach(function(k){
@@ -5599,26 +5601,37 @@ function preloadAtlas(){
     });
   }
 }
-/* 阻塞等待雪碧图下载完毕才进游戏；首次显示加载读条 */
+/* 阻塞等待雪碧图下载完毕才进游戏；首次显示加载读条，8 秒后可用跳过按钮 */
 function ensureAtlasReady(cb){
   if(_preloadReady){ cb(); return; }
-  var ov=gateEl('gateLoading'), bar=gateEl('gateLoadFill');
+  var ov=gateEl('gateLoading'), bar=gateEl('gateLoadFill'), skipEl=null;
   if(ov){ ov.style.display='flex'; }
-  /* 如果没开始预加载（极端情况），给一个假进度安抚用户 */
-  var fakeTick=0;
+  var fakeTick=0, skipShown=false, resolved=false;
+  function done(){
+    if(resolved) return; resolved=true;
+    if(bar) bar.style.width='100%';
+    setTimeout(function(){ if(ov) ov.style.display='none'; cb(); }, 250);
+  }
   var check=setInterval(function(){
-    if(_preloadReady){
-      clearInterval(check);
-      if(bar) bar.style.width='100%';
-      setTimeout(function(){ if(ov) ov.style.display='none'; cb(); }, 200);
-      return;
-    }
-    // 真进度按已下载/总数算，兜底给假进度（最多到80%，留20%给真完成）
+    if(_preloadReady){ clearInterval(check); done(); return; }
     var realPct=_preloadTotal>0 ? Math.round(_preloadDone/_preloadTotal*80):0;
     fakeTick++;
     var fakePct=Math.min(80, fakeTick*3);
     var pct=Math.max(realPct, fakePct);
     if(bar) bar.style.width=pct+'%';
+    // 8 秒后显示跳过按钮
+    if(!skipShown && fakeTick>44){
+      skipShown=true;
+      if(ov){
+        skipEl=document.createElement('div');
+        skipEl.textContent='跳过等待，直接进入';
+        skipEl.style.cssText='margin-top:18px;font-size:12px;color:rgba(136,153,187,.6);cursor:pointer;letter-spacing:1px;';
+        skipEl.onclick=function(){ clearInterval(check); _preloadDone=_preloadTotal; _preloadReady=true; done(); };
+        skipEl.onmouseenter=function(){ skipEl.style.color='#aabbdd'; };
+        skipEl.onmouseleave=function(){ skipEl.style.color='rgba(136,153,187,.6)'; };
+        ov.appendChild(skipEl);
+      }
+    }
   }, 180);
 }
 /* 启动：检测是否有存档 */
