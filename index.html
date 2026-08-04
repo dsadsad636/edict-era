@@ -2727,15 +2727,15 @@ function monsterSVG(def, px, transparent){
   /* 图鉴用实底 assets/monsters/{key}.png；战斗传 transparent=true 用透明 assets/monsters_alpha/{key}.png */
   let img=null;
   if(def && def.key){
-    img = transparent ? 'assets/monsters_alpha/'+def.key+'.png' : (def.img || 'assets/monsters/'+def.key+'.png');
+    img = transparent ? 'assets/monsters_alpha/'+def.key+'.png?v=2' : ((def.img||'assets/monsters/'+def.key+'.png')+'?v=2');
   } else if(def && def.img){
-    img = def.img;
+    img = def.img+'?v=2';
   }
   if(img){
     let onerr;
     if(transparent && def.key){
       /* 透明图缺失：先回落实底，杜绝空位（实底必存在） */
-      onerr = "this.onerror=null;this.src='assets/monsters/"+def.key+".png';";
+      onerr = "this.onerror=null;this.src='assets/monsters/"+def.key+".png?v=2';";
     } else {
       onerr = "this.onerror=null;this.insertAdjacentHTML('afterend', monsterSVGFallback(this.getAttribute('data-key'), this.getAttribute('data-sz'))); this.remove();";
     }
@@ -3482,15 +3482,15 @@ const Party = {
 /* ==================== 角色出身（账号首次绑定角色时选择） ==================== */
 const ORIGINS = [
   {key:'warrior', name:'退役执戟', icon:'str', desc:'主力量 +4 · 副体质 +2 · 王庭 +1',   bonus:{str:4, con:2},
-    story:'曾是王庭执戟士，持重械、守城门、缉私法。退役后仍持一纸回收执照，靠查封无印魔物过活。重甲之下藏着一份对旧誓的偏执。', at:'plate', img:'assets/origins/warrior.png'},
+    story:'曾是王庭执戟士，持重械、守城门、缉私法。退役后仍持一纸回收执照，靠查封无印魔物过活。重甲之下藏着一份对旧誓的偏执。', at:'plate', img:'assets/origins/warrior.png?v=2'},
   {key:'assassin',name:'特赦囚徒', icon:'agi', desc:'主敏捷 +4 · 副力量 +2 · 私法者 +1', bonus:{agi:4, str:2},
-    story:'在削籍狱关了七年，罪名是"未经登记施用敏捷术"。特赦条件——以持牌者身份回收二十件违禁法器。身手是狱里练出来的，直觉是天生的。', at:'leather', img:'assets/origins/assassin.png'},
+    story:'在削籍狱关了七年，罪名是"未经登记施用敏捷术"。特赦条件——以持牌者身份回收二十件违禁法器。身手是狱里练出来的，直觉是天生的。', at:'leather', img:'assets/origins/assassin.png?v=2'},
   {key:'mage',    name:'注籍学徒', icon:'int', desc:'主智力 +4 · 副精神 +2 · 秘典庭 +1', bonus:{int:4, spi:2},
-    story:'秘典庭出身，十五岁通过注籍考试。知道每一条咒文的编号、分类与合法施用范围。也清楚——真正的力量从来不在考试范围里。', at:'cloth', img:'assets/origins/mage.png'},
+    story:'秘典庭出身，十五岁通过注籍考试。知道每一条咒文的编号、分类与合法施用范围。也清楚——真正的力量从来不在考试范围里。', at:'cloth', img:'assets/origins/mage.png?v=2'},
   {key:'tank',    name:'教团苦修', icon:'con', desc:'主体质 +4 · 副力量 +2 · 教团 +1',   bonus:{con:4, str:2},
-    story:'在铁证教团的石室里修行了十年。肉身即圣器，疼痛即祈祷。出山做持牌者不是信仰的延续，是信仰最诚实的结果——挨打。', at:'plate', img:'assets/origins/tank.png'},
+    story:'在铁证教团的石室里修行了十年。肉身即圣器，疼痛即祈祷。出山做持牌者不是信仰的延续，是信仰最诚实的结果——挨打。', at:'plate', img:'assets/origins/tank.png?v=2'},
   {key:'healer',  name:'巡回医僧', icon:'spi', desc:'主精神 +4 · 副智力 +2 · 中立',     bonus:{spi:4, int:2},
-    story:'不属于任何一庭。在界桩村与黑印集市之间走了二十年，靠草药和违禁治愈术救人。持牌者执照是病人送的——'+"他们说我救人，也该合法地救。"+'', at:'cloth', img:'assets/origins/healer.png'},
+    story:'不属于任何一庭。在界桩村与黑印集市之间走了二十年，靠草药和违禁治愈术救人。持牌者执照是病人送的——'+"他们说我救人，也该合法地救。"+'', at:'cloth', img:'assets/origins/healer.png?v=2'},
 ];
 
 /* ==================== 药水瓶（非消耗品 · 能量制） ====================
@@ -6007,7 +6007,7 @@ function tabBag(){
   '</div>';
   html+='<div class="bag-layout">';
   html+='<div style="flex:0 0 150px;text-align:center;">'+
-    '<div style="width:150px;height:180px;border-radius:14px;background:radial-gradient(circle at 50% 30%,rgba(41,128,185,.15),rgba(0,0,0,.4));border:1px solid var(--line);overflow:hidden;"><img src="assets/player/player.png" alt="'+esc(p.name)+'" style="width:150px;height:180px;object-fit:contain;"></div>'+
+    '<div style="width:150px;height:180px;border-radius:14px;background:radial-gradient(circle at 50% 30%,rgba(41,128,185,.15),rgba(0,0,0,.4));border:1px solid var(--line);overflow:hidden;"><img src="assets/player/player.png?v=2" alt="'+esc(p.name)+'" style="width:150px;height:180px;object-fit:contain;"></div>'+
   '</div>';
   html+='<div class="equip-slots">';
   ALL_SLOTS.forEach(function(slotKey){
@@ -6284,7 +6284,7 @@ function tabCharStats(){
   var html='<div class="char-unified">';
   /* --- 顶栏：角色 + 基础信息 --- */
   html+='<div style="display:flex;gap:16px;align-items:center;margin-bottom:14px;flex-wrap:wrap;">'+
-    '<div style="width:90px;height:110px;border-radius:12px;background:radial-gradient(circle at 50% 30%,rgba(41,128,185,.15),rgba(0,0,0,.4));border:1px solid var(--line);overflow:hidden;"><img src="assets/player/player.png" alt="'+esc(p.name)+'" style="width:90px;height:110px;object-fit:contain;"></div>'+
+    '<div style="width:90px;height:110px;border-radius:12px;background:radial-gradient(circle at 50% 30%,rgba(41,128,185,.15),rgba(0,0,0,.4));border:1px solid var(--line);overflow:hidden;"><img src="assets/player/player.png?v=2" alt="'+esc(p.name)+'" style="width:90px;height:110px;object-fit:contain;"></div>'+
     '<div>'+
       '<div style="font-size:18px;font-weight:700;color:var(--gold-soft);">'+esc(p.name)+' <span style="font-size:13px;color:var(--dim);">Lv.'+p.level+'</span></div>'+
       '<div style="font-size:11px;color:var(--dim);margin-top:2px;">'+(G.account&&G.account.originName?'\u51fa\u8eab '+G.account.originName:'')+'</div>'+
@@ -6923,7 +6923,7 @@ function renderBattleScreen(){
     '<div class="fighter-hp-bar"><div class="filler-hp hp-player" style="width:'+pPct+'%"></div>'+
       '<div class="hp-text">'+p.hp+'/'+p.maxHp+(p.shield>0?' 🛡'+p.shield:'')+'</div></div>'+
     '<div class="fighter-mp-bar" title="法力 '+p.mp+'/'+p.maxMp+'"><div class="filler-mp" style="width:'+mpPct+'%"></div></div>'+
-    '<div class="fighter-avatar avatar-player" style="color:var(--blue);"><img class="mon-img" src="assets/player/player.png" alt="'+esc(p.name)+'" style="width:72px;height:72px;object-fit:contain;"></div>'+
+    '<div class="fighter-avatar avatar-player" style="color:var(--blue);"><img class="mon-img" src="assets/player/player.png?v=2" alt="'+esc(p.name)+'" style="width:72px;height:72px;object-fit:contain;"></div>'+
     buffBarHTML(p)+
     castBarHTML(p,true)+
     flaskHtml+
