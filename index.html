@@ -1030,6 +1030,30 @@ body{
 .bs-skills{margin-top:8px;line-height:1.9;}
 .bs-skills .bs-k{margin-bottom:2px;}
 .bs-chip{display:inline-flex;align-items:center;gap:4px;margin:0 5px 4px 0;padding:2px 9px;border-radius:14px;font-size:11.5px;background:rgba(74,158,255,.10);border:1px solid rgba(74,158,255,.25);color:#9fd0ff;}
+/* 图鉴分栏格子式布局 */
+.bs-layout{display:flex;gap:16px;align-items:flex-start;}
+.bs-list{flex:1;min-width:0;}
+.bs-detail{width:300px;flex-shrink:0;position:sticky;top:8px;background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:14px;min-height:200px;max-height:78vh;overflow:auto;}
+.bs-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(92px,1fr));gap:8px;}
+.bs-cell{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:8px 6px;text-align:center;cursor:pointer;transition:.15s;}
+.bs-cell:hover{border-color:var(--gold);transform:translateY(-2px);}
+.bs-cell-sel{border-color:var(--gold);box-shadow:0 0 0 2px rgba(220,170,80,.35);}
+.bs-cell.locked{cursor:default;opacity:.55;}
+.bs-cell.locked:hover{border-color:var(--line);transform:none;}
+.bs-cell-emoji{height:56px;display:flex;align-items:center;justify-content:center;margin-bottom:4px;}
+.bs-cell-emoji img{width:56px;height:56px;object-fit:contain;}
+.bs-cell-name{font-size:11px;color:var(--ink);line-height:1.3;min-height:28px;display:flex;align-items:center;justify-content:center;}
+.bs-cell-badge{display:inline-block;font-size:9px;font-weight:700;color:#1a1d28;padding:1px 6px;border-radius:6px;margin-top:2px;}
+.bsd-wrap{display:flex;gap:14px;}
+.bsd-img{flex-shrink:0;width:160px;height:160px;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.2);border-radius:10px;}
+.bsd-img img{width:160px;height:160px;object-fit:contain;}
+.bsd-info{flex:1;min-width:0;}
+.bsd-name{font-size:16px;font-weight:700;display:flex;align-items:center;gap:6px;flex-wrap:wrap;}
+.bsd-sub{font-size:11px;color:var(--dim);margin-top:2px;margin-bottom:8px;}
+.bsd-lore{font-size:12.5px;line-height:1.7;color:var(--ink);}
+.bsd-skills{margin-top:8px;line-height:1.9;}
+.bsd-skills .bs-k{margin-bottom:2px;}
+.bsd-hint,.bsd-locked{color:var(--dim);font-size:13px;text-align:center;padding:40px 10px;}
 </style>
 </head>
 <body>
@@ -2858,6 +2882,99 @@ const MONSTER_SKILLS = {
   mboss_drain:  {name:'生命汲取', type:'dmg', mult:1.30, cd:4},
   mboss_wrath:  {name:'毁灭怒吼', type:'buff', val:0.35, spdBoost:0.20, turns:3, cd:7},
   mboss_decay:  {name:'腐蚀吐息', type:'dot', mult:0.70, turns:4, vuln:0.20, cd:5},
+
+  /* ============ 图1 BOSS：锈角巨鹿 rust_stag（污染兽·荒野） ============ */
+  mboss_rust_rend:   {name:'腐角撕碎', type:'dmg', mult:2.50, cd:4, desc:'高倍率单体爆发，鹿角撕裂。'},
+  mboss_rust_quake:  {name:'荒野践踏', type:'dmg', mult:3.20, cd:5, slow:0.20, slowTurns:2, desc:'灭世级践踏，全场震荡并使目标迟缓。'},
+  mboss_rust_curse:  {name:'锈瘟之触', type:'dot', mult:0.60, turns:4, vuln:0.10, debuffAtk:0.20, debuffTurns:3, cd:5, desc:'锈瘟持续伤害，并削弱目标攻击。'},
+  mboss_rust_frenzy: {name:'兽群狂乱', type:'buff', val:0.30, spdBoost:0.15, turns:3, cd:6, desc:'进入狂乱，提升攻击与攻速。'},
+  /* ============ 图2 BOSS：三指 oz_threefinger（黑印集市·暗杀） ============ */
+  mboss_oz_ambush:     {name:'暗影伏击', type:'dmg', mult:2.60, cd:4, vuln:0.15, vulnTurns:2, desc:'伏击单体，造成易伤。'},
+  mboss_oz_execution:  {name:'三指处决', type:'dmg', mult:3.40, cd:6, desc:'灭世级单体处决，纯粹高伤。'},
+  mboss_oz_silence:    {name:'封口之刃', type:'dmg', mult:0.90, cd:5, noHeal:true, debuffTurns:3, desc:'割裂并禁疗目标，使其无法回复生命。'},
+  mboss_oz_greed:      {name:'贪欲涌动', type:'buff', val:0.35, turns:3, cd:6, desc:'汲取贪婪之力，大幅强化自身攻击。'},
+  /* ============ 图3 BOSS：缄默修女 edna_silent（亡灵圣械） ============ */
+  mboss_edna_wail:   {name:'寂灭哀嚎', type:'dmg', mult:2.40, cd:4, desc:'单体爆发，亡灵哀嚎。'},
+  mboss_edna_quake:  {name:'圣骸震爆', type:'dmg', mult:3.00, cd:5, stun:true, stunTurns:1, desc:'灭世级震爆并眩晕目标。'},
+  mboss_edna_drain:  {name:'缄默汲取', type:'dmg', mult:1.60, cd:4, lifesteal:0.50, desc:'汲取生命，伤害回补自身。'},
+  mboss_edna_veil:   {name:'圣帷护佑', type:'buff', val:0.20, spdBoost:0.10, turns:3, shield:0.25, cd:6, desc:'展开圣帷护盾并强化自身。'},
+  /* ============ 图4 BOSS：熔炉王 varuk（构装体·火焰） ============ */
+  mboss_varuk_slam:    {name:'熔锤重击', type:'dmg', mult:2.60, cd:4, desc:'高倍率单体重击。'},
+  mboss_varuk_overheat:{name:'过热喷涌', type:'dmg', mult:3.30, cd:5, slow:0.25, slowTurns:2, desc:'灭世级熔流，灼烧并迟缓目标。'},
+  mboss_varuk_scald:   {name:'炽垢灼烧', type:'dot', mult:0.70, turns:4, debuffAtk:0.15, debuffTurns:3, cd:5, desc:'持续灼烧并削弱目标攻击。'},
+  mboss_varuk_reforge: {name:'熔炉重铸', type:'buff', shield:0.30, turns:4, cd:6, desc:'重铸护甲，获得厚重护盾。'},
+  /* ============ 图5 BOSS：掌典塞维兰 sevlan（秘术造物） ============ */
+  mboss_sevlan_tome:   {name:'禁典裁决', type:'dmg', mult:2.50, cd:4, desc:'召唤禁典降下裁决。'},
+  mboss_sevlan_erasure:{name:'除名灭世', type:'dmg', mult:3.10, cd:5, debuffAtk:0.20, debuffTurns:3, desc:'将目标从记录中抹去的灭世一击，并削弱其攻击。'},
+  mboss_sevlan_hex:    {name:'禁咒缠身', type:'dot', mult:0.60, turns:4, noHeal:true, debuffTurns:3, cd:5, desc:'禁咒持续伤害并使目标禁疗。'},
+  mboss_sevlan_archive:{name:'秘典共鸣', type:'buff', val:0.30, spdBoost:0.20, turns:3, shield:0.15, cd:6, desc:'与秘典共鸣，强化攻击、攻速并展开护盾。'},
+  /* ============ 图6 BOSS：第七号·无名 null_seventh（无名者） ============ */
+  mboss_null_smite:  {name:'无名裁定', type:'dmg', mult:2.50, cd:4, desc:'高倍率单体裁定。'},
+  mboss_null_unmake: {name:'抹除存在', type:'dmg', mult:3.20, cd:6, desc:'灭世级抹除，纯粹高伤。'},
+  mboss_null_drain:  {name:'名讳汲取', type:'dmg', mult:1.50, cd:4, lifesteal:0.55, desc:'汲取目标名讳与生命。'},
+  mboss_null_bind:   {name:'缄链缚锁', type:'dmg', mult:1.20, cd:5, stun:true, stunTurns:1, debuffAtk:0.25, debuffTurns:3, desc:'铁链缚锁，眩晕并削弱目标攻击。'},
+  /* ============ 图7 BOSS：初泉 first_wellspring（渊墨） ============ */
+  mboss_well_burst:   {name:'墨渊迸发', type:'dmg', mult:2.40, cd:4, desc:'高倍率单体迸发。'},
+  mboss_well_deluge:  {name:'渊墨洪流', type:'dmg', mult:3.30, cd:5, slow:0.20, slowTurns:2, desc:'灭世级墨潮，冲刷并迟缓目标。'},
+  mboss_well_inkblight:{name:'墨疫诅咒', type:'dot', mult:0.80, turns:4, vuln:0.10, debuffAtk:0.20, noHeal:true, debuffTurns:3, cd:5, desc:'最强诅咒：墨疫持续伤害、易伤、降攻且禁疗。'},
+  mboss_well_regen:   {name:'深泉回涌', type:'buff', heal:0.12, shield:0.15, turns:4, cd:6, desc:'引动深泉，回血并展开护盾。'},
+  /* ============ 图8 BOSS：初录一号 vaerith_no1（龙裔） ============ */
+  mboss_vaerith_claw:   {name:'龙爪裂击', type:'dmg', mult:2.70, cd:4, desc:'高倍率龙爪单体爆发。'},
+  mboss_vaerith_roar:   {name:'初录龙吼', type:'dmg', mult:3.00, cd:5, stun:true, stunTurns:1, desc:'灭世级龙吼并眩晕目标。'},
+  mboss_vaerith_curse:  {name:'缚龙诅咒', type:'dot', mult:0.60, turns:4, debuffAtk:0.20, debuffTurns:3, cd:5, desc:'持续诅咒并削弱目标攻击。'},
+  mboss_vaerith_fury:   {name:'龙血狂怒', type:'buff', val:0.35, spdBoost:0.20, turns:3, cd:6, desc:'龙血沸腾，大幅提升攻击与攻速。'},
+  /* ============ 图9 BOSS：丞相 chancellor_maerus（敕印者） ============ */
+  mboss_maerus_decree:  {name:'敕令裁决', type:'dmg', mult:2.50, cd:4, desc:'降下敕令，单体高伤。'},
+  mboss_maerus_quake:   {name:'档案震落', type:'dmg', mult:3.00, cd:5, slow:0.20, slowTurns:2, desc:'灭世级震落并迟缓目标。'},
+  mboss_maerus_void:    {name:'虚空敕罚', type:'dot', mult:0.70, turns:4, noHeal:true, debuffTurns:3, cd:5, desc:'虚空持续诅咒并使目标禁疗。'},
+  mboss_maerus_seal:    {name:'金印结界', type:'buff', val:0.25, turns:3, shield:0.28, cd:6, desc:'金印护体，强化攻击并展开护盾。'},
+  /* ============ 图10 BOSS：初敕 the_first_edict（原初立法） ============ */
+  mboss_edict_judge:     {name:'原初审判', type:'dmg', mult:2.80, cd:4, desc:'高倍率单体审判。'},
+  mboss_edict_obliterate:{name:'敕令抹消', type:'dmg', mult:3.60, cd:6, desc:'最强灭世级抹消，纯粹极致高伤。'},
+  mboss_edict_drain:     {name:'立法汲取', type:'dmg', mult:1.60, cd:4, lifesteal:0.60, desc:'以立法之名汲取生命。'},
+  mboss_edict_anathema:  {name:'绝罚诅咒', type:'dot', mult:0.80, turns:4, vuln:0.10, debuffAtk:0.25, noHeal:true, debuffTurns:3, cd:5, desc:'最强绝罚：持续伤害、易伤、降攻且禁疗。'},
+
+  /* ============ 精英专属技（图1-10 各 1 只） ============ */
+  /* 图1 石魟 stone_shin */
+  me_shin_smash:{name:'岩椎重击', type:'dmg', mult:1.70, cd:4, slow:0.20, slowTurns:2, desc:'重椎敲击，迟缓目标。'},
+  me_shin_regrow:{name:'石化再生', type:'heal', heal:0.13, cd:6, desc:'石质躯壳缓慢自愈。'},
+  me_shin_maul:{name:'碾压扑击', type:'dmg', mult:1.60, cd:3, vuln:0.10, vulnTurns:2, desc:'扑压造成易伤。'},
+  /* 图2 黑手 black_hand */
+  me_hand_strike:{name:'黑手突袭', type:'dmg', mult:1.75, cd:4, vuln:0.15, vulnTurns:2, desc:'突袭并造成易伤。'},
+  me_hand_fury:{name:'暗市狂怒', type:'buff', val:0.25, spdBoost:0.15, turns:3, cd:6, desc:'催动暗市之力，强化自身。'},
+  me_hand_venom:{name:'淬毒短刃', type:'dot', mult:0.50, turns:4, vuln:0.15, cd:5, desc:'毒刃持续伤害并易伤。'},
+  /* 图3 严长老 stern_elder */
+  me_elder_bolt:{name:'圣骸雷', type:'dmg', mult:1.70, cd:4, desc:'圣骸降下雷光单体爆发。'},
+  me_elder_regen:{name:'默祷回春', type:'heal', heal:0.14, cd:6, desc:'默祷回复生命。'},
+  me_elder_fury:{name:'虔信狂热', type:'buff', val:0.25, spdBoost:0.15, turns:3, cd:6, desc:'虔信涌动，强化自身。'},
+  /* 图4 活工头 live_foreman */
+  me_fore_slam:{name:'锻锤镇压', type:'dmg', mult:1.70, cd:4, slow:0.20, slowTurns:2, desc:'铁锤镇压，迟缓目标。'},
+  me_fore_fury:{name:'炉火狂怒', type:'buff', val:0.28, spdBoost:0.18, turns:3, cd:6, desc:'炉火点燃，强化自身。'},
+  me_fore_maul:{name:'铆接猛扑', type:'dmg', mult:1.60, cd:3, vuln:0.12, vulnTurns:2, desc:'铆接扑击造成易伤。'},
+  /* 图5 书记官 codex_clerk */
+  me_clerk_hex:{name:'禁咒封缄', type:'dot', mult:0.55, turns:4, vuln:0.15, cd:5, desc:'封缄诅咒持续伤害并易伤。'},
+  me_clerk_maul:{name:'重典扑击', type:'dmg', mult:1.60, cd:3, vuln:0.10, vulnTurns:2, desc:'以重典扑击造成易伤。'},
+  me_clerk_fury:{name:'秘法狂热', type:'buff', val:0.28, spdBoost:0.18, turns:3, cd:6, desc:'秘法涌动，强化自身。'},
+  /* 图6 无名典狱长 warden_nameless */
+  me_ward_crush:{name:'铁链碎击', type:'dmg', mult:1.75, cd:4, slow:0.20, slowTurns:2, desc:'铁链重击，迟缓目标。'},
+  me_ward_maul:{name:'无名扑杀', type:'dmg', mult:1.60, cd:3, vuln:0.12, vulnTurns:2, desc:'扑杀造成易伤。'},
+  me_ward_regen:{name:'缄名回生', type:'heal', heal:0.13, cd:6, desc:'以无名之力回复生命。'},
+  /* 图7 墨监工 ink_overseer */
+  me_ink_smash:{name:'墨锤镇压', type:'dmg', mult:1.70, cd:4, slow:0.20, slowTurns:2, desc:'墨锤镇压，迟缓目标。'},
+  me_ink_fury:{name:'渊墨狂怒', type:'buff', val:0.28, spdBoost:0.18, turns:3, cd:6, desc:'渊墨点燃，强化自身。'},
+  me_ink_maul:{name:'浸染扑击', type:'dmg', mult:1.60, cd:3, vuln:0.12, vulnTurns:2, desc:'浸染扑击造成易伤。'},
+  /* 图8 持印龙 seal_bearer_wyrm */
+  me_wyrm_claw:{name:'龙爪裂击', type:'dmg', mult:1.75, cd:4, desc:'龙爪单体爆发。'},
+  me_wyrm_fury:{name:'龙血狂怒', type:'buff', val:0.30, spdBoost:0.20, turns:3, cd:6, desc:'龙血沸腾，强化自身。'},
+  me_wyrm_maul:{name:'尾扫扑击', type:'dmg', mult:1.60, cd:3, vuln:0.12, vulnTurns:2, desc:'龙尾扑击造成易伤。'},
+  /* 图9 大书记 grand_notary */
+  me_notary_hex:{name:'黜落诅咒', type:'dot', mult:0.55, turns:4, vuln:0.15, cd:5, desc:'黜落诅咒持续伤害并易伤。'},
+  me_notary_maul:{name:'金印扑击', type:'dmg', mult:1.60, cd:3, vuln:0.10, vulnTurns:2, desc:'金印扑击造成易伤。'},
+  me_notary_fury:{name:'敕印狂热', type:'buff', val:0.28, spdBoost:0.18, turns:3, cd:6, desc:'敕印涌动，强化自身。'},
+  /* 图10 座守 seat_warden */
+  me_seat_crush:{name:'王座碎击', type:'dmg', mult:1.75, cd:4, slow:0.20, slowTurns:2, desc:'王座重击，迟缓目标。'},
+  me_seat_maul:{name:'初敕扑杀', type:'dmg', mult:1.60, cd:3, vuln:0.12, vulnTurns:2, desc:'扑杀造成易伤。'},
+  me_seat_regen:{name:'座下回生', type:'heal', heal:0.13, cd:6, desc:'承座之力回复生命。'},
 };
 
 /* 地图（MVP 3 张，各含 7 种普通怪 + 精英 + BOSS） */
@@ -2918,6 +3035,293 @@ const MONSTER_LORE = {
   rust_stag: { height:'约 3.0 米（含角）', weight:'约 900 公斤',
     trait:'锈冠巨鹿，BOSS 技全开（重击/震地/结界/汲取/怒吼/腐蚀），高伤且会吸血',
     story:'王庭立界桩第一年，赐下一头鹿作“祥瑞”。鹿吃了界桩边的草，角上生了锈，从此每百年角脱一次，掉下的锈片被人拿去铸成第一把“合法”的刀。' },
+  /* ===== 图2 · 黑印集市（人型） ===== */
+  merc_hire: { height:'约 1.8 米', weight:'约 82 公斤',
+    trait:'退役持牌武人组成的雇佣队，战甲混杂各路制式，近战凶狠但纪律散漫',
+    story:'界桩村的败兵凑成的雇佣队，持牌人一到就散作鸟兽，被逮住又改口说自己是“临时协管”。没人信，但他们自己信了。' },
+  private_mage: { height:'约 1.75 米', weight:'约 68 公斤',
+    trait:'未登记的自学术士，符文环绕周身，施法凌厉但常被失控魔素灼伤',
+    story:'教团说魔法必须登记才合法。他偏不信，躲进集市地下室偷偷练，练到符文长进了骨头里——如今他想登记，却早已查无此术。' },
+  smuggler: { height:'约 1.7 米', weight:'约 60 公斤',
+    trait:'地下通道常客，匕首近身凌厉，擅长在货箱间穿梭脱身',
+    story:'他走私的不是货，是没被登记的名字。把逃籍的人塞进木箱运出城，箱面写“旧书一捆”。箱子到时人还在不在，看运气。' },
+  broker: { height:'约 1.72 米', weight:'约 75 公斤',
+    trait:'火把照亮的生意人，嘴上全是“合法渠道”，手里全是用来路不明的敕令副本',
+    story:'他说自己只帮忙代转文书。可经他手转的敕令，落款一个个都变成了死人。火把照亮账本时，你才发现墨迹还没干。' },
+  mage_init: { height:'约 1.5 米', weight:'约 45 公斤',
+    trait:'半大孩子，偷学私法，小法杖勉强点亮，常把自己炸黑',
+    story:'师父被查封那天，把半截法杖塞给他跑。如今他在集市角落偷偷练，念错一个音节就炸一撮刘海——他管这叫实践出真知。' },
+  enforcer: { height:'约 2.0 米', weight:'约 120 公斤',
+    trait:'被吊销持牌的蛮汉，重棍横扫，皮糙肉厚，专替黑市平事',
+    story:'他曾是正式持牌打手，因误封活人被摘了牌。黑市收留了他——反正这里要的，正是忘了规矩的人。' },
+  scout: { height:'约 1.68 米', weight:'约 58 公斤',
+    trait:'集市暗处的眼睛，潜伏突袭，匕首一击致命，消息比刀快',
+    story:'谁来了、谁走了、谁口袋里藏着真敕令，他都看在眼里。报酬是一枚黑印——有了它，你在集市里不算一个人，也就没人查你的名字。' },
+  seal_forger: { height:'约 1.7 米', weight:'约 70 公斤',
+    trait:'伪造敕印的好手，符文石板以假乱真，近身还藏短刃',
+    story:'他用死人的落款造活人的敕令，一枚盖下，逃籍的人就有了合法身份。持牌人来了，他笑呵呵递上一份——落款正是持牌人自己的曾祖父。' },
+  black_hand: { height:'约 2.05 米', weight:'约 135 公斤',
+    trait:'黑印集团精英执行者，黑铁重甲，持剑斜劈势大力沉，挡者披靡',
+    story:'黑印不是帮派，是一纸谁也查不到的执照。签了它的人，左手按黑印，右手就能合法地做一切非法的事。他按得很重。' },
+  oz_threefinger: { height:'约 1.9 米', weight:'约 95 公斤',
+    trait:'黑印集市之主，金褐长袍配燃烧火把，琥珀金魔光护体，掌控全集市伪证与走私网络',
+    story:'他少了一根手指——被初代敕令削去的，那根指头原本按在“所有人的名字”上。如今他用余下三指，按出一张谁也撤不掉的黑印。持牌人若要查封集市，得先让他那三根手指松开。' },
+
+  /* ===== 图3 · 缄默修道院（tier2 · 亡灵圣械） ===== */
+  silent_bone: { height:'约 1.7 米（站直）', weight:'约 22 公斤',
+    trait:'骨缝间常年漏出低声祷文，听不清内容，持牌人靠近会突然住口',
+    story:'修道院规定“神迹须登记”，修士们便把神迹塞进圣骸，假装只是骨头。持牌人来查，骸骨们齐刷刷闭嘴——它们记得上一次登记，登记完的圣物都被王庭搬空了。' },
+  reliquary_guard: { height:'约 2.0 米', weight:'约 180 公斤',
+    trait:'以圣人遗骸为动力核心，攻击时溢出微弱圣光，对“未登记者”格外凶狠',
+    story:'教团把最危险的神迹封进守卫体内，对外称“圣物展示”。持牌人查封时，指骨在匣中轻敲三下——那是圣人当年立下的暗号：别动，这是我自愿的。' },
+  cloister_wraith: { height:'约 1.6 米', weight:'无（灵体）',
+    trait:'半透明，移动无声，会突然从持牌人背后递上一杯不存在的圣水',
+    story:'她生前负责给朝圣者倒水，死后仍在倒。王庭说幽魂也算“在册人口”，要她去登记，她低头看了看自己空荡荡的登记簿，笑了。' },
+  penitent_ghost: { height:'约 1.75 米', weight:'无',
+    trait:'持续自我鞭笞，痛感转化为怨气，越苦修越强',
+    story:'他立誓“赎清罪再登记”，可罪是王庭定的“未登记罪”，不登记就永远有罪，永远赎不清。他在回廊里绕了三百年，把悔罪衣绕成了茧。' },
+  rust_construct: { height:'约 1.9 米', weight:'约 210 公斤',
+    trait:'行动迟缓但每步震落锈片，锈雾中渐生低鸣',
+    story:'修道院把禁钟熔了做守卫，免得钟声召来巡查。持牌人查封它时，残钟在胸腔里响了最后一下——那本是召唤晨祷的钟，如今只召来了抄牌的。' },
+  cowled_skeleton: { height:'约 1.65 米', weight:'约 20 公斤',
+    trait:'守护某扇“不可开启”的门，见人便把钥匙往身后藏',
+    story:'它守的是藏经阁的禁书门。钥匙是真的，门是假的——教团早把书转移了，只留骷髅和空门，骗过每一代巡查。持牌人识破后，反而给它发了“最佳伪装奖”。' },
+  relic_sentry: { height:'约 1.85 米', weight:'约 40 公斤',
+    trait:'嗅觉极灵，能闻出“未受祝圣的入侵者”，对持牌人尤为敏感',
+    story:'圣徒生前最恨小偷，死后骨头成了抓贼的矛。持牌人进门那刻，骨矛猛地转向他——圣徒大概没想过，有一天“合法的贼”会穿着官服来。' },
+  choir_husk: { height:'约 1.2 米（孩童）', weight:'约 12 公斤',
+    trait:'合声能安抚亡灵，也能让活人耳鸣三日',
+    story:'唱诗班的孩子最先学会“把神迹唱小声些”。他们死后仍被线牵着唱，声音轻得像怕惊动谁。持牌人听了几句，发现歌词早被改成点名声——他们在替王庭数自己。' },
+  stern_elder: { height:'约 1.8 米', weight:'约 55 公斤（枯瘦）',
+    trait:'周身散发压制性戒律场，范围内所有神迹自动噤声',
+    story:'他主张“真正的圣洁不必登记，因为本就无可登记”。王庭驳斥：无可登记即视同违禁。他于是把整座修道院的圣迹都藏进自己体内，从此巡查队来，只查到一个枯瘦老头在扫地。' },
+  edna_silent: { height:'约 1.7 米', weight:'约 60 公斤',
+    trait:'沉默即领域，开口则万物静默；据说她一旦出声，连敕令都会停转',
+    story:'初代敕令降世时，她就在现场，是被要求“第一个署名”的人。她没签，只摇头，从此被尊为缄默圣女。王庭不敢硬封她——因为没人听过她开口，也就没人知道，她若开口会宣出怎样一条比敕令更高的令。' },
+
+  /* ===== 图4 · 灰铸厂（tier3 · 构装体） ===== */
+  foundry_golem: { height:'约 2.6 米', weight:'约 900 公斤',
+    trait:'体温极高，近身灼烧；每击附带熔渣飞溅',
+    story:'它是“合法魔法兵器”的第一条产线。出厂编号 No.0001，比持牌人的执照还老。它不懂为什么后来造的兄弟都要先过一道“登记”，而自己生来就被默认为王庭的财产。' },
+  slag_element: { height:'约 1.8 米', weight:'约 300 公斤',
+    trait:'受击崩落熔渣，渣落地凝成小怪',
+    story:'厂规“废件从不外运”，于是废渣堆了百年，堆到自己站起来。持牌人来查封，它伸出渣手递上一张皱巴巴的“废料转运申请”——填表人那栏，写着厂长的名字。' },
+  rivet_guard: { height:'约 2.1 米', weight:'约 400 公斤',
+    trait:'防御极高，铆钉受击会迸出火花封挡',
+    story:'王庭曾想把敕令直接钉进兵器，让刀自己认主。试验失败，铆钉全退了货，回炉做成卫兵。所以铆甲卫兵打架时，你听到的不是金属声，是几千份被退回的敕令在叮当响。' },
+  forge_doll: { height:'约 1.1 米', weight:'约 80 公斤',
+    trait:'机械重复，受击也不停手，擦剑速度随血量加快',
+    story:'厂里曾用孩童当学徒，后来“不合规”，换成傀儡，模样照着孩子雕。持牌人查封时，傀儡抬头用孩童的声线说“师父说剑要擦亮才够格登记”——可它师父，早被登记成了废件。' },
+  ash_construct: { height:'约 1.9 米', weight:'约 30 公斤（极轻）',
+    trait:'物理抗性低但重组极快，灰中不辨其形',
+    story:'工匠偷懒，用扫起的炉灰随手捏个守卫挡差事。没想到灰里有历代废件的怨，聚成了形。持牌人一脚踢散它，灰落地拼出一行字：“我们也想有个编号。”' },
+  sigil_knight: { height:'约 2.0 米', weight:'约 350 公斤',
+    trait:'符文提供护盾，但每用一次需在甲内“补签”一次',
+    story:'他是唯一持证施法的厂卫，铠甲上的符文每月要回厂续签。他笑称自己是“行走的执照”。持牌人查封时，发现他甲内补签栏早已签满，最新一行是小字：“再签就满了，满了怎么办？”' },
+  anvil_ward: { height:'约 2.3 米', weight:'约 700 公斤',
+    trait:'站桩防御，举砧格挡后反击重锤',
+    story:'铁砧是厂的魂，工匠发誓“砧在厂在”。后来砧被指派看守库房，工匠们相继被登记调走，只剩砧自己守着。持牌人查封库房，铁砧“咚”地一声——像在说：人都走了，我替他们站最后一班。' },
+  scrap_remelt: { height:'约 1.7 米', weight:'约 250 公斤',
+    trait:'身体持续融化又凝固，攻击带高温黏滞',
+    story:'它本该昨晚就回炉，可夜里有只手把它从传送带推下。没人承认推过。它卡在“废”与“器”之间，既不算成品要登记，也不算废料能处理——成了厂里唯一一个“身份待定”的存在。' },
+  live_foreman: { height:'约 2.2 米', weight:'约 500 公斤',
+    trait:'召唤熔渣与铆钉协同攻击，甲缝喷涌炉火',
+    story:'他管着全厂，也管着“哪些兵器算合法”。三十年里他亲手判废的器物，比王庭册子还厚。持牌人来查，他递上自己的工牌：“要封连我一起封，我是最大的那件废件。”' },
+  varuk: { height:'约 2.4 米', weight:'约 600 公斤',
+    trait:'炉火领域，周身环绕熔流，攻击附带“烙印”持续灼烧',
+    story:'两百年前，是他想出“让魔法持证上岗”的点子，从此兵器不再是凶器，而是“经王庭认证的护具”。他把自己炼进了炉，只为炉火永不熄。持牌人面对他时，忽然明白：所谓查封，不过是后来人，来封最初那个把锁造出来的人。' },
+
+  /* ===== 图5 · 禁卷回廊（tier4 · 秘术造物） ===== */
+  forbidden_tome: { height:'约 0.4 米（悬浮书）', weight:'约 5 公斤',
+    trait:'受击散成书页环绕，页刃切割',
+    story:'它被列为禁咒，编号归档后发现“销毁成本高于封存”，便塞进回廊。两百年它自己学会了翻页逃走。持牌人追它，它回头甩出一页——正是当年判它禁忌的那份敕令，边角已被它偷偷改了一个字。' },
+  corridor_drake: { height:'约 1.3 米（蜷）', weight:'约 90 公斤',
+    trait:'喷吐墨焰，火焰中夹带书页',
+    story:'回廊建立时，秘典庭抓了条龙拴在门口“镇宅”。龙认得每一本书的位置，也认得哪本被偷偷抽出过。持牌人来查封，龙喷出墨焰，焰里浮出一行它记了二百年的借书记录——借书人栏，全是历任庭长。' },
+  page_doll: { height:'约 1.6 米', weight:'约 8 公斤',
+    trait:'纸翼切割，被击散的页会重组',
+    story:'抄写员写废的纸堆成了精，替活人抄了一辈子没人看的档。它最大的愿望是“被写进某本书里”。持牌人笑了：你已经在我的查封笔录上了，算不算？页偶愣住，散了一地。' },
+  spell_thread: { height:'无（丝状）', weight:'约 0.5 公斤',
+    trait:'丝线缠绕束缚，勒出咒文灼痕',
+    story:'禁咒封进书里，咒文却从书缝渗出来，在回廊飘成丝。它不伤人，只爱把路过的人缠成“待归档”的模样。持牌人被缠时低头一看，丝线正把他名字往某个编号上系。' },
+  sealed_idol: { height:'约 2.2 米', weight:'约 800 公斤',
+    trait:'石掌拍击，被封之神偶尔睁眼释放震慑',
+    story:'神被禁了，石像替它坐牢。王庭的理由是“未登记神祇视同非法崇拜”。石像日夜瞪着巡查队，眼里的光忽明忽暗——像在问：你们封的是神，还是怕有人比敕令更值得跪。' },
+  library_wraith: { height:'约 1.7 米', weight:'无',
+    trait:'触碰使其暂现实体，挥舞鸡毛掸攻击',
+    story:'他管了六十年书库，临终前说“再让我归一次档”。于是没走成，卡在“待归档”状态两百年。持牌人问他要不要登记，他摇头：我归了一辈子档，最后自己成了最乱的那一格。' },
+  forbidden_echo: { height:'无（声团）', weight:'无',
+    trait:'重复吟诵禁咒片段，叠加速度越来越快',
+    story:'那句咒语被禁，念它的人被封，可声音留了下来，在回廊里一遍遍重播。持牌人靠近，回响忽然停了——它把那句咒，改成了“敕令已读，无需再念”。' },
+  errata_wisp: { height:'无（光团）', weight:'无',
+    trait:'触碰修正数值，过度修正造成“抹除”伤害',
+    story:'书库有本永远在改的《敕令勘误》，改着改着把原句改没了。游影便是那被改掉的字里逃出的。它见什么都想改对，包括持牌人的执照——幸好执照它改不动，只在其背面添了句“此处原意为善意”。' },
+  codex_clerk: { height:'约 1.75 米', weight:'无（半实体）',
+    trait:'召唤书页结界，投掷盖了章的罚单',
+    story:'他生前是庭里最忙的书记官，禁书一律“暂扣待审”，一扣两百年。死后他还在盖章，盖的不是查封，是“借阅延期”。持牌人亮出真查封令，他愣了：原来真有比“待审”更狠的手续。' },
+  sevlan: { height:'约 1.9 米', weight:'约 70 公斤（枯瘦）',
+    trait:'书海领域，召唤禁卷与回响协同，读条即审判',
+    story:'他有个理论：禁咒不必毁，只要没人读得懂就行。于是他把所有危险都“编号、归档、上锁”，美其名曰保存。持牌人查封时，他翻开最后一卷——那是初代敕令的草稿，上面写着：本令亦属待归档，请勿外传。' },
+
+  /* ===== 图6 · 削籍狱（tier5 · 无名者） ===== */
+  unnamed_inmate: { height:'约 1.75 米', weight:'约 65 公斤',
+    trait:'攻击附带“被遗忘”减益，命中后短时失记',
+    story:'入狱先削名，说这样“罪便无主，无从株连”。他忘了自己叫什么，只记得每天放风时数墙上的刻痕。持牌人查封，他问：你来找谁？持牌人说找“无名囚”，他点头：那是我，可那不是我。' },
+  strike_scribe: { height:'约 1.7 米', weight:'约 60 公斤',
+    trait:'笔锋所及剥夺姓名，被划者短暂失能',
+    story:'他握着那支划名笔，划过千万个名字，包括同僚、包括上司。最后笔尖转向自己名字时，手抖了——他发现自己的名早被别人划过，只是没人告诉他。' },
+  gaol_warden: { height:'约 1.85 米', weight:'约 80 公斤',
+    trait:'挥舞巨钥砸击，钥匙碰响唤起短暂记忆',
+    story:'狱规第一条：不可记得囚犯姓名，免生怜悯。他守了三十年，连自己姓什么都交了上去。持牌人问他关了多少人，他举起钥匙串：每把对应一个名字，可钥匙不会念字。' },
+  erased_wretch: { height:'约 1.6 米（模糊）', weight:'约 50 公斤',
+    trait:'身形飘忽难锁，攻击命中率低但诡异',
+    story:'名字没了，接着是脸，接着是存在感。他现在要靠用力想“我是谁”才不至于散掉。持牌人查封，他微弱地说：别念我的名，念了我就真没了——可你念的，是“抹形囚”，那也不是我。' },
+  ledger_hound: { height:'约 0.9 米', weight:'约 35 公斤',
+    trait:'嗅着名册气息追捕逃名的猎犬，鼻子里卷着纸',
+    story:'它不嗅人，嗅名字。谁的名字从册上溜走，它就追谁。训练时喂的是废纸，所以它分不清“逃犯”和“被误删的签发”。持牌人刚亮执照，它扑上来——执照上的名，它也从没闻过。' },
+  blank_effigy: { height:'约 1.8 米', weight:'约 40 公斤（木）',
+    trait:'被动挨打后反弹“无名”冲击波',
+    story:'每个囚都配一具空傀，名字划掉后刻上去。可他迟迟没刻，木偶便空着脸站了一辈子。持牌人问木偶你是谁，木偶胸前的空板裂开，露出一行小字：留白，也是一种供词。' },
+  gag_choir: { height:'约 1.7 米（群）', weight:'约 60 公斤（均）',
+    trait:'合声制造“禁言”领域，范围内无法呼救',
+    story:'他们曾因唱歌被捕——歌里提到了某个被删的名字。缝嘴后，歌变成气声，反而传得更远，从牢缝钻出去，成了狱里唯一还记着那些名字的声音。持牌人查封，气声忽然齐了：你听见了，就替我们记住。' },
+  deed_burner: { height:'约 1.75 米', weight:'约 65 公斤',
+    trait:'投掷燃卷攻击，火中浮出未焚尽的名字',
+    story:'他说烧卷宗是“给个干净重新开始”，可烧掉的不是罪，是人在世上的痕迹。他手被火烤透，再也握不住别的东西。持牌人查封，他从灰里捡起一片没烧完的纸：上面是他自己入狱前的名字。' },
+  warden_nameless: { height:'约 1.9 米', weight:'约 85 公斤',
+    trait:'召唤空白囚笼封锁，攻击附带削名',
+    story:'上任第一天，他把名字写进“永久移交”的匣，说“典狱长不需要名字，只需要规矩”。三十年后，没人记得他曾是谁，连他自己也不记得。持牌人查封，他平静地说：你封的是职务，不是我——因为“我”早被我交上去了。' },
+  null_seventh: { height:'约 2.2 米（虚浮）', weight:'无',
+    trait:'领域即“无名”，踏入者名字渐被抹去，攻击由万千无名念头组成',
+    story:'每次有人被从册上彻底抹去，就有一缕归到第七格。它不叫无名，因为“无名”也是个名；它只是第七号，一个永远待填的空。持牌人面对它，执照上的名字开始发虚——原来被封的，也可以是封人者自己。' },
+
+  /* ===== 图7 · 敕墨深坑（tier6 · 渊墨） ===== */
+  ink_hauler: { height:'约 1.6 米', weight:'约 70 公斤',
+    trait:'受击喷墨致盲，墨囊破裂范围染黑',
+    story:'墨是从坑底抽上来的，每一囊都重得像命。他驮了四十年，背驼了，却从没问过墨到底为什么这么沉。持牌人查封，墨囊裂开，流出的不是黑，是一缕缕极淡的、像哭过的颜色。' },
+  ink_leech: { height:'约 0.3 米', weight:'约 4 公斤',
+    trait:'吸血代吸墨，体内墨字射出如针',
+    story:'它专吸坑里的墨，吸多了肚子上浮现字——都是被墨写过又抹掉的名字。矿工说别踩，踩破会“泄密”。持牌人踩破一只，墨字溅起：原来它记着的，是每一道敕令真正想删的人。' },
+  blot_ooze: { height:'约 1.5 米', weight:'约 120 公斤',
+    trait:'软体无视部分物理，污痕使地面打滑',
+    story:'它从不被当生命，只是“渗漏需要处理”。可它偏偏会躲巡查，会往干净处蹭，像在说“我也在这儿”。持牌人查封，它蹭过执照，留下一块洗不掉的墨——那是它第一次被“看见”。' },
+  shaft_arachnid: { height:'约 1.2 米（展肢）', weight:'约 30 公斤',
+    trait:'墨丝缠绕拉拽，丝上字触发灼痛',
+    story:'它结的网不是捕虫，是捕字——坑里飘散的敕令碎片，被它一一接住织进网。矿工绕行，怕沾上“未生效的令”。持牌人破网，碎片落肩：每一片都写着“即刻执行”，落款却空着。' },
+  deep_canary: { height:'约 0.2 米', weight:'约 0.3 公斤',
+    trait:'鸣叫预警墨气，尖喙啄击附带墨蚀',
+    story:'按规矩，雀不叫说明毒气重。可这只雀浸了墨，叫与否都在毒里，反倒成了“毒已常态”的活标本。持牌人听它叫，忽然懂了坑底那东西为何“还在流血”——它也在叫，只是没人带雀下去听。' },
+  vein_construct: { height:'约 2.0 米', weight:'约 450 公斤',
+    trait:'钻击穿透，机身喷墨雾遮蔽',
+    story:'它奉命“开采敕墨”，钻得越深，岩层里渗出的越是像血的墨。工程师说那是矿物氧化，可钻机自己记得：每深入一尺，钻头上就多一道像呻吟的纹。持牌人查封，钻机停转，纹路拼出“够了”。' },
+  quill_elemental: { height:'约 1.8 米', weight:'约 50 公斤',
+    trait:'笔尖乱刺，所书即短暂成真',
+    story:'坑里废笔堆积，笔尖不肯停，聚成了形。它写的字会短暂显形——多半是“放我出去”“我没罪”。持牌人查封，它最后一笔写下“赦”，墨干，字消，它也随之淡去，像本就没存在过。' },
+  sump_dweller: { height:'约 1.7 米', weight:'约 75 公斤',
+    trait:'潜入墨池隐身，出水突袭带墨爆',
+    story:'传说坑底那东西还在流血，它便是守在血口的潜者，不让任何人靠近。持牌人逼问那东西是什么，它从墨里探出半张脸：你手里那支笔，蘸的就是它。' },
+  ink_overseer: { height:'约 1.85 米', weight:'约 80 公斤',
+    trait:'墨鞭抽击范围腐蚀，召唤墨滴弹幕',
+    story:'他日报上写“墨产量再创新高”，从不写坑底在流血。手套的墨色，是十年没洗还是洗不掉的，连他自己也分不清。持牌人查封，他交出手套接令：摘了它，我这只手才像只手。' },
+  first_wellspring: { height:'约 3.0 米（墨柱凝形）', weight:'无',
+    trait:'墨海领域，周身墨潮翻涌，攻击皆由涌出的敕令组成',
+    story:'所有敕令的墨，都从它身上涌出。它本不是墨，是初敕降世时被刺穿的那处“伤口”，从此不停流血，血被收集、晾干、写成令。持牌人面对初墨，才懂：自己追查封禁的每一道令，源头都是一道没止住的伤。' },
+
+  /* ===== 图8 · 初录龙冢（tier7 · 龙裔） ===== */
+  barrow_drake: { height:'约 1.4 米', weight:'约 120 公斤',
+    trait:'喷吐未熟龙焰，鳞软时受击更痛',
+    story:'它是第一批被编号的龙的后代，生来脖子上就套着代代相传的铜牌，牌上刻着祖先的编号。它不懂编号是什么，只知不能弄丢牌——弄丢的祖先，名字就从冢上消失了。' },
+  chained_wyrmling: { height:'约 1.1 米', weight:'约 80 公斤',
+    trait:'挣链反击，链断瞬间爆发龙威',
+    story:'龙族被发明“登记”那天，每颗蛋都先烙了环。它出生便戴着，环里录着上三代的“未申报”旧账。它拽链，链响如雷——那是龙语里“我是谁”被翻译成编号的声音。' },
+  scale_curator: { height:'约 1.8 米', weight:'约 200 公斤',
+    trait:'鳞片飞射如账页，被击落鳞自动补录',
+    story:'它负责让每条龙“名实相符”，掉了的鳞立刻补刻新号。可它自己最旧的那片鳞，号早已磨平，谁也说不清它本名。持牌人查封，它递上空白鳞：给我也编一个吧，我宁可是个号，也好过无名。' },
+  wyrm_bone_knight: { height:'约 2.4 米', weight:'约 500 公斤',
+    trait:'骨甲格挡反伤，挥戟带龙骨啸',
+    story:'龙冢的规矩：死去的龙化甲，护着活着的龙。它披的全是亲族，每动一下都听见骨响。持牌人查封，它跪下——不是降，是甲太重，重到它早忘了自己还能站起来走。' },
+  ember_hatch: { height:'约 0.6 米', weight:'约 15 公斤',
+    trait:'灰中藏余火，近身灼烧微弱但持续',
+    story:'它的蛋在登记途中被摔破，按规“破损蛋作废”。可蛋没全死，余烬里爬出它。持牌人见它，本该按废件处理，却见灰里有颗心还在跳——于是它在“作废”与“存活”的缝里，多活了一刻。' },
+  hoard_wraith: { height:'约 1.9 米', weight:'无',
+    trait:'宝藏砸落攻击，怨气使宝物短暂活化',
+    story:'龙爱囤宝，它生前囤了一山，死后成了宝的影子。可它忘了自己叫什么，只记得“这是我的”。持牌人查封宝藏，它慌了：你们连我名字都没问，就来分我的东西？' },
+  mausoleum_ooze: { height:'约 1.6 米', weight:'约 150 公斤',
+    trait:'滑腻减伤，脂液使装备“迟缓”',
+    story:'龙不死透，冢里便一直渗油。它便是那油，黏糊糊地护着每一具祖龙。持牌人踩上去差点滑倒——油里浮着张脸，是第一条被编号的龙，正用油写着：别登记了，让我们烂干净。' },
+  sky_kin_scout: { height:'约 1.3 米（展翅）', weight:'约 60 公斤',
+    trait:'高空俯冲突袭，翅振掀墨风',
+    story:'它飞得高，见过冢外更大的天，却每次回冢都低头——因为天上的龙，都得先有编号才准落地。持牌人抬头看它盘旋，它丢下一片翅鳞，鳞上写着：天很大，可我的名，只值一串数。' },
+  seal_bearer_wyrm: { height:'约 3.2 米', weight:'约 900 公斤',
+    trait:'印威领域，龙焰与敕令共鸣，咬击附带定身',
+    story:'初代为了让龙“听话”，铸了枚印塞进祖龙口，说“含着，你们就永远在册”。祖龙含了千年，印已长进颚骨。持牌人查封，它张嘴想说什么，印先掉了——没有印的龙，第一次发出了自己的声音。' },
+  vaerith_no1: { height:'约 3.5 米', weight:'约 1100 公斤',
+    trait:'龙域即“名籍”，领域内一切无名之物被迫显号，龙焰焚尽未录',
+    story:'当年王庭要拴住龙，先抓了最老的一条，按上 No.001，从此“龙”这个字归王庭解释。它就是那第一条。它不恨持牌人，只恨自己当年没挣断那支笔。面对查封，它缓缓展翼——编号还在肩上，可翼下，是它偷偷用爪刻了千年的、属于自己的名字。' },
+
+  /* ===== 图9 · 王庭档案宫（tier8 · 敕印者） ===== */
+  stamp_clerk: { height:'约 1.7 米', weight:'约 65 公斤',
+    trait:'印击砸落，章痕触发“已归档”压制',
+    story:'他每天盖成千上万个章，章一落，人就算“有了身份”。手与印长在了一起，他说这样“章不会乱盖”。持牌人查封，他盖下最后一章——盖在自己执照上：这回，被归档的轮到官了。' },
+  file_wraith: { height:'约 1.7 米', weight:'无',
+    trait:'触碰引发“调档”拉扯，把人拖入文书流',
+    story:'它负责把卷宗从这屋送到那屋，送了一辈子没送到头，死后仍夹在“在途”两字间。持牌人问它要找谁，它翻开空卷：我找的，是那个能把我写成“已送达”的人。' },
+  seal_knight: { height:'约 2.0 米', weight:'约 320 公斤',
+    trait:'印盾格挡，敕条如鞭抽击',
+    story:'他守档案宫大门，印比盾大，敕条比剑利。问他为谁守，他说“为规矩”。可规矩写在哪份卷里，他从不翻开看——因为翻开，就得承认那卷也锁着一个没死的名字。' },
+  quota_auditor: { height:'约 1.75 米', weight:'约 70 公斤',
+    trait:'投掷账册砸击，命中附带“差额”持续伤害',
+    story:'宫里有指标：每月须查封若干，数字不好看，上头就派他来核。他核来核去，发现自己也是被核的一个——绩效表末行，写着他的名字和“待优化”。持牌人查封，他递上报表：把我填进差额吧，我早算好了。' },
+  archive_construct: { height:'约 2.1 米', weight:'约 400 公斤',
+    trait:'抽屉开合喷射卷宗，被击落抽屉散出名字',
+    story:'档案宫的抽屉永远不够，它便把自己做成柜，格格里塞满“待处理”。持牌人打开一格，里面是张没写完的出生证——某个孩子，名字填到一半，宫里改制，格子封了。' },
+  writ_serpent: { height:'无（蛇形约 3 米）', weight:'约 60 公斤',
+    trait:'蛇身缠绞，吐出的令文灼烧',
+    story:'写废的敕条舍不得烧，卷成蛇养着，说“留底”。蛇越长，宫里积压的“待发令”越多。持牌人斩它，断口流出墨：每截都是一条本可救人、却被归档的令。' },
+  sealed_petitioner: { height:'约 1.65 米', weight:'约 60 公斤',
+    trait:'投掷未拆信封，信封炸开溅墨',
+    story:'他上书请求“把我名字写对”，回信是封原样的空函——宫里规矩，不拆即不退，不退回即“已阅”。他抱着信封等到成了怪。持牌人拆开那封，里面只有一行被反复描粗的字：请叫我本名。' },
+  court_elemental: { height:'约 1.9 米（火人）', weight:'无',
+    trait:'火焰审判，范围灼烧，火中浮现判决词',
+    story:'它不烧人，只把每份判决念出声，让火光照清。可火照见的，常是判决书背面那行小字：本判决依据之令第 X 条，已于去年废止。持牌人查封，火忽然暗了：连我照的，都是旧章程。' },
+  grand_notary: { height:'约 1.85 米', weight:'约 75 公斤',
+    trait:'召笔阵封锁，墨字成墙，落笔即禁锢',
+    story:'他写的字就是法，写“生”则活，写“废”则销。三十年他只写后者，因为前者要担责。持牌人查封，他笔尖悬在“封”字上迟迟不落——这一回，他不确定该写谁。' },
+  chancellor_maerus: { height:'约 1.95 米', weight:'约 85 公斤',
+    trait:'玺域无边，落印即定命运，召唤万千抽屉与敕条',
+    story:'他坐在这宫最深处，每一格抽屉里锁着一个“还没死、却已被安排好结局”的名字。他以为自己只是执行初敕。直到持牌人亮出查封令，他才看见那令末尾的落款——正是他自己三百年前写下的、关于“如何收尾”的那条。' },
+
+  /* ===== 图10 · 初敕之座（tier9 · 初敕） ===== */
+  edict_echo: { height:'无（声形）', weight:'无',
+    trait:'回响叠加成谕，叠高后震退',
+    story:'初敕只念了一次，可那一声在殿里绕了千年。它学着那声的调子，一遍遍重播，像在等谁接话。持牌人靠近，回响忽然低了：你也是来抄的吧？这殿里，除了我，全是抄写员。' },
+  first_clerk: { height:'约 1.7 米', weight:'约 60 公斤',
+    trait:'抄写攻击，所抄之字短暂显形伤人',
+    story:'初敕本是声音，是他把它变成字，字才变成法。他一直觉得，自己只是照抄，没添一字。可每抄一遍，他都在“如何断句”上做了主。持牌人查封，他放下笔：原来第一个改意思的，是我。' },
+  throne_seraph: { height:'约 2.3 米', weight:'无（光翼）',
+    trait:'翼扫敕文刃，圣光中夹未生效的令',
+    story:'它生于初敕落座那刻，被造来“彰显法的庄严”。可庄严背后，它记得每一道从座上发落、却没人读过的令。持牌人逼近，翼尖垂下一片光——那是初敕唯一一句没写完的话。' },
+  void_unregistered: { height:'约 1.5 米（坍缩）', weight:'无',
+    trait:'触碰使目标短暂“未被记录”消失，自身也时隐时现',
+    story:'初敕列尽万物，唯独漏了它——也许是故意。它因此不能“存在”，只能趁人不注意时蹭一点存在感。持牌人看见它，它慌忙躲：别盯，你一看，我就得承认我不在。' },
+  writ_drake: { height:'约 2.0 米', weight:'约 280 公斤',
+    trait:'喷吐涂改墨焰，被焰命中者属性被“划掉重填”',
+    story:'初敕起草时，废稿堆成山，山里爬出它。它的鳞是无数次“此处删去”叠成的。持牌人查封，它甩来一片鳞：你看，连法都有草稿，可谁允许法有草稿？' },
+  primal_construct: { height:'约 2.4 米', weight:'约 600 公斤',
+    trait:'齿轮碾击，机身喷初墨，被击落齿溅墨',
+    story:'它比王庭老，比档案宫老，是“第一”的具象。它不懂后来那些繁琐的登记，只认一个理：座在，令在。持牌人查封，它齿轮卡住——因为它的“第一”齿，早被后来人偷偷换成了“之一”。' },
+  covenant_wraith: { height:'约 1.8 米', weight:'无',
+    trait:'契约锁链束缚，链断反噬改约者',
+    story:'初敕曾与万物立约：你们奉我，我保你们有名。后来名被随意划掉，约却仍在。它便是被毁约的那一方，缠着满身改过的条款。持牌人查封，它递上残约：你看，划掉我名的那笔，和写初敕的是同一支。' },
+  sceptre_elemental: { height:'约 2.0 米（火炬人）', weight:'无',
+    trait:'炬火审判，火中浮现待写之名，灼烧未录者',
+    story:'权杖点过谁，谁就“入册”。火曾点亮半壁江山，也烧掉过整族的名。它燃了千年，火芯里沉着无数被点过又被划的名字。持牌人靠近，火忽然分出一缕暖的——那是对“还没被写”的人的，最后一丝不忍。' },
+  seat_warden: { height:'约 1.8 米', weight:'约 70 公斤',
+    trait:'续写封锁，墨柱成墙，落笔追加新规',
+    story:'初敕写不完，便由他续。每续一条，殿里的法就多一层，人也多一层缚。他笑称自己是“补丁匠”。持牌人查封，他笔尖停在半空：我再写，这殿就重得坐不住人了——可我不写，坐着的又该是谁？' },
+  the_first_edict: { height:'约 3.0 米（虚坐无形）', weight:'无',
+    trait:'名域无边，开口即定义，领域内一切存在被迫显名，未名者被其“命名”同化',
+    story:'王庭只是抄写员，它才是立法者——可它自己，也没有名字。初敕念出万物之名时，唯独没念自己，因为“命名者”一旦有名，便也成了被管的之一。持牌人面对这空座，终于懂了：要查封的，从不是某张令，而是这座让一切“必须有名”的座。而座上，空无一人。' }
 };
 
 /* ==================== 怪物专属技能（按身份设定，消除随机抽） ====================
@@ -2933,8 +3337,8 @@ const MONSTER_SKILL_SET = {
   rust_serpent:['mb_claw','mb_bite'],
   etch_spider:['mb_claw','mb_spit'],
   mud_beast:['mb_slam','mb_bite'],
-  stone_shin:['me_crush','me_regen','me_maul'],
-  rust_stag:['mboss_smash','mboss_quake','mboss_barrier','mboss_decay'],
+  stone_shin:['me_shin_smash','me_shin_regrow','me_shin_maul'],
+  rust_stag:['mboss_rust_rend','mboss_rust_quake','mboss_rust_curse','mboss_rust_frenzy'],
   fade_moth:['mb_howl','mb_spit'],
   /* ===== 图2 · 黑印集市（人型） ===== */
   merc_hire:['mb_claw','mb_slam'],
@@ -2944,8 +3348,8 @@ const MONSTER_SKILL_SET = {
   mage_init:['mb_spit','mb_bite'],
   enforcer:['mb_slam','mb_claw'],
   scout:['mb_claw','mb_bite'],
-  black_hand:['me_crush','me_maul','me_fury'],
-  oz_threefinger:['mboss_smash','mboss_barrier','mboss_wrath','mboss_decay'],
+  black_hand:['me_hand_strike','me_hand_fury','me_hand_venom'],
+  oz_threefinger:['mboss_oz_ambush','mboss_oz_execution','mboss_oz_silence','mboss_oz_greed'],
   seal_forger:['mb_slam','mb_spit'],
   /* ===== 图3 · 缄默修道院（亡灵圣械） ===== */
   silent_bone:['mb_claw','mb_slam'],
@@ -2955,8 +3359,8 @@ const MONSTER_SKILL_SET = {
   rust_construct:['mb_slam','mb_claw'],
   cowled_skeleton:['mb_claw','mb_bite'],
   relic_sentry:['mb_slam','mb_claw'],
-  stern_elder:['me_crush','me_regen','me_fury'],
-  edna_silent:['mboss_smash','mboss_barrier','mboss_wrath','mboss_drain'],
+  stern_elder:['me_elder_bolt','me_elder_regen','me_elder_fury'],
+  edna_silent:['mboss_edna_wail','mboss_edna_quake','mboss_edna_drain','mboss_edna_veil'],
   choir_husk:['mb_spit','mb_howl'],
   /* ===== 图4 · 灰铸厂（构装体） ===== */
   foundry_golem:['mb_slam','mb_claw'],
@@ -2967,8 +3371,8 @@ const MONSTER_SKILL_SET = {
   sigil_knight:['mb_slam','mb_claw'],
   anvil_ward:['mb_slam','mb_claw'],
   scrap_remelt:['mb_claw','mb_spit'],
-  live_foreman:['me_crush','me_fury','me_maul'],
-  varuk:['mboss_smash','mboss_quake','mboss_wrath','mboss_decay'],
+  live_foreman:['me_fore_slam','me_fore_fury','me_fore_maul'],
+  varuk:['mboss_varuk_slam','mboss_varuk_overheat','mboss_varuk_scald','mboss_varuk_reforge'],
   /* ===== 图5 · 禁卷回廊（秘术造物） ===== */
   forbidden_tome:['mb_spit','mb_claw'],
   corridor_drake:['mb_claw','mb_bite'],
@@ -2978,8 +3382,8 @@ const MONSTER_SKILL_SET = {
   library_wraith:['mb_spit','mb_howl'],
   forbidden_echo:['mb_spit','mb_slam'],
   errata_wisp:['mb_claw','mb_spit'],
-  codex_clerk:['me_venom','me_maul','me_fury'],
-  sevlan:['mboss_smash','mboss_decay','mboss_barrier','mboss_wrath'],
+  codex_clerk:['me_clerk_hex','me_clerk_maul','me_clerk_fury'],
+  sevlan:['mboss_sevlan_tome','mboss_sevlan_erasure','mboss_sevlan_hex','mboss_sevlan_archive'],
   /* ===== 图6 · 削籍狱（无名者） ===== */
   unnamed_inmate:['mb_slam','mb_bite'],
   strike_scribe:['mb_claw','mb_spit'],
@@ -2989,8 +3393,8 @@ const MONSTER_SKILL_SET = {
   blank_effigy:['mb_slam','mb_claw'],
   gag_choir:['mb_spit','mb_howl'],
   deed_burner:['mb_slam','mb_spit'],
-  warden_nameless:['me_crush','me_maul','me_regen'],
-  null_seventh:['mboss_smash','mboss_quake','mboss_drain','mboss_wrath'],
+  warden_nameless:['me_ward_crush','me_ward_maul','me_ward_regen'],
+  null_seventh:['mboss_null_smite','mboss_null_unmake','mboss_null_drain','mboss_null_bind'],
   /* ===== 图7 · 敕墨深坑（渊墨） ===== */
   ink_hauler:['mb_slam','mb_bite'],
   ink_leech:['mb_claw','mb_bite'],
@@ -3000,8 +3404,8 @@ const MONSTER_SKILL_SET = {
   vein_construct:['mb_slam','mb_claw'],
   quill_elemental:['mb_spit','mb_claw'],
   sump_dweller:['mb_bite','mb_claw'],
-  ink_overseer:['me_crush','me_maul','me_fury'],
-  first_wellspring:['mboss_smash','mboss_decay','mboss_barrier','mboss_drain'],
+  ink_overseer:['me_ink_smash','me_ink_fury','me_ink_maul'],
+  first_wellspring:['mboss_well_burst','mboss_well_deluge','mboss_well_inkblight','mboss_well_regen'],
   /* ===== 图8 · 初录龙冢（龙裔） ===== */
   barrow_drake:['mb_claw','mb_bite'],
   chained_wyrmling:['mb_claw','mb_bite'],
@@ -3011,8 +3415,8 @@ const MONSTER_SKILL_SET = {
   hoard_wraith:['mb_spit','mb_howl'],
   mausoleum_ooze:['mb_spit','mb_slam'],
   sky_kin_scout:['mb_claw','mb_bite'],
-  seal_bearer_wyrm:['me_crush','me_maul','me_fury'],
-  vaerith_no1:['mboss_smash','mboss_quake','mboss_wrath','mboss_decay'],
+  seal_bearer_wyrm:['me_wyrm_claw','me_wyrm_fury','me_wyrm_maul'],
+  vaerith_no1:['mboss_vaerith_claw','mboss_vaerith_roar','mboss_vaerith_curse','mboss_vaerith_fury'],
   /* ===== 图9 · 王庭档案宫（敕印者） ===== */
   stamp_clerk:['mb_slam','mb_spit'],
   file_wraith:['mb_spit','mb_howl'],
@@ -3022,8 +3426,8 @@ const MONSTER_SKILL_SET = {
   writ_serpent:['mb_claw','mb_bite'],
   sealed_petitioner:['mb_slam','mb_bite'],
   court_elemental:['mb_claw','mb_spit'],
-  grand_notary:['me_venom','me_maul','me_fury'],
-  chancellor_maerus:['mboss_smash','mboss_barrier','mboss_wrath','mboss_decay'],
+  grand_notary:['me_notary_hex','me_notary_maul','me_notary_fury'],
+  chancellor_maerus:['mboss_maerus_decree','mboss_maerus_quake','mboss_maerus_void','mboss_maerus_seal'],
   /* ===== 图10 · 初敕之座（原初） ===== */
   edict_echo:['mb_spit','mb_slam'],
   first_clerk:['mb_slam','mb_spit'],
@@ -3033,8 +3437,8 @@ const MONSTER_SKILL_SET = {
   primal_construct:['mb_slam','mb_claw'],
   covenant_wraith:['mb_spit','mb_howl'],
   sceptre_elemental:['mb_claw','mb_spit'],
-  seat_warden:['me_crush','me_maul','me_regen'],
-  the_first_edict:['mboss_smash','mboss_quake','mboss_barrier','mboss_drain'],
+  seat_warden:['me_seat_crush','me_seat_maul','me_seat_regen'],
+  the_first_edict:['mboss_edict_judge','mboss_edict_obliterate','mboss_edict_drain','mboss_edict_anathema'],
 };
 
 /* 导航标签（装备+库存已整合为「背包」） */
@@ -3154,6 +3558,7 @@ function newGame(charName, originKey){
     dragonTally:0,            /* 龙裔累计击杀（未录⑧的收藏计数，零数值收益） */
     log:[], battle:null, battleTimer:null, lastLoot:null,
     ownedMythic:{}, bossKillStreak:{}, /* 未录独一性：按 bossKey 记录已拥有 / 保底计数 */
+    seenMonsters:[], /* 图鉴：已遭遇/已发现的怪物 key 列表，用于问号未解锁态 */
     consumables:{incense:0}, incenseUntil:0, /* 引魂香：商店购买，点燃后10分钟内遭遇2-3只怪物 */
     folds:{}, /* 折叠状态 */
     /* 账号绑定信息：角色永久属于某个账号 */
@@ -4100,6 +4505,12 @@ function effSpd(u){
 /* ==================== ATB 自动战斗引擎 ==================== */
 function startBattle(enemyDefOrList, label){
   const defs = Array.isArray(enemyDefOrList) ? enemyDefOrList : [enemyDefOrList];
+  /* 图鉴：记录已遭遇的怪物（用于问号未解锁态） */
+  if(G.seenMonsters){
+    let _seenChanged=false;
+    defs.forEach(function(_d){ const _k=_d&&_d.key; if(_k && G.seenMonsters.indexOf(_k)<0){ G.seenMonsters.push(_k); _seenChanged=true; } });
+    if(_seenChanged) scheduleSave();
+  }
   const enemies = defs.map(function(d){ return enemyUnit(d, G.mapTier); });
   const b={
     player:playerUnit(), enemies:enemies,
@@ -4250,6 +4661,9 @@ function dealDamage(a,t,power,magical){
   /* BUG-1 修复：攻击方的 atkBoost 增益此前从未被任何伤害公式读取（狂暴/鼓舞类技能形同虚设） */
   const ab=(a.buffs||[]).find(function(x){ return x.type==='atkBoost' && x.turns>0; });
   if(ab) power = power * (1 + ab.val);
+  /* 诅咒降攻（atkDown）：怪物的「降攻诅咒」通过此通道真正削弱攻击 */
+  const ad=(a.buffs||[]).find(function(x){ return x.type==='atkDown' && x.turns>0; });
+  if(ad) power = power * (1 - ad.val);
   const hitCh = clamp((a.hit!=null?a.hit:0.85) - (t.eva||0), 0.05, 1);
   if(Math.random() > hitCh){
     applyDamage(t,0);
@@ -4298,6 +4712,8 @@ function castSkill(a,t,sk){
   const def=sk.def,lv=sk.lv;
   const mult=def.mult+(lv-1)*0.08;
   const magical = !!(def.magical || def.attr==='int');
+  /* 禁疗诅咒：施法者自身带 noHeal buff（或单位标记）则无法回血 */
+  const _noHeal = a.noHeal || (a.buffs&&a.buffs.some(function(x){ return x.type==='noHeal'&&x.turns>0; }));
   if(def.type==='dmg'){
     let power=(magical?a.matk:a.atk)*mult;
     if(a.skillDmg) power*=(1+a.skillDmg);
@@ -4328,14 +4744,14 @@ function castSkill(a,t,sk){
     }
     pushLog(a.side,'☠️ '+a.name+' 施放【'+def.name+'】'+lv+'级，'+t.name+' 陷入枯朽');
   } else if(def.type==='heal'){
-    const heal=a.noHeal?0:Math.round(a.maxHp*def.heal*(1+(a.healEff||0)));
+    const heal=_noHeal?0:Math.round(a.maxHp*def.heal*(1+(a.healEff||0)));
     a.hp=Math.min(a.maxHp,a.hp+heal);
     a._healDone = heal;
     pushLog(a.side,'🌟 '+a.name+' 施放【'+def.name+'】，恢复 '+heal+' 生命');
   }
   /* BUG-6 fix: 非 heal 类型技能若有 .heal 字段也应回血（如 silent_hymn 的 rider） */
   if(def.heal && def.type!=='heal' && def.type!=='dot'){
-    const healRider = a.noHeal ? 0 : Math.round(a.maxHp * def.heal * (1 + (a.healEff||0)));
+    const healRider = _noHeal ? 0 : Math.round(a.maxHp * def.heal * (1 + (a.healEff||0)));
     if(healRider > 0) {
       a.hp = Math.min(a.maxHp, a.hp + healRider);
     }
@@ -4344,9 +4760,11 @@ function castSkill(a,t,sk){
     if(def.spdBoost) a.buffs.push({type:'spdBoost',val:def.spdBoost,turns:def.turns});
     pushLog(a.side,'📢 '+a.name+' 施放【'+def.name+'】'+lv+'级，能力提升！');
   }
-  /* 护盾赋予释放者自身；眩晕施加于目标（支持辅助/控制类技能） */
+  /* 护盾赋予释放者自身；眩晕/降攻/禁疗施加于目标（控制/诅咒类技能） */
   if(def.shield){ const sh=Math.round(a.maxHp*def.shield); a.shield = Math.min(Math.round(a.maxHp*0.5), a.shield + sh); }
-  if(def.stun)  t.buffs.push({type:'stun', turns:def.stunTurns||1});
+  if(def.stun)  t.buffs.push({type:'stun', turns:(def.stunTurns||1)+1}); /* +1：processStartBuffs 会先 turns-- 再判 stun，故需多 1 回合才生效 */
+  if(def.debuffAtk) t.buffs.push({type:'atkDown', val:def.debuffAtk, turns:def.debuffTurns||2});
+  if(def.noHeal)    t.buffs.push({type:'noHeal', turns:def.debuffTurns||2});
   /* cdr 生效点（GDD 05b §12 #12）：cdBase 由 playerUnit 预算好；外部构造的技能对象回退 def.cd */
   sk.cd=(typeof sk.cdBase==='number' && sk.cdBase>0) ? sk.cdBase : def.cd;
   /* 未录钩子：施法后（此处已写入 CD，效果可将其清零 / 改写治疗与护盾结果） */
@@ -5259,6 +5677,11 @@ function applyCompat(){
   /* 未录（第六档）：旧档补齐独一性与整局永久加成字段，并回填敕令共鸣授予的技能 */
   if(!G.ownedMythic)    G.ownedMythic={};
   if(!G.bossKillStreak) G.bossKillStreak={};
+  /* 图鉴发现记录（方案B）：旧档此前无此字段 → 自动标记已解锁地图(mapIdx<=unlocked)的怪为已发现 */
+  if(!G.seenMonsters || !Array.isArray(G.seenMonsters)) G.seenMonsters=[];
+  if(G.seenMonsters.length===0 && G.unlocked>0){
+    for(const k in MONSTER_MAP){ if(MONSTER_MAP[k] && MONSTER_MAP[k].mapIdx<=G.unlocked) G.seenMonsters.push(k); }
+  }
   /* 🔴 GDD 05b §6：mythicStr / mythicHp 两个「整局永久叠加」字段已废弃。
      字段保留但恒为 0（旧档兼容 + 防止别处读到 undefined），读到 >0 时清零并告知玩家。
      不返还属性点：该收益本就是设计错误，不是玩家的合法资产。 */
@@ -5467,48 +5890,86 @@ function monSkillPool(type){
   if(type==='elite') return {keys:['me_crush','me_venom','me_regen','me_fury','me_maul','mb_bite','mb_claw'], lv:2};
   return {keys:['mb_bite','mb_claw','mb_slam','mb_spit','mb_howl'], lv:1};
 }
+let BESTIARY_SEL = null;
+function bestiaryDetailHTML(k){
+  const def=MONSTERS[k]; if(!def) return '';
+  const info=MONSTER_MAP[k]||{};
+  const lore=MONSTER_LORE[k]||{};
+  const idx=info.mapIdx;
+  const mp=(typeof idx==='number'&&MAPS[idx])?MAPS[idx]:null;
+  const ownSkills=MONSTER_SKILL_SET[k]||monSkillPool(info.type||'normal').keys;
+  const skillLv=info.type==='boss'||info.type==='elite'?2:1;
+  const badge=MONSTER_TYPE_BADGE[info.type]||MONSTER_TYPE_BADGE.normal;
+  const fam=(FAMILY_LABELS&&FAMILY_LABELS[def.family])||def.family||'—';
+  const lvl=mp?ML_map(idx):'?';
+  const skillHTML=ownSkills.map(function(sk){
+    const s=MONSTER_SKILLS[sk]; if(!s) return '';
+    const lab=MONSTER_SKILL_LABEL[s.type]||s.type;
+    const tip=esc(s.name)+' · '+lab+(s.desc?'：'+esc(s.desc):'');
+    return '<span class="bs-chip" title="'+tip+'">'+esc(s.name)+
+      ' <i style="opacity:.65;font-style:normal;font-size:10px;">'+lab+'</i></span>';
+  }).join('');
+  return '<div class="bsd-wrap">'+
+    '<div class="bsd-img">'+monsterSVG(def,160)+'</div>'+
+    '<div class="bsd-info">'+
+      '<div class="bsd-name">'+esc(def.name)+' <span class="bs-badge" style="background:'+badge.c+'">'+badge.t+'</span> <span class="bs-fam">'+fam+'</span></div>'+
+      '<div class="bsd-sub">刷出于 '+(mp?esc(mp.name):'—')+' · T'+(mp?mp.tier:'?')+' → Lv'+lvl+' · 技能等级 lv'+skillLv+'</div>'+
+      '<div class="bsd-lore">'+
+        (lore.height?'<div class="bs-row"><span class="bs-k">身长</span>'+esc(lore.height)+'</div>':'')+
+        (lore.weight?'<div class="bs-row"><span class="bs-k">体重</span>'+esc(lore.weight)+'</div>':'')+
+        (lore.trait?'<div class="bs-row"><span class="bs-k">特点</span>'+esc(lore.trait)+'</div>':'')+
+        (lore.story?'<div class="bs-story">'+esc(lore.story)+'</div>':'')+
+      '</div>'+
+      '<div class="bsd-skills"><span class="bs-k">专属技能</span><br>'+skillHTML+'</div>'+
+    '</div></div>';
+}
+function bestiarySelect(k){
+  BESTIARY_SEL=k;
+  const d=document.getElementById('bsDetail');
+  if(d){
+    if(G.seenMonsters && G.seenMonsters.indexOf(k)>=0){ d.innerHTML=bestiaryDetailHTML(k); }
+    else { d.innerHTML='<div class="bsd-locked">🔒 尚未遭遇该怪物，击败后自动收录至图鉴。</div>'; }
+  }
+  const cells=document.querySelectorAll('.bs-cell');
+  for(let i=0;i<cells.length;i++) cells[i].classList.remove('bs-cell-sel');
+  const el=document.querySelector('.bs-cell[data-k="'+k+'"]');
+  if(el) el.classList.add('bs-cell-sel');
+}
 function tabBestiary(){
   if(!MONSTER_LORE) return '<p style="color:var(--dim)">图鉴数据未加载</p>';
-  const groups = MAPS.map(function(mp,idx){
-    const keys = Object.keys(MONSTER_MAP).filter(function(k){ return MONSTER_MAP[k].mapIdx===idx; });
+  const seen=G.seenMonsters||[];
+  const total=Object.keys(MONSTERS).length;
+  const cnt=Object.keys(MONSTER_MAP).filter(function(k){ return seen.indexOf(k)>=0; }).length;
+  const firstSeen=Object.keys(MONSTER_MAP).find(function(k){ return seen.indexOf(k)>=0; });
+  BESTIARY_SEL=firstSeen||null;
+  const groups=MAPS.map(function(mp,idx){
+    const keys=Object.keys(MONSTER_MAP).filter(function(k){ return MONSTER_MAP[k].mapIdx===idx; });
     if(!keys.length) return '';
-    const cards = keys.map(function(k){
+    const cells=keys.map(function(k){
       const def=MONSTERS[k]; if(!def) return '';
       const info=MONSTER_MAP[k];
-      const lore=MONSTER_LORE[k]||{};
-      const ownSkills=MONSTER_SKILL_SET[k]||monSkillPool(info.type).keys;
-      const skillLv=info.type==='boss'||info.type==='elite'?2:1;
-      const badge=MONSTER_TYPE_BADGE[info.type];
-      const fam=(FAMILY_LABELS&&FAMILY_LABELS[def.family])||def.family||'—';
-      const lvl=ML_map(idx);
-      const skillHTML = ownSkills.map(function(sk){
-        const s=MONSTER_SKILLS[sk]; if(!s) return '';
-        const lab=MONSTER_SKILL_LABEL[s.type]||s.type;
-        return '<span class="bs-chip" title="'+esc(s.name)+' · '+lab+'">'+esc(s.name)+
-          ' <i style="opacity:.65;font-style:normal;font-size:10px;">'+lab+'</i></span>';
-      }).join('');
-      return '<div class="bs-card">'+
-        '<div class="bs-head"><span class="bs-emoji">'+monsterSVG(def,56)+'</span>'+
-          '<div class="bs-title"><div class="bs-name">'+esc(def.name)+
-            ' <span class="bs-badge" style="background:'+badge.c+'">'+badge.t+'</span>'+
-            ' <span class="bs-fam">'+fam+'</span></div>'+
-            '<div class="bs-sub">刷出于 '+esc(mp.name)+' · T'+mp.tier+' → Lv'+lvl+' · 技能等级 lv'+skillLv+'</div></div></div>'+
-        '<div class="bs-lore">'+
-          (lore.height?'<div class="bs-row"><span class="bs-k">身长</span>'+esc(lore.height)+'</div>':'')+
-          (lore.weight?'<div class="bs-row"><span class="bs-k">体重</span>'+esc(lore.weight)+'</div>':'')+
-          (lore.trait?'<div class="bs-row"><span class="bs-k">特点</span>'+esc(lore.trait)+'</div>':'')+
-          (lore.story?'<div class="bs-story">'+esc(lore.story)+'</div>':'')+
-        '</div>'+
-        '<div class="bs-skills"><span class="bs-k">专属技能</span><br>'+skillHTML+'</div>'+
+      const badge=MONSTER_TYPE_BADGE[info.type]||MONSTER_TYPE_BADGE.normal;
+      const isSeen=seen.indexOf(k)>=0;
+      const selCls=(k===firstSeen)?' bs-cell-sel':'';
+      if(!isSeen){
+        return '<div class="bs-cell locked" data-k="'+k+'"><div class="bs-cell-emoji">❓</div><div class="bs-cell-name">？？？</div></div>';
+      }
+      return '<div class="bs-cell'+selCls+'" data-k="'+k+'" onclick="bestiarySelect(\''+k+'\')">'+
+        '<div class="bs-cell-emoji">'+monsterSVG(def,56)+'</div>'+
+        '<div class="bs-cell-name">'+esc(def.name)+'</div>'+
+        '<div class="bs-cell-badge" style="background:'+badge.c+'">'+badge.t+'</div>'+
       '</div>';
     }).join('');
     return '<div class="bs-group"><div class="bs-group-h">📍 '+esc(mp.name)+
       ' <span style="color:var(--dim);font-size:12px;font-weight:400;">T'+mp.tier+' · 刷出 Lv'+ML_map(idx)+'</span></div>'+
-      cards+'</div>';
+      '<div class="bs-grid">'+cells+'</div></div>';
   }).join('');
   return '<h3 style="color:var(--gold-soft);font-size:15px;margin-bottom:4px;">📖 怪物图鉴</h3>'+
-    '<p style="color:var(--dim);font-size:12px;margin-bottom:12px;">已收录 '+Object.keys(MONSTERS).length+' 种怪物 · 技能与刷出等级由游戏数据自动生成，设定文本为创作内容（当前切片：图1 界桩荒野）</p>'+
-    groups;
+    '<p style="color:var(--dim);font-size:12px;margin-bottom:12px;">已收录 '+cnt+' / '+total+' 种 · 击败怪物自动收录，未遭遇显示「？？？」</p>'+
+    '<div class="bs-layout">'+
+      '<div class="bs-list">'+groups+'</div>'+
+      '<div class="bs-detail" id="bsDetail">'+(firstSeen?bestiaryDetailHTML(firstSeen):'<div class="bsd-hint">👈 点选左侧怪物查看全貌</div>')+'</div>'+
+    '</div>';
 }
 
 /* ---------- 背包（装备栏 + 库存整合） ---------- */
@@ -6347,8 +6808,8 @@ function castBarHTML(u,isPlayer){
 /* 战斗单位增益图标条：独立 SVG 图标 + 剩余回合数角标 */
 function buffBarHTML(u){
   if(!u || !u.buffs || !u.buffs.length) return '';
-  const NAME={atkBoost:'攻击提升',spdBoost:'攻速提升',slow:'迟缓',vuln:'易伤',dot:'持续伤害',shield:'护盾',stun:'眩晕'};
-  const ICON={atkBoost:'buff_atk',spdBoost:'buff_spd',slow:'buff_slow',vuln:'buff_vuln',dot:'buff_dot',shield:'buff_shield',stun:'stun'};
+  const NAME={atkBoost:'攻击提升',spdBoost:'攻速提升',slow:'迟缓',vuln:'易伤',dot:'持续伤害',shield:'护盾',stun:'眩晕',atkDown:'攻击削弱',noHeal:'禁疗'};
+  const ICON={atkBoost:'buff_atk',spdBoost:'buff_spd',slow:'buff_slow',vuln:'buff_vuln',dot:'buff_dot',shield:'buff_shield',stun:'stun',atkDown:'buff_atk',noHeal:'wither_curse'};
   const items=u.buffs.map(function(b){
     const k=ICON[b.type]||'buff_atk';
     const t=(b.turns!=null)?b.turns:'';
@@ -6693,6 +7154,7 @@ function dbgCmd(cmd, val){
     case 'godmode': G.player._godMode = !G.player._godMode; toast(G.player._godMode?'👑 无敌模式 开':'👑 无敌模式 关'); break;
     case 'clearInv': G.player.inventory=[]; G.player.runes=[]; toast('🗑 清空背包'); break;
     case 'respec': G.player.str=10; G.player.agi=10; G.player.con=10; G.player.int=10; G.player.spi=10; G.player.attrPoints=G.player.level*3; toast('🔄 属性已重置'); break;
+    case 'unlockbest': if(!G.seenMonsters) G.seenMonsters=[]; Object.keys(MONSTER_MAP).forEach(function(k){ if(G.seenMonsters.indexOf(k)<0) G.seenMonsters.push(k); }); save(); toast('📖 图鉴已全解锁'); break;
   }
   renderAll();
 }
@@ -6709,6 +7171,7 @@ function dbgCmd(cmd, val){
   <button class="debug-btn" onclick="dbgCmd('respec')">🔄 重置属性</button>
   <button class="debug-btn" onclick="dbgCmd('clearInv')">🗑 清空背包</button>
   <button class="debug-btn" onclick="tutorialReplay()">📖 重看教程</button>
+  <button class="debug-btn" onclick="dbgCmd('unlockbest')">📖 解锁全图鉴</button>
   <div style="color:var(--dim);margin-top:6px;font-size:10px;">按 F2 开关面板</div>
 </div>
 <div id="floatLog" class="float-log"><div class="fl-head"><span>战斗日志</span><div class="fl-btns"><button class="fl-btn fl-min" onclick="floatLogToggle()">-</button></div></div><div class="fl-body" id="flBody"></div></div>
