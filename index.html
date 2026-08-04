@@ -1222,7 +1222,7 @@ body{
   </div>
 </div>
 
-<script src="assets/atlas_data.js?v=7"></script>
+<script src="assets/atlas_data.js?v=8"></script>
 <script>
 'use strict';
 /* =========================================================================
@@ -2741,7 +2741,7 @@ function monImgTag(img, def, sz, fbSolidKey){
   let onerr;
   if(fbSolidKey){
     /* 透明图缺失：回落实底，杜绝空位（实底必存在） */
-    onerr = "this.onerror=null;this.src='assets/monsters/"+fbSolidKey+".png?v=7';";
+    onerr = "this.onerror=null;this.src='assets/monsters/"+fbSolidKey+".png?v=8';";
   } else {
     onerr = "this.onerror=null;this.insertAdjacentHTML('afterend', monsterSVGFallback(this.getAttribute('data-key'), this.getAttribute('data-sz'))); this.remove();";
   }
@@ -2751,7 +2751,7 @@ function monsterSVG(def, px, transparent, thumb){
   const sz=px?px+'px':'1em';
   if(def && def.key && thumb){
     /* 列表缩略图：仍走独立小图（已快），变动最小 */
-    return monImgTag('assets/monsters_thumb/'+def.key+'.png?v=7', def, sz, def.key);
+    return monImgTag('assets/monsters_thumb/'+def.key+'.png?v=8', def, sz, def.key);
   }
   if(def && def.key && window.ATLAS_OK!==false){
     /* 雪碧图：从大图 background-position 抠对应一格，0 次额外网络请求 */
@@ -2767,8 +2767,8 @@ function monsterSVG(def, px, transparent, thumb){
   }
   /* 兜底：雪碧图缺失/未命中 -> 单只图（透明图回落实底，杜绝空位） */
   let img=null;
-  if(def && def.key){ img = transparent ? 'assets/monsters_alpha/'+def.key+'.png?v=7' : ((def.img||'assets/monsters/'+def.key+'.png')+'?v=7'); }
-  else if(def && def.img){ img = def.img+'?v=7'; }
+  if(def && def.key){ img = transparent ? 'assets/monsters_alpha/'+def.key+'.png?v=8' : ((def.img||'assets/monsters/'+def.key+'.png')+'?v=8'); }
+  else if(def && def.img){ img = def.img+'?v=8'; }
   if(img){ return monImgTag(img, def, sz, transparent ? def.key : null); }
   return monsterSVGInner(def, sz);
 }
@@ -5597,7 +5597,7 @@ function preloadAtlas(){
   // 后台顺带预热缩略图（不阻塞，版本号与 monsterSVG 一致用 ?v=7）
   if(typeof ATLAS_MON!=='undefined' && ATLAS_MON.map){
     Object.keys(ATLAS_MON.map).forEach(function(k){
-      var t=new Image(); t.src='assets/monsters_thumb/'+k+'.png?v=7';
+      var t=new Image(); t.src='assets/monsters_thumb/'+k+'.png?v=8';
     });
   }
 }
