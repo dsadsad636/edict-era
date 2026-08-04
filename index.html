@@ -698,6 +698,14 @@ body{
   border:1px solid var(--line); border-radius:16px; padding:26px 26px 20px; box-shadow:0 20px 60px rgba(0,0,0,.6);}
 .gate-brand{text-align:center; font-size:22px; letter-spacing:6px; color:var(--gold-soft); margin-bottom:4px;}
 .gate-sub{text-align:center; font-size:12px; color:var(--dim); letter-spacing:1px; margin-bottom:18px;}
+/* 资源加载读条 */
+.gate-loading{position:absolute; inset:0; display:none; flex-direction:column; align-items:center; justify-content:center;
+  background:rgba(19,23,35,.96); border-radius:16px; z-index:5;}
+.gate-loading-bar{width:65%; max-width:260px; height:5px; background:rgba(255,255,255,.08); border-radius:3px; overflow:hidden; margin-bottom:14px;}
+.gate-loading-fill{height:100%; width:0%; background:linear-gradient(90deg, #4a7ab5, #7ab5e8, #4a7ab5); background-size:200% 100%;
+  border-radius:3px; transition:width .25s; animation:loadShimmer 1.6s ease-in-out infinite;}
+@keyframes loadShimmer{0%{background-position:100% 0} 100%{background-position:-100% 0}}
+.gate-loading-text{font-size:13.5px; color:#8899bb; letter-spacing:2px;}
 .gate-mode{display:flex; align-items:center; justify-content:center; gap:6px; font-size:11.5px; margin-bottom:16px;
   color:var(--dim); padding:6px 10px; border-radius:10px; background:rgba(255,255,255,.04); border:1px solid var(--line);}
 .gate-mode b{color:#9ccbff; font-weight:600;}
@@ -1138,6 +1146,12 @@ body{
     <div class="gate-box">
       <div class="gate-brand">敕造纪元</div>
       <div class="gate-sub">持 牌 者 · Edict Era</div>
+
+      <!-- 资源加载读条遮罩 -->
+      <div id="gateLoading" class="gate-loading">
+        <div class="gate-loading-bar"><div class="gate-loading-fill" id="gateLoadFill"></div></div>
+        <div class="gate-loading-text">游戏资源加载中，请稍等</div>
+      </div>
 
       <!-- 落地页 -->
       <div id="gateLanding">
@@ -5585,13 +5599,27 @@ function preloadAtlas(){
     });
   }
 }
-/* 阻塞等待雪碧图下载完毕才进游戏；若已就绪则立即放行 */
+/* 阻塞等待雪碧图下载完毕才进游戏；首次显示加载读条 */
 function ensureAtlasReady(cb){
   if(_preloadReady){ cb(); return; }
-  gateMsg('正在缓存美术资源...（首次约需数秒）');
+  var ov=gateEl('gateLoading'), bar=gateEl('gateLoadFill');
+  if(ov){ ov.style.display='flex'; }
+  /* 如果没开始预加载（极端情况），给一个假进度安抚用户 */
+  var fakeTick=0;
   var check=setInterval(function(){
-    if(_preloadReady){ clearInterval(check); gateMsg('',true); cb(); }
-  },150);
+    if(_preloadReady){
+      clearInterval(check);
+      if(bar) bar.style.width='100%';
+      setTimeout(function(){ if(ov) ov.style.display='none'; cb(); }, 200);
+      return;
+    }
+    // 真进度按已下载/总数算，兜底给假进度（最多到80%，留20%给真完成）
+    var realPct=_preloadTotal>0 ? Math.round(_preloadDone/_preloadTotal*80):0;
+    fakeTick++;
+    var fakePct=Math.min(80, fakeTick*3);
+    var pct=Math.max(realPct, fakePct);
+    if(bar) bar.style.width=pct+'%';
+  }, 180);
 }
 /* 启动：检测是否有存档 */
 function bootGate(){
