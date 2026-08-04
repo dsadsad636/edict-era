@@ -5562,32 +5562,36 @@ function gateShow(which){
 function gateMsg(txt, ok){
   const m=gateEl('gateMsg'); if(m){ m.textContent=txt||''; m.className='gate-msg'+(ok?' ok':''); }
 }
-/* 预加载雪碧图大图压缓存：在玩家看门厅/选职业期间后台拉取，进战斗/图鉴时缓存已热 */
-var _preloadDone = false;
+/* 预加载雪碧图大图压缓存 + 进游戏前阻塞等待（等雪碧图下载完才放行，杜绝冷请求空位） */
+var _preloadTotal=0, _preloadDone=0, _preloadReady=false;
 function preloadAtlas(){
-  if(_preloadDone) return;
-  var urls = [];
+  if(_preloadReady) return;
+  var urls=[];
   try{
     if(typeof ATLAS_MON!=='undefined' && ATLAS_MON.url) urls.push(ATLAS_MON.url);
     if(typeof ATLAS_ALPHA!=='undefined' && ATLAS_ALPHA.url) urls.push(ATLAS_ALPHA.url);
-    // 顺带把最常用的单只图也预热（缩略图列表 + 兜底回退）
-    if(typeof ATLAS_MON!=='undefined' && ATLAS_MON.map){
-      Object.keys(ATLAS_MON.map).forEach(function(k){
-        urls.push('assets/monsters_thumb/'+k+'.png?v=6');
-      });
-    }
   }catch(e){}
-  if(urls.length===0){ _preloadDone=true; return; }
-  var loaded=0, total=urls.length;
-  function oneDone(){
-    loaded++;
-    if(loaded>=total){ _preloadDone=true; }
-  }
+  _preloadTotal=urls.length;
+  if(_preloadTotal===0){ _preloadReady=true; return; }
   for(var i=0;i<urls.length;i++){
     var img=new Image();
-    img.onload=oneDone; img.onerror=oneDone;
+    img.onload=img.onerror=function(){ _preloadDone++; if(_preloadDone>=_preloadTotal) _preloadReady=true; };
     img.src=urls[i];
   }
+  // 后台顺带预热缩略图（不阻塞，版本号与 monsterSVG 一致用 ?v=5）
+  if(typeof ATLAS_MON!=='undefined' && ATLAS_MON.map){
+    Object.keys(ATLAS_MON.map).forEach(function(k){
+      var t=new Image(); t.src='assets/monsters_thumb/'+k+'.png?v=5';
+    });
+  }
+}
+/* 阻塞等待雪碧图下载完毕才进游戏；若已就绪则立即放行 */
+function ensureAtlasReady(cb){
+  if(_preloadReady){ cb(); return; }
+  gateMsg('正在缓存美术资源...（首次约需数秒）');
+  var check=setInterval(function(){
+    if(_preloadReady){ clearInterval(check); gateMsg('',true); cb(); }
+  },150);
 }
 /* 启动：检测是否有存档 */
 function bootGate(){
@@ -5608,7 +5612,7 @@ function gateContinue(){
     if(!raw){ bootGate(); return; }
     const d=JSON.parse(raw);
     if(!d||!d.player){ bootGate(); return; }
-    G=d; applyCompat(); enterGame(false);
+    G=d; applyCompat(); ensureAtlasReady(function(){ enterGame(false); });
   }catch(e){ gateMsg('读取存档失败：'+e.message); console.error('gateContinue error:', e); }
 }
 /* 渲染职业网格 */
@@ -5663,9 +5667,11 @@ function doCreateChar(nm){
   applyCompat();
   save();
   try{ localStorage.removeItem('edict_tutorial_done'); }catch(e){}
-  enterGame(true);
-  const o=ORIGINS.find(x=>x.key===_gateOrigin);
-  toast('出身【'+(o?o.name:'')+'】· 缉私开始');
+  ensureAtlasReady(function(){
+    enterGame(true);
+    const o=ORIGINS.find(x=>x.key===_gateOrigin);
+    toast('出身【'+(o?o.name:'')+'】· 缉私开始');
+  });
 }
 /* 创建覆盖确认弹窗 */
 function showCreateConfirm(oldName, oldLv, newName){
