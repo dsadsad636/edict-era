@@ -5562,8 +5562,36 @@ function gateShow(which){
 function gateMsg(txt, ok){
   const m=gateEl('gateMsg'); if(m){ m.textContent=txt||''; m.className='gate-msg'+(ok?' ok':''); }
 }
+/* 预加载雪碧图大图压缓存：在玩家看门厅/选职业期间后台拉取，进战斗/图鉴时缓存已热 */
+var _preloadDone = false;
+function preloadAtlas(){
+  if(_preloadDone) return;
+  var urls = [];
+  try{
+    if(typeof ATLAS_MON!=='undefined' && ATLAS_MON.url) urls.push(ATLAS_MON.url);
+    if(typeof ATLAS_ALPHA!=='undefined' && ATLAS_ALPHA.url) urls.push(ATLAS_ALPHA.url);
+    // 顺带把最常用的单只图也预热（缩略图列表 + 兜底回退）
+    if(typeof ATLAS_MON!=='undefined' && ATLAS_MON.map){
+      Object.keys(ATLAS_MON.map).forEach(function(k){
+        urls.push('assets/monsters_thumb/'+k+'.png?v=6');
+      });
+    }
+  }catch(e){}
+  if(urls.length===0){ _preloadDone=true; return; }
+  var loaded=0, total=urls.length;
+  function oneDone(){
+    loaded++;
+    if(loaded>=total){ _preloadDone=true; }
+  }
+  for(var i=0;i<urls.length;i++){
+    var img=new Image();
+    img.onload=oneDone; img.onerror=oneDone;
+    img.src=urls[i];
+  }
+}
 /* 启动：检测是否有存档 */
 function bootGate(){
+  preloadAtlas(); /* 门厅期间后台预热所有图片缓存 */
   let hasSave=false;
   try{ hasSave = !!localStorage.getItem(SAVE_KEY); }catch(e){ hasSave=false; }
   gateEl('gateContinue').style.display = hasSave ? '' : 'none';
