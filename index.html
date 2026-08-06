@@ -404,7 +404,8 @@ body{
 }
 .battle-nav-btn:hover{color:var(--ink); background:rgba(255,255,255,.04);}
 .battle-nav-btn.active{color:var(--gold-soft); background:linear-gradient(180deg, rgba(201,162,39,.12), transparent); border-color:rgba(201,162,39,.25); font-weight:600; box-shadow:0 -2px 8px rgba(201,162,39,.08);}
-.battle-body{flex:1; display:flex; align-items:center; justify-content:center; gap:32px; padding:20px 24px 56px; overflow:auto; position:relative;}
+.battle-body{flex:1; display:flex; align-items:center; justify-content:center; gap:32px; padding:20px 24px 56px; overflow:auto; position:relative;
+  background-size:cover; background-position:center; background-repeat:no-repeat;}
 .battle-skillbar-wrap{position:absolute; bottom:8px; right:14px; z-index:5;}
 
 /* ---- 战斗单位面板（卡片化·精致金属边框） ---- */
@@ -439,8 +440,8 @@ body{
   background:linear-gradient(90deg,#1a3a5a,#2e6a9e,#5b9bd5);}
 .fighter-avatar{
   width:110px; height:110px; border-radius:20px; display:flex; align-items:center; justify-content:center;
-  font-size:56px; background:radial-gradient(circle at 50% 35%, var(--panel), var(--bg));
-  border:2px solid var(--line); box-shadow:0 0 24px rgba(0,0,0,.5), inset 0 0 8px rgba(255,255,255,.02);
+  font-size:56px; background:transparent;
+  border:2px solid var(--line); box-shadow:0 0 24px rgba(0,0,0,.5);
   position:relative;
 }
 .avatar-player{border-color:#3498db; box-shadow:0 0 28px rgba(52,152,219,.18), 0 0 8px rgba(52,152,219,.08);}
@@ -1189,7 +1190,7 @@ body{
 </div>
 <!-- ============ 入口：进入游戏 → 选职业 → 进游戏 ============ -->
 <div id="authGate">
-  <div class="gate-wrap">
+  <div class="gate-wrap" id="gateWrap">
     <div class="gate-box">
       <!-- 资源加载读条遮罩 -->
       <div id="gateLoading" class="gate-loading">
@@ -1573,80 +1574,12 @@ function equipName(it){
 
 /* 玩家头像：使用 AI 生成的手绘风 PNG 素材 */
 function playerAvatarSVG(px){
-  const sz = px ? px+'px' : '1em';
-  return buildPlayerAvatar(sz);
+  var origin='warrior';
+  try{ origin=G.account.origin||'warrior'; }catch(e){}
+  var sz=px||52;
+  var round=sz<=100?'border-radius:50%;':'';
+  return '<img src="assets/origins/'+origin+'_battle.png?v=1" style="width:'+sz+'px;height:'+sz+'px;object-fit:contain;'+round+'" onerror="this.style.display=\'none\'">';
 }
-/* Q版纸娃娃形象：根据装备实时生成SVG，每部位分层叠加 */
-function buildPlayerAvatar(sz){
-  const eq=G&&G.player?G.player.equip:{};
-  let aura='none', hiRar=0;
-  for(const k in eq){ const it=eq[k]; if(it){
-    const ri=RARITY.findIndex(r=>r.key===it.rarity)+1;
-    if(ri>hiRar){ hiRar=ri; aura=(rarObj(it.rarity)||RARITY[0]).color; }
-  }}
-  const helm=eq['head'], body=eq['armor'], wp=eq['weapon'];
-  const atHelm=helm?helm.armorType:'none';
-  const atBody=body?body.armorType:'none';
-  const ARM_COL={plate:'#8899aa', cloth:'#d8c39a', leather:'#8b7355'};
-  const bodyC=ARM_COL[atBody]||'#556688';
-  const helmC=ARM_COL[atHelm]||bodyC;
-  /* 武器 */
-  let wpSvg='';
-  if(wp){
-    const wC=(rarObj(wp.rarity)||RARITY[0]).color;
-    wpSvg='<line x1="80" y1="62" x2="102" y2="42" stroke="'+wC+'" stroke-width="4.5" stroke-linecap="round"/>'+
-      '<line x1="102" y1="42" x2="106" y2="38" stroke="'+wC+'" stroke-width="3" stroke-linecap="round"/>'+
-      '<rect x="74" y="56" width="10" height="12" rx="3" fill="#7a5a3a"/>';
-  }
-  const s='<svg viewBox="0 0 120 150" width="'+sz+'" height="'+sz+'" style="vertical-align:middle;flex-shrink:0;">'+
-    /* 光晕 */
-    (aura!='none'?'<ellipse cx="60" cy="70" rx="52" ry="68" fill="'+aura+'" opacity="0.10"/>':'')+
-    /* 披风（最底层） */
-    '<path d="M42 40 L78 40 L88 105 L75 108 L60 100 L45 108 L32 105 Z" fill="'+bodyC+'" opacity="0.35"/>'+
-    /* 腿 */
-    '<rect x="48" y="102" width="11" height="16" rx="5" fill="#3a2f28"/><rect x="61" y="102" width="11" height="16" rx="5" fill="#3a2f28"/>'+
-    '<rect x="45" y="116" width="13" height="6" rx="4" fill="#5a4030"/><rect x="62" y="116" width="13" height="6" rx="4" fill="#5a4030"/>'+
-    /* 身体 */
-    '<ellipse cx="60" cy="76" rx="20" ry="26" fill="'+bodyC+'"/>'+
-    '<rect x="40" y="54" width="40" height="24" rx="6" fill="'+bodyC+'"/>'+
-    (atBody==='plate'?'<line x1="60" y1="54" x2="60" y2="76" stroke="#fff" stroke-width="1" opacity="0.18"/>':'' )+
-    (atBody==='cloth'?'<line x1="50" y1="58" x2="50" y2="72" stroke="#fff" stroke-width="0.8" opacity="0.2"/><line x1="70" y1="58" x2="70" y2="72" stroke="#fff" stroke-width="0.8" opacity="0.2"/>':'' )+
-    /* 手臂（从躯干两侧伸出） */
-    '<path d="M42 60 L34 72 L30 82" stroke="#e8d4be" stroke-width="9" stroke-linecap="round" fill="none"/>'+
-    '<path d="M78 60 L86 72 L90 82" stroke="#e8d4be" stroke-width="9" stroke-linecap="round" fill="none"/>'+
-    /* 手 */
-    '<circle cx="30" cy="83" r="5.5" fill="#e8d4be"/><circle cx="90" cy="83" r="5.5" fill="#e8d4be"/>'+
-    /* 武器（在右手上） */
-    wpSvg+
-    /* 头部 */
-    '<ellipse cx="60" cy="38" rx="18" ry="21" fill="#f0dcc0"/>'+
-    /* 头发（只盖头顶，不遮脸） */
-    '<ellipse cx="60" cy="24" rx="20" ry="11" fill="#4a3028"/>'+
-    '<path d="M42 24 Q36 36 38 48 Q36 50 34 46" stroke="#4a3028" stroke-width="7" fill="none" stroke-linecap="round"/>'+
-    '<path d="M78 24 Q84 36 82 48 Q84 50 86 46" stroke="#4a3028" stroke-width="7" fill="none" stroke-linecap="round"/>'+
-    /* 头盔 */
-    (helm?'<path d="M42 35 Q42 14 60 10 Q78 14 78 35 Z" fill="'+helmC+'" opacity="0.82"/>'
-      +'<rect x="38" y="33" width="44" height="6" rx="2" fill="'+helmC+'" opacity="0.9"/>'
-      +(atHelm==='plate'?'<line x1="60" y1="12" x2="60" y2="28" stroke="#fff" stroke-width="1" opacity="0.25"/>':'')
-      +(atHelm==='cloth'?'<circle cx="56" cy="22" r="3" fill="#fff" opacity="0.2"/>':'')
-      :'' )+
-    /* 眼睛 */
-    '<circle cx="54" cy="37" r="2.5" fill="#2a1a10"/><circle cx="66" cy="37" r="2.5" fill="#2a1a10"/>'+
-    '<circle cx="54.8" cy="36" r="1" fill="#fff"/><circle cx="66.8" cy="36" r="1" fill="#fff"/>'+
-    /* 眉毛 */
-    '<line x1="51" y1="31" x2="57" y2="32" stroke="#3a2f28" stroke-width="1.2" stroke-linecap="round"/>'+
-    '<line x1="63" y1="32" x2="69" y2="31" stroke="#3a2f28" stroke-width="1.2" stroke-linecap="round"/>'+
-    /* 腮红 */
-    '<ellipse cx="50" cy="44" rx="3.5" ry="2.5" fill="#e8a0a0" opacity="0.35"/>'+
-    '<ellipse cx="70" cy="44" rx="3.5" ry="2.5" fill="#e8a0a0" opacity="0.35"/>'+
-    /* 嘴 */
-    '<path d="M56 47 Q60 49 64 47" stroke="#6a4030" stroke-width="1.2" fill="none" stroke-linecap="round"/>'+
-    /* 装备徽章 */
-    (aura!='none'?'<circle cx="98" cy="14" r="13" fill="'+aura+'" opacity="0.12"/><text x="98" y="18" text-anchor="middle" font-size="11" fill="'+aura+'" font-weight="700">'+hiRar+'</text>':'')+
-  '</svg>';
-  return s;
-}
-
 /* 三主属性 */
 
 /* 符文类型（5种×3稀有度） */
@@ -5425,8 +5358,18 @@ function nextEncounter(){
     G.eliteDone=true;
     label='精英战 · 第'+G.encounter+'次遭遇';
   } else {
-    /* 普通遭遇：默认少量（单只）；引魂香生效时 2~3 只 */
-    const n = incense ? rand(2,3) : (Math.random()<0.45 ? rand(2,3) : 1);
+    /* 普通遭遇：前5次保底单只；后续按地图阶梯解锁群怪 */
+    var n;
+    if(incense){
+      n=rand(2,3);
+    } else if(G.encounter<=5){
+      n=1; /* 新号保护 */
+    } else {
+      var t=G.mapTier||0;
+      if(t<=2){ n=Math.random()<0.20?2:1; }
+      else if(t<=5){ n=Math.random()<0.35?rand(2,3):1; }
+      else { n=Math.random()<0.50?rand(2,3):1; }
+    }
     defs=[]; for(let i=0;i<n;i++) defs.push(rollNormal());
     label='遭遇 '+G.encounter+(incense?'（引魂香·群涌）':'');
   }
@@ -6138,6 +6081,7 @@ function gateEl(id){ return document.getElementById(id); }
 function gateShow(which){
   gateEl('gateLanding').style.display = which==='landing' ? '' : 'none';
   gateEl('gateOrigin').style.display  = which==='origin'  ? '' : 'none';
+  gateEl('gateWrap').style.display   = which==='origin'  ? 'none' : '';
 }
 function gateMsg(txt, ok){
   const m=gateEl('gateMsg'); if(m){ m.textContent=txt||''; m.className='gate-msg'+(ok?' ok':''); }
@@ -6742,7 +6686,7 @@ function tabBag(){
   '</div>';
   html+='<div class="bag-layout">';
   html+='<div style="flex:0 0 150px;text-align:center;">'+
-    '<div style="width:150px;height:180px;border-radius:14px;background:radial-gradient(circle at 50% 30%,rgba(41,128,185,.15),rgba(0,0,0,.4));border:1px solid var(--line);overflow:hidden;"><img src="assets/player/player.png?v=5" alt="'+esc(p.name)+'" style="width:150px;height:180px;object-fit:contain;"></div>'+
+    '<div style="width:150px;height:180px;border-radius:14px;background:radial-gradient(circle at 50% 30%,rgba(41,128,185,.15),rgba(0,0,0,.4));border:1px solid var(--line);overflow:hidden;">'+playerAvatarSVG(150)+'</div>'+
   '</div>';
   html+='<div class="equip-slots">';
   ALL_SLOTS.forEach(function(slotKey){
@@ -7021,7 +6965,7 @@ function tabCharStats(){
   var html='<div class="char-unified">';
   /* --- 顶栏：角色 + 基础信息 --- */
   html+='<div style="display:flex;gap:16px;align-items:center;margin-bottom:14px;flex-wrap:wrap;">'+
-    '<div style="width:90px;height:110px;border-radius:12px;background:radial-gradient(circle at 50% 30%,rgba(41,128,185,.15),rgba(0,0,0,.4));border:1px solid var(--line);overflow:hidden;"><img src="assets/player/player.png?v=5" alt="'+esc(p.name)+'" style="width:90px;height:110px;object-fit:contain;"></div>'+
+    '<div style="width:90px;height:110px;border-radius:12px;background:radial-gradient(circle at 50% 30%,rgba(41,128,185,.15),rgba(0,0,0,.4));border:1px solid var(--line);overflow:hidden;">'+playerAvatarSVG(90)+'</div>'+
     '<div>'+
       '<div style="font-size:18px;font-weight:700;color:var(--gold-soft);">'+esc(p.name)+' <span style="font-size:13px;color:var(--dim);">Lv.'+p.level+'</span></div>'+
       '<div style="font-size:11px;color:var(--dim);margin-top:2px;">'+(G.account&&G.account.originName?'\u51fa\u8eab '+G.account.originName:'')+'</div>'+
@@ -7661,7 +7605,7 @@ function renderBattleScreen(){
     '<div class="fighter-hp-bar"><div class="filler-hp hp-player" style="width:'+pPct+'%"></div>'+
       '<div class="hp-text">'+p.hp+'/'+p.maxHp+(p.shield>0?' 🛡'+p.shield:'')+'</div></div>'+
     '<div class="fighter-mp-bar" title="法力 '+p.mp+'/'+p.maxMp+'"><div class="filler-mp" style="width:'+mpPct+'%"></div></div>'+
-    '<div class="fighter-avatar avatar-player" style="color:var(--blue);"><img class="mon-img" src="assets/player/player.png?v=5" alt="'+esc(p.name)+'" onerror="this.onerror=null; this.style.display=\'none\'; this.insertAdjacentHTML(\'afterend\',\'<span class=\'char-fallback\'>玩家</span>\');" style="width:72px;height:72px;object-fit:contain;"></div>'+
+    '<div class="fighter-avatar avatar-player" style="color:var(--blue);">'+playerAvatarSVG(72)+'</div>'+
     buffBarHTML(p)+
     castBarHTML(p,true)+
     flaskHtml+
@@ -7671,7 +7615,9 @@ function renderBattleScreen(){
   let partyHtml='';
   /* 技能栏固定在右下角 */
   const skBarHtml=renderSkillBar(b);
-  document.getElementById('battleBody').innerHTML =
+  var bb=document.getElementById('battleBody');
+  bb.style.backgroundImage='url(assets/bg_map'+(G.mapId||0)+'.png?v=1)';
+  bb.innerHTML =
     partyHtml+playerHtml+'<div class="vs-mark">VS</div>'+'<div class="enemy-group">'+enemyGroup+'</div>'+
     skBarHtml;
 
