@@ -404,6 +404,12 @@ body{
 }
 .battle-nav-btn:hover{color:var(--ink); background:rgba(255,255,255,.04);}
 .battle-nav-btn.active{color:var(--gold-soft); background:linear-gradient(180deg, rgba(201,162,39,.12), transparent); border-color:rgba(201,162,39,.25); font-weight:600; box-shadow:0 -2px 8px rgba(201,162,39,.08);}
+.pet-battle{position:absolute;bottom:10px;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:6px;background:rgba(0,0,0,.7);border:1px solid rgba(180,160,120,.2);border-radius:10px;padding:4px 10px;z-index:5;}
+.pet-battle-avatar{width:48px;height:48px;border-radius:8px;overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:30px;background:rgba(0,0,0,.3);}
+.pet-battle-name{font-size:10px;color:var(--gold-soft);white-space:nowrap;max-width:80px;overflow:hidden;text-overflow:ellipsis;}
+.pet-hp-bar{width:60px;height:5px;background:#333;border-radius:3px;overflow:hidden;}
+.pet-hp-fill{height:100%;background:linear-gradient(90deg,#7b241c,#e85d4c);transition:width .3s;}
+.pet-hp-text{font-size:9px;color:var(--dim);min-width:36px;text-align:right;}
 .battle-body{flex:1; display:flex; align-items:center; justify-content:center; gap:32px; padding:20px 24px 56px; overflow:auto; position:relative;
   background-size:cover; background-position:center; background-repeat:no-repeat;}
 .battle-skillbar-wrap{position:absolute; bottom:8px; right:14px; z-index:5;}
@@ -446,6 +452,9 @@ body{
 }
 .avatar-player{border-color:#3498db; box-shadow:0 0 28px rgba(52,152,219,.18), 0 0 8px rgba(52,152,219,.08);}
 .avatar-enemy{border-color:#c0392b; box-shadow:0 0 28px rgba(192,57,43,.18), 0 0 8px rgba(192,57,43,.08);}
+.avatar-pet{border-color:#b06bff; box-shadow:0 0 28px rgba(176,107,255,.18), 0 0 8px rgba(176,107,255,.08);}
+.pet-panel{max-width:160px;}
+.hp-pet{background:linear-gradient(90deg,#5a2d6e,#b06bff)!important;}
 .elite-badge{
   position:absolute; top:-6px; left:-6px; background:var(--purple); color:#fff;
   font-size:10px; font-weight:700; padding:2px 8px; border-radius:10px;
@@ -646,6 +655,10 @@ body{
 }
 .skill-slot .cd-text{position:absolute; bottom:-3px; right:-3px; font-size:11px; background:var(--bg); color:var(--gold-soft); padding:1px 4px; border-radius:4px; font-weight:700; min-width:16px; text-align:center; border:1px solid rgba(201,162,39,.3);}
 .skill-slot .aura-ring{position:absolute; top:-4px; left:-4px; width:54px; height:54px; border-radius:50%; border:1.5px solid rgba(201,162,39,.4);}
+/* 宠物技能CD动画 */
+.skill-slot.pet-cd{filter:grayscale(1) brightness(.5); animation:petCdSpin 2s linear infinite;}
+.skill-slot.pet-ready{filter:none; animation:none; box-shadow:0 0 8px rgba(176,107,255,.4); border-color:#b06bff;}
+@keyframes petCdSpin{ from{ transform:rotate(0deg); } to{ transform:rotate(360deg); } }
 /* ==================== 空闲主页 ==================== */
 .idle-home{text-align:center; padding:40px 20px;}
 .idle-title{font-size:26px; color:var(--gold-soft); letter-spacing:4px; margin-bottom:8px;}
@@ -1110,6 +1123,22 @@ body{
 .bsd-skills{margin-top:8px;line-height:1.9;}
 .bsd-skills .bs-k{margin-bottom:2px;}
 .bsd-hint,.bsd-locked{color:var(--dim);font-size:13px;text-align:center;padding:40px 10px;}
+/* 图鉴·未录装备预览 */
+.bsd-mythic{margin-top:10px;padding:10px 12px;background:rgba(230,68,59,.08);border:1px solid rgba(230,68,59,.25);border-radius:10px;}
+.ms-head{display:flex;align-items:center;gap:8px;margin-bottom:6px;}
+.ms-label{font-size:10px;padding:1px 6px;background:var(--red);color:#fff;border-radius:4px;font-weight:700;}
+.ms-name{font-size:14px;color:#ffe0d0;font-weight:700;}
+.ms-base{display:flex;flex-wrap:wrap;gap:4px 10px;margin-bottom:6px;}
+.ms-stat{font-size:12px;color:var(--ink);white-space:nowrap;}
+.ms-stat b{color:var(--gold-soft);}
+.ms-affixes{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:6px;}
+.ms-affix{font-size:11px;padding:2px 7px;background:rgba(255,255,255,.06);border-radius:5px;color:var(--ink);}
+.ms-affix-neg{color:#e07b7b;}
+.ms-affix-sel{background:rgba(176,107,255,.20)!important;border:1px solid #b06bff;color:#e0d0ff!important;}
+.ms-skill,.ms-unique,.ms-cost,.ms-rate{font-size:11.5px;margin-top:4px;line-height:1.6;color:var(--ink);}
+.ms-skill b,.ms-unique b,.ms-cost b{color:var(--gold-soft);}
+.ms-cost{color:#e0a060;}
+.ms-rate{color:var(--dim);font-size:10px;}
 </style>
 </head>
 <body>
@@ -1433,10 +1462,13 @@ function itemImg(it){
   /* 优先用 PNG 立绘，不存在时回落 SVG */
   var key=null;
   if(it.slot==='weapon' && it.wType) key=it.wType;
-  else if(it.slot==='head'||it.slot==='armor'||it.slot==='feet'){
+  else if(it.slot==='head'||it.slot==='feet'){
     if(it.armorType) key=it.slot+'_'+it.armorType;
+  } else if(it.slot==='armor'){
+    if(it.armorType) key='body_'+it.armorType;
   } else if(it.slot==='hands'){
     if(it.armorType) key='hands_'+it.armorType;
+    else key='hands_leather'; /* 旧存档无材质，默认皮 */
   } else if(it.slot==='ring') key='ring';
   else if(it.slot==='amulet') key='amulet';
   if(key) return '<img src="assets/items/'+key+'.png?v=1" onerror="this.style.display=\'none\'" style="width:100%;height:100%;object-fit:contain">';
@@ -1445,7 +1477,7 @@ function itemImg(it){
 function itemInnerSVG(it){
   var img=itemImg(it); if(img) return img;
   if(it.slot==='weapon') return svgInner(it.wType);
-  if(it.armorType && (it.slot==='head'||it.slot==='armor'||it.slot==='feet')) return armorInner(it.armorType, it.slot);
+  if(it.armorType && (it.slot==='head'||it.slot==='armor'||it.slot==='feet')) return armorInner(it.armorType, it.slot=== 'armor'?'body':it.slot);
   const m={hands:'gauntlet', ring:'ring', amulet:'amulet'};
   return svgInner(m[it.slot]||'_box');
 }
@@ -1673,6 +1705,7 @@ const AFFIX_CAPS = {
   skillDmg:2.00, eliteBossDmg:1.20, lifesteal:0.06, cdr:0.50,
   lifestealPerHit:0.03,   /* 单次吸血回复 ≤ 3% 最大生命（GDD 02 §7.5 H1） */
   healEff:1.20,           /* 愈疗加成上限 120% */
+  castSpeed:0.60,         /* 吟唱速度加成上限 60% */
   shieldPct:0.80,         /* 护盾吸收量加成上限 80% */
   reflectDmg:0.50, triggerCrit:0.25, triggerThorns:0.30, triggerDual:0.15, triggerShadow:0.25, triggerMercy:0.30,        /* 反弹伤害加成上限 50% */
 };
@@ -1761,7 +1794,9 @@ const AFFIX_DEFS = [
   {id:'sf_lifesteal',   family:'lifesteal', kind:'suffix', name:'吸血',       stat:'lifesteal',   scope:'global', pct:true, slots:['weapon','ring'], wTypes:null,
    tiers:{T1:[0.025,0.03], T2:[0.02,0.02], T3:[0.015,0.015], T4:[0.01,0.01], T5:[0.005,0.005]}},
   {id:'sf_cdr',         family:'cdr',       kind:'suffix', name:'冷却缩减',       stat:'cdr',         scope:'global', pct:true, slots:['feet','amulet'], wTypes:null,
-   tiers:{T1:[0.12,0.15], T2:[0.09,0.11], T3:[0.07,0.08], T4:[0.05,0.06], T5:[0.03,0.04]}},
+   tiers:{T1:[0.36,0.42], T2:[0.28,0.35], T3:[0.20,0.27], T4:[0.12,0.19], T5:[0.04,0.11]}},
+  {id:'sf_cast_speed', family:'castSpeed', kind:'suffix', name:'吟唱速度',   stat:'castSpeed',  scope:'global', pct:true, slots:['feet','amulet'], wTypes:null,
+   tiers:{T1:[0.25,0.30], T2:[0.19,0.24], T3:[0.13,0.18], T4:[0.07,0.12], T5:[0.02,0.06]}},
   /* 技能等级：仅 T1（ilv≥55）、仅 +1、仅 牌符 与 武器，单件最多 1 条（R6） */
   {id:'sf_skilllv_amu', family:'skilllv',   kind:'suffix', name:'技能等级+1',    stat:'skillLv',     scope:'global', pct:false, slots:['amulet'], wTypes:null, skillPick:'any',
    tiers:{T1:[1,1]}},
@@ -1805,6 +1840,11 @@ const LEGACY_T1_UPPER = {
 /* 套装 */
 const SETS = {
   royal_writ:    { name:'王室缉捕令', icon:'📜', bonuses:{ 2:{def:0.12}, 4:{eliteBossDmg:0.30} } },
+  shadow_veil:   { name:'影幕',     icon:'🌑', bonuses:{ 2:{crit:0.06}, 4:{critDmg:0.40} } },
+  iron_bastion:  { name:'铁壁',     icon:'🛡️', bonuses:{ 2:{hp:120}, 4:{dmgReduce:0.12} } },
+  blazing_soul:  { name:'炽魂',     icon:'🔥', bonuses:{ 2:{skillDmg:0.12}, 4:{cdr:0.08} } },
+  oath_breaker:  { name:'背誓者',   icon:'💀', bonuses:{ 2:{atkPct:0.08}, 4:{lifesteal:0.04} } },
+  mercy_light:   { name:'慈悲光',   icon:'✨', bonuses:{ 2:{healEff:0.15}, 4:{shieldPct:0.10} } },
   the_unmarked:  { name:'无印者之影', icon:'🌑', bonuses:{ 2:{spd:0.08}, 4:{critDmg:0.60} } },
   // V1: chief_annotation:{ name:'首席的批注', icon:'📖', bonuses:{ 2:{int:0.10}, 4:{skillDmg:0.25} } },
 };
@@ -1985,7 +2025,8 @@ function unequipSkill(id){
 function equipAura(id){
   const ea=G.player.equippedAuras||[];
   if(ea.indexOf(id)>=0){toast('该光环已装备'); return;}
-  if(ea.length>=2){toast('最多装备2个光环'); return;}
+  const maxSlots=hasMythic('myth_name_wheel')?3:2;
+  if(ea.length>=maxSlots){toast('最多装备'+maxSlots+'个光环'); return;}
   const d=SKILLS[id]; if(!d||d.type!=='aura'){toast('这不是光环技能'); return;}
   ea.push(id); G.player.equippedAuras=ea;
   toast('已装备【'+d.name+'】');
@@ -2006,10 +2047,31 @@ function weaponsLabel(def){
 function auraBonuses(){
   const b={atk:0, spd:0, skillDmg:0, crit:0, def:0, hp:0, regen:0, eva:0, cdr:0};
   if(!G || !G.player) return b;
+  /* 初敕之光：光环内队友伤害 */
+  var allyDmg=0;
+  if(hasMythic('myth_name_wheel')){
+    for(var ss in G.player.equip){
+      var ee=G.player.equip[ss];
+      if(ee&&ee.affixes) for(var ai2=0;ai2<ee.affixes.length;ai2++){
+        if(ee.affixes[ai2].stat==='auraAllyDmg') allyDmg=ee.affixes[ai2].val;
+      }
+    }
+  }
+  var mult = 1;
+  /* 初敕·名轮：光环效果提升 */
+  if(hasMythic('myth_name_wheel')){
+    for(var s in G.player.equip){
+      var e2=G.player.equip[s];
+      if(e2&&e2.affixes) for(var ai=0;ai<e2.affixes.length;ai++){
+        if(e2.affixes[ai].stat==='auraEffectBoost') mult=1+e2.affixes[ai].val;
+      }
+    }
+  }
   (G.player.equippedAuras||[]).forEach(function(id){
     const d=SKILLS[id];
-    if(d && d.type==='aura' && b[d.auraStat]!==undefined) b[d.auraStat]+=d.val*skillLevel(id);
+    if(d && d.type==='aura' && b[d.auraStat]!==undefined) b[d.auraStat]+=d.val*skillLevel(id)*mult;
   });
+  if(allyDmg>0) b.atk+=allyDmg;
   return b;
 }
 /* 技能学习属性门槛：按 tier 与属性归属自动计算，base=3 / mid=10 / high=18 / 其他=0 */
@@ -2039,7 +2101,7 @@ const BOSS_DROPS = {
   varuk:            {mythic:{id:'myth_forge_hammer', slot:'weapon', wType:'warhammer', name:'熔印·锻律锤', reqLv:28, base:{atk:48}, skill:'blood_frenzy',
                       desc:'血怒结束不进CD；每次施放叠1层「锻痕」(本场,上限8)，每层攻击+4%、受伤+5%', cost:'越锤越硬，也越脆'}},
   sevlan:           {mythic:{id:'myth_codex_staff', slot:'weapon', wType:'staff', name:'掌典·禁页杖', reqLv:36, base:{atk:30}, skill:'chain_lightning',
-                      desc:'闪电链命中标"已归档"3回合：受伤+25%且死亡必掉1件随机装备', cost:'被标记者仇恨转向你'}},
+                      desc:'雷系冷却-1；精英/BOSS伤+20%；首次释放后自麻痹1回合', cost:'受麻痹反噬'}},
   null_seventh:     {mythic:{id:'myth_erase_seal', slot:'ring', name:'削籍·失名印', reqLv:44, base:{atk:30,crit:0.06}, skill:'uni_guard',
                       desc:'守护盾量×2；无视一切装备的五属性需求（等级需求照常）；盾破攻击-25%且受伤+25%共2回合', cost:'盾破即裸奔'}},
   first_wellspring: {mythic:{id:'myth_ink_cup', slot:'amulet', name:'初墨·涌源杯', reqLv:52, base:{hp:200,crit:0.05}, skill:'heal_light',
@@ -2049,7 +2111,7 @@ const BOSS_DROPS = {
   chancellor_maerus:{mythic:{id:'myth_seal_ring', slot:'ring', name:'掌玺·执印玺', reqLv:60, base:{atk:34,crit:0.06}, skill:'uni_strike',
                       desc:'重击命中25%判"已批准"：处决生命<15%非BOSS；对BOSS该次伤害×2', cost:'处决看脸'}},
   the_first_edict:  {mythic:{id:'myth_name_wheel', slot:'head', name:'初敕·名轮', reqLv:60, base:{hp:220,def:32}, skill:'aura_cast',
-                      desc:'造成伤害按敌人当前生命%追加等量真名伤害(对BOSS生效,上限50%)；自身永不被治疗', cost:'失去治疗'}},
+                      desc:'光环格子+1(可装3个)；全部光环效果x1.2；光环内队友伤害+10%', cost:''}},
   /* 铁证·不破壁垒（坦克专属未录）：守护盾量×1.5+破盾全队减伤+替队友承受 */
   bulwark_guardian: {mythic:{id:'myth_bulwark_armor', slot:'armor', armorType:'plate', tierIdx:3, name:'铁证·不破壁垒', reqLv:40, base:{hp:280,def:52}, skill:'uni_guard',
                       desc:'守护盾量×1.5；盾破时全队减伤30%(2回合)；队友受击你可替其受50%伤害', cost:'自身受伤略增'}},
@@ -2100,7 +2162,7 @@ function genMythic(bossKey){
     uid:itemUid++, slot:m.slot, name:m.name,
     rarity:'unrecorded', rarityName:'未录', unique:true,
     base:Object.assign({}, m.base),
-    affixes:generateAffixes(ri, ilv, m.slot, m.wType),
+    affixes:makeFixedAffixValues(MYTHIC_FIXED_AFFIXES[m.id]||[], ilv),
     setId:null, ilv:ilv,
     wType:m.wType||undefined, armorType:m.armorType||undefined,
     tierIdx:(m.tierIdx!=null?m.tierIdx:undefined),
@@ -2213,6 +2275,88 @@ function isDragonkin(u){
   return /龙/.test(u.name||'');
 }
 function mythLog(txt){ pushLog('player','🔴 '+txt, {color:'#e6443b'}); }
+
+/* 未录固定词缀：每件独特装备使用预设定制词缀，不再随机掷骰 */
+const MYTHIC_FIXED_AFFIXES = {
+  myth_rust_crown: [
+    {name:'碎颅', stat:'stunBonusDmg', val:0.30, pct:true},
+    {name:'高歌', stat:'onKillCdReset', val:0.35, pct:true},
+    {name:'褪印之血', stat:'critDmg', val:-0.20, pct:true},
+  ],
+  myth_oz_ring: [
+    {name:'下毒圣手', stat:'dotExtend', val:2, pct:false},
+    {name:'毒瘾', stat:'critPerDebuff', val:0.06, pct:true},
+    {name:'连爆', stat:'triggerDotDbl', val:0.25, pct:true},
+    {name:'以身试毒', stat:'dmgReduce', val:-0.25, pct:true},
+  ],
+  myth_edna_charm: [
+    {name:'收割', stat:'onKillHeal', val:0.08, pct:true},
+    {name:'凝滞', stat:'debuffExtend', val:1, pct:false},
+    {name:'封喉余音', stat:'onKillNoHeal', val:2, pct:false},
+    {name:'耗竭', stat:'skillCostPct', val:0.20, pct:true},
+  ],
+  myth_forge_hammer: [
+    {name:'血祭', stat:'dmgPerLostHp', val:0.04, pct:true},
+    {name:'嗜血', stat:'lifestealLowHp', val:2.0, pct:false},
+    {name:'锻痕不灭', stat:'frenzyKeepStack', val:1, pct:false},
+    {name:'百锻', stat:'frenzyArmorBreak', val:0.60, pct:true},
+    {name:'淬毒', stat:'hpDrain', val:0.02, pct:true},
+  ],
+  myth_codex_staff: [
+    {name:'禁页研读', stat:'cdrLightning', val:-1, pct:false},
+    {name:'过载', stat:'eliteBossDmg', val:0.20, pct:true},
+    {name:'归档追击', stat:'onKillCdReset', val:0.30, pct:true},
+    {name:'掌典', stat:'skillDmg', val:0.25, pct:true},
+    {name:'反噬', stat:'selfStunOnCast', val:1, pct:false},
+  ],
+  myth_erase_seal: [
+    {name:'无名之盾', stat:'shieldPct', val:0.30, pct:true},
+    {name:'铁壁', stat:'dmgReduceShielded', val:0.10, pct:true},
+    {name:'破印反噬', stat:'shieldBreakDebuff', val:1, pct:false},
+    {name:'代价', stat:'selfVulnOnBreak', val:0.15, pct:true},
+  ],
+  myth_ink_cup: [
+    {name:'涌泉', stat:'healCdReduce', val:-2, pct:false},
+    {name:'满溢', stat:'healOverflowShield', val:0.30, pct:true},
+    {name:'净墨如洗', stat:'healCritCleanse', val:1, pct:false},
+    {name:'墨晕庇护', stat:'healTargetDmgReduce', val:0.20, pct:true},
+    {name:'自耗', stat:'selfHealReduce', val:-0.30, pct:true},
+  ],
+  myth_dragon_brand: [
+    {name:'缚足', stat:'skillSlowChance', val:0.15, pct:true},
+    {name:'猎杀', stat:'critDmgVsCC', val:0.25, pct:true},
+    {name:'初录裂甲', stat:'sunderAtkDown', val:0.20, pct:true},
+    {name:'缚龙收网', stat:'sunderKillCdReset', val:1, pct:false},
+  ],
+  myth_seal_ring: [
+    {name:'敕令追击', stat:'critBonusDmg', val:0.30, pct:true},
+    {name:'铁腕', stat:'cdrOnFirstCrit', val:-1, pct:false},
+    {name:'钦定必杀', stat:'uniStrikeForceCrit', val:1, pct:false},
+    {name:'掌玺之速', stat:'uniStrikeCdReduce', val:-2, pct:false},
+    {name:'耗蓝', stat:'skillCostPct', val:0.15, pct:true},
+  ],
+  myth_name_wheel: [
+    {name:'敕令共鸣', stat:'auraEffectBoost', val:0.20, pct:true},
+    {name:'名册覆盖', stat:'dualAuraActive', val:1, pct:false},
+    {name:'初敕之光', stat:'auraAllyDmg', val:0.10, pct:true},
+    {name:'轮转不息', stat:'auraSelfAttr', val:0.05, pct:true},
+  ],
+  myth_bulwark_armor: [
+    {name:'铁骨', stat:'onHitHeal', val:0.04, pct:true},
+    {name:'不破', stat:'armorEffBonus', val:0.15, pct:true},
+    {name:'铁证如山', stat:'guardDmgReduce', val:0.50, pct:true},
+    {name:'壁垒永驻', stat:'guardEndRefresh', val:1, pct:false},
+    {name:'重装', stat:'spdPct', val:-0.15, pct:true},
+  ],
+  myth_mercy_amulet: [
+    {name:'无照', stat:'healFreeCast', val:0.25, pct:true},
+    {name:'慈悲之心', stat:'healCanCrit', val:1, pct:false},
+    {name:'永续圣光', stat:'healLowHpDouble', val:0.30, pct:true},
+    {name:'大慈大悲', stat:'autoHealOnDeath', val:1, pct:false},
+    {name:'苦行', stat:'maxHpPct', val:-0.15, pct:true},
+  ],
+};
+function makeFixedAffixValues(list, ilv){ if(!list||!list.length) return []; return list.map(function(a){ return {name:a.name, stat:a.stat, val:a.val, pct:!!a.pct, val2:null, stat2:null, tier:'T3'}; }); }
 
 /* ---- 未录数值常量（GDD 05b §6）：全部数据驱动，调参不改逻辑 ----
    🔴 §6 的审计结论：④熔印锻律锤 与 ⑧初录缚龙牌 存在【跨战斗永久叠加】(mythicStr/mythicHp)，
@@ -2459,6 +2603,14 @@ const UNIQ_EFFECTS = {
         party.forEach(function(al){
           if(al.hp>0){ al.buffs.push({type:'dmgReduce',val:0.30,turns:3,src:'bulwark'}); }
         });
+        /* 壁垒永驻：盾破时全队护盾刷新 */
+        if(c.t.guardEndRefresh){
+          party.forEach(function(al){
+            var sh=Math.round(al.maxHp*0.12);
+            al.shield=Math.max(al.shield||0,sh);
+            pushLog('sys','🛡️ 壁垒永驻·'+al.name+' 护盾刷新');
+          });
+        }
         mythLog('壁垒破碎！全队减伤 30%（2回合）');
       }
     },
@@ -3130,7 +3282,139 @@ const MONSTER_SKILLS = {
   me_seat_crush:{name:'王座碎击', type:'dmg', mult:1.75, cd:4, slow:0.20, slowTurns:2, desc:'王座重击，迟缓目标。'},
   me_seat_maul:{name:'初敕扑杀', type:'dmg', mult:1.60, cd:3, vuln:0.12, vulnTurns:2, desc:'扑杀造成易伤。'},
   me_seat_regen:{name:'座下回生', type:'heal', heal:0.13, cd:6, desc:'承座之力回复生命。'},
+  /* ---- 宠物技能（功能性辅助，数值为玩家主动技的 1/2） ---- */
+  pet_guard:{name:'守御', type:'buff', shield:0.05, turns:1, cd:2, desc:'开场为主人提供5%护盾'},
+  pet_gold:{name:'嗅金', type:'passive', goldMult:0.10, cd:0, desc:'战斗结束金币+10%'},
+  pet_resonance:{name:'共鸣', type:'passive', cdrOnce:1, cd:0, desc:'主人首个技能CD-1'},
+  pet_lick:{name:'舔舐', type:'passive', cleanseEvery:3, cd:0, desc:'每3回合清除1个负面'},
+  pet_alert:{name:'警戒', type:'passive', eliteDmgReduce:0.08, cd:0, desc:'受精英/BOSS伤害-8%'},
+  pet_drain:{name:'汲能', type:'passive', mpOnKill:0.15, cd:0, desc:'击杀回复15%法力'},
+  pet_shell:{name:'坚壳', type:'passive', defBonus:0.05, cd:0, desc:'主人防御+5%'},
+  pet_eye:{name:'锐眼', type:'passive', critBonus:0.03, cd:0, desc:'主人暴击率+3%'},
+  pet_cheer:{name:'鼓舞', type:'buff', atkBoost:0.08, turns:1, cd:4, desc:'每4回合主人攻击+8%'},
+  pet_shadow:{name:'遁影', type:'passive', evaBonus:0.03, cd:0, desc:'闪避率+3%'},
+  pet_guide:{name:'导引', type:'passive', healEffBonus:0.10, cd:0, desc:'治疗技能效果+10%'},
+  pet_hunt:{name:'捕食', type:'passive', dotDmgBonus:0.08, cd:0, desc:'DOT伤害+8%'},
+  pet_savior:{name:'护主', type:'passive', deathSave:1, cd:0, desc:'致命伤保留1血（每场1次）'},
+  pet_dash:{name:'疾行', type:'passive', spdBonus:0.05, cd:0, desc:'主人攻速+5%'},
+  pet_awe:{name:'威压', type:'passive', startAtkDown:0.05, turns:1, cd:0, desc:'战斗开始降敌攻击5%'},
+  pet_heal:{name:'治愈', type:'heal', heal:0.12, cd:6, desc:'治疗主人12%最大生命'},
+  pet_shield:{name:'守护', type:'buff', shield:0.08, turns:1, cd:5, desc:'给主人提供8%护盾'},
+  pet_sacrifice:{name:'舍身', type:'passive', deathHeal:0.15, cd:0, desc:'宠物死亡时回复主人15%生命'},
+  pet_haste:{name:'疾吟', type:'passive', castBoost:0.15, cd:0, desc:'主人吟唱速度+15%'},
 };
+
+
+/* ==================== 宠物系统 ====================
+   遗蜕之卵(蓝, 任意怪 0.4%) 带1技 / 封敕之卵(紫, 精英+ 0.4%) 带2技 / 初敕之卵(金, BOSS 0.4%) 带3技
+   技能从 MONSTER_SKILLS 宠物池中随机投；孵化后技能定型不可变。 */
+
+function petSkillPool(rarity){
+  /* 筛选机制：
+     蓝色：不能用精英(mb_/me_/mboss_)+Boss技能
+     紫色：不能用Boss(mboss_)技能
+     金色：全池可用 */
+  var pool=[], support=[], attack=[];
+  for(var k in MONSTER_SKILLS){
+    var s=MONSTER_SKILLS[k];
+    if(!s||!s.name) continue;
+    var isElite=k.indexOf('me_')===0, isBoss=k.indexOf('mboss_')===0;
+    if(rarity==='blue'&&(isElite||isBoss)) continue;
+    if(rarity==='purple'&&isBoss) continue;
+    /* 分类：攻击(dmg/dot) vs 辅助(passive/buff/heal/debuff) */
+    if(s.type==='passive'||s.type==='buff'||s.type==='heal') support.push(k);
+    else if(s.type==='dmg'||s.type==='dot') attack.push(k);
+  }
+  return {attack:attack, support:support};
+}
+function genPetEgg(monsterKey, rarity){
+  var pools=petSkillPool(rarity);
+  if(!pools.attack.length&&!pools.support.length) return null;
+  /* 技能配额：蓝1攻1辅 / 紫1攻2辅 / 金2攻2辅 */
+  var atkCount=rarity==='gold'?2:1;
+  var supCount=rarity==='gold'?2:(rarity==='purple'?2:1);
+  var skills=[], used={};
+  function pickFrom(arr){
+    for(var tries=0;tries<100;tries++){
+      var sk=arr[rand(0,arr.length-1)];
+      if(!used[sk]){ used[sk]=true; return sk; }
+    }
+    return null;
+  }
+  /* 金色保底：至少1个pet_* 专属技 */
+  if(rarity==='gold'){
+    var petKey=Object.keys(MONSTER_SKILLS).find(function(k){ return k.indexOf('pet_')===0&&!used[k]; });
+    if(petKey){ used[petKey]=true; skills.push({id:petKey, name:MONSTER_SKILLS[petKey].name}); supCount--; }
+  }
+  /* 紫色保底：至少1个pet_* 专属技 */
+  if(rarity==='purple'){
+    var ppKey=Object.keys(MONSTER_SKILLS).find(function(k){ return k.indexOf('pet_')===0&&!used[k]; });
+    if(ppKey){ used[ppKey]=true; skills.push({id:ppKey, name:MONSTER_SKILLS[ppKey].name}); supCount--; }
+  }
+  /* 抽攻击技 */
+  for(var i=0;i<atkCount&&pools.attack.length;i++){
+    var sk2=pickFrom(pools.attack); if(!sk2) break;
+    skills.push({id:sk2, name:MONSTER_SKILLS[sk2].name});
+  }
+  /* 抽辅助技 */
+  for(var i2=0;i2<supCount&&pools.support.length;i2++){
+    var sk3=pickFrom(pools.support); if(!sk3) break;
+    skills.push({id:sk3, name:MONSTER_SKILLS[sk3].name});
+  }
+  var prefix=rarity==='gold'?'初敕':(rarity==='purple'?'封敕':'遗蜕');
+  var color=rarity==='gold'?'#ff9f3a':(rarity==='purple'?'#b06bff':'#4a9eff');
+  return {
+    uid:itemUid++, type:'pet_egg', rarity:rarity, color:color, prefix:prefix,
+    name:prefix+'之卵 · '+MONSTERS[monsterKey].name, sourceKey:monsterKey,
+    skills:skills, skillCount:skills.length, hatched:false,
+    img:'assets/monsters/'+monsterKey+'.png?v=9'
+  };
+}
+function hatchPetEgg(eggIdx){
+  if(eggIdx<0||eggIdx>=G.player.inventory.length) return;
+  var egg=G.player.inventory[eggIdx];
+  if(!egg||egg.type!=='pet_egg'||egg.hatched){ toast('无法孵化'); return; }
+  egg.hatched=true; egg.type='pet';
+  egg.name=egg.prefix+' · '+MONSTERS[egg.sourceKey].name;
+  toast('🎉 孵化！'+egg.name+' ('+egg.skillCount+'技能)');
+  save();renderAll();
+}
+function equipPet(uid){
+  if(!G.player.pet) G.player.pet=null;
+  var idx=G.player.inventory.findIndex(function(i){ return i.uid===uid; });
+  if(idx<0){ toast('宠物不在背包'); return; }
+  var old=G.player.pet;
+  if(old){ G.player.inventory.push(old); }
+  G.player.pet=G.player.inventory[idx];
+  G.player.inventory.splice(idx,1);
+  toast('🐾 装备宠物：'+G.player.pet.name);
+  save();renderAll();
+}
+function unequipPet(){
+  if(!G.player.pet){ toast('没有装备宠物'); return; }
+  G.player.inventory.push(G.player.pet);
+  G.player.pet=null;
+  toast('🐾 卸下宠物');
+  save();renderAll();
+}
+function applyPetEffects(p){
+  var pet=G.player&&G.player.pet;
+  if(!pet||!pet.skills||!pet.skills.length) return;
+  for(var i=0;i<pet.skills.length;i++){
+    var s=MONSTER_SKILLS[pet.skills[i].id];
+    if(!s) continue;
+    if(s.type==='passive'){
+      if(s.goldMult) p.goldMult=(p.goldMult||0)+s.goldMult;
+      if(s.cdrOnce) p._petCdReduce=s.cdrOnce;
+      if(s.defBonus) p.def=Math.round(p.def*(1+s.defBonus));
+      if(s.critBonus) p.crit=(p.crit||0)+s.critBonus;
+      if(s.evaBonus) p.eva=(p.eva||0)+s.evaBonus;
+      if(s.healEffBonus) p.healEff=(p.healEff||0)+s.healEffBonus;
+      if(s.spdBonus) p.spd=Math.round(p.spd*(1+s.spdBonus));
+    }
+  }
+}
+
 
 /* 地图（MVP 3 张，各含 7 种普通怪 + 精英 + BOSS） */
 const MAPS = [
@@ -3603,6 +3887,8 @@ const LEFT_TABS = [
   {key:'tower', label:'试炼塔', icon:'🗼'},
   {key:'forge', label:'锻造铺', icon:'<svg class="gi"><use href="#gi-forge"/></svg>'},
   {key:'shop',  label:'商店',   icon:'<svg class="gi"><use href="#gi-shop"/></svg>'},
+  {key:'pet',   label:'宠物',   icon:'🐾'},
+  {key:'sets',  label:'套装',   icon:'📜'},
   {key:'party', label:'组队',   icon:'<svg class="gi"><use href="#gi-party"/></svg>'},
   {key:'bestiary', label:'图鉴', icon:'📖'},
 ];
@@ -4016,19 +4302,19 @@ const FORGE_RECIPES = {
 };
 /* 重铸配方：刷新一件装备全部词条，消耗随品质递增的大量碎片 + 金币（持续消耗资源） */
 const REFORGE_COST = {
-  common:    {shards:{common:15},                                  gold:50},
-  uncommon:  {shards:{refined:20, common:10},                     gold:200},
-  rare:      {shards:{blue:25, refined:15},                        gold:800},
-  epic:      {shards:{purple:30, blue:15},                         gold:3000},
-  legendary: {shards:{orange:40, purple:20, blue:10},              gold:12000},
+  common:    {shards:{common:10},                                  gold:15},
+  uncommon:  {shards:{refined:12, common:6},                      gold:60},
+  rare:      {shards:{blue:15, refined:8},                         gold:250},
+  epic:      {shards:{purple:20, blue:8},                          gold:300},
+  legendary: {shards:{orange:25, purple:12, blue:6},               gold:1500},
 };
-/* 单词条重铸配方：刷新一件装备随机单个词条，材料要求是全部重铸的 2 倍（更高精准度代价） */
+/* 单词条重铸配方 */
 const SINGLE_REFORGE_COST = {
-  common:    {shards:{common:30},                                  gold:100},
-  uncommon:  {shards:{refined:40, common:20},                     gold:400},
-  rare:      {shards:{blue:50, refined:30},                        gold:1600},
-  epic:      {shards:{purple:60, blue:30},                         gold:6000},
-  legendary: {shards:{orange:80, purple:40, blue:20},              gold:24000},
+  common:    {shards:{common:20},                                  gold:30},
+  uncommon:  {shards:{refined:24, common:12},                     gold:120},
+  rare:      {shards:{blue:30, refined:16},                        gold:500},
+  epic:      {shards:{purple:40, blue:16},                         gold:600},
+  legendary: {shards:{orange:50, purple:24, blue:12},              gold:3000},
 };
 /* 锻造短冷却（毫秒），禁止疯狂连续点击 */
 const FORGE_COOLDOWN = 1500;
@@ -4066,6 +4352,7 @@ let MYTHIC_DECOMP_ARM=null; /* 未录分解的二次确认标记（记录上一�
 function decompose(uid){
   const idx=G.player.inventory.findIndex(i=>i.uid===uid); if(idx<0) return;
   const it=G.player.inventory[idx]; if(it.type){ toast('该物品不可分解'); return; }
+  if(it.locked){ toast('🔒 该装备已锁定，请先解锁'); return; }
   /* 未录：可分解，但需二次确认；且 ownedMythic 不回收——分解后该 Boss 永不再掉 */
   if(it.mythic && MYTHIC_DECOMP_ARM!==uid){
     MYTHIC_DECOMP_ARM=uid;
@@ -4082,8 +4369,8 @@ function decompose(uid){
   save();renderAll();
 }
 function decomposeByRarity(rar){
-  /* 批量分解永远跳过未录（唯一物品必须单件二次确认） */
-  const list=G.player.inventory.filter(i=>!i.type && i.rarity===rar && !i.mythic);
+  /* 批量分解跳过锁定与未录物品 */
+  const list=G.player.inventory.filter(i=>!i.type && i.rarity===rar && !i.mythic && !i.locked);
   if(list.length===0){ toast('没有可分解的'+rarObj(rar).name+'装备'); return; }
   const tot={};
   list.forEach(it=>{ const g=decompActual(it); for(const t in g) tot[t]=(tot[t]||0)+g[t]; });
@@ -4095,6 +4382,53 @@ function decomposeByRarity(rar){
   save();renderAll();
 }
 function decomposeAllWhite(){ decomposeByRarity('common'); }
+
+/* ---- 装备锁定 ---- */
+function toggleLock(uid){
+  var it=G.player.inventory.find(function(i){ return i.uid===uid; });
+  if(!it){ toast('物品不存在'); return; }
+  it.locked=!it.locked;
+  toast(it.locked?'🔒 已锁定 '+it.name:'🔓 已解锁 '+it.name);
+  save(); renderInspect();
+}
+
+/* ---- 药水分解 ---- */
+function decomposeFlask(uid){
+  var idx=G.player.inventory.findIndex(function(i){ return i.uid===uid; });
+  if(idx<0) return;
+  var fl=G.player.inventory[idx];
+  if(!fl||fl.type!=='flask'){ toast('这不是药水'); return; }
+  var lv=fl.level||0, shards={};
+  if(lv<=2) shards={common:rand(2,4)};
+  else if(lv<=4) shards={refined:rand(2,3), common:rand(1,2)};
+  else if(lv<=6) shards={blue:rand(2,3), refined:rand(1,2)};
+  else if(lv<=8) shards={purple:rand(1,2), blue:rand(1,2)};
+  else shards={orange:1, purple:rand(1,2)};
+  G.player.inventory.splice(idx,1);
+  for(var t in shards) matAdd(t,shards[t]);
+  var txt=Object.keys(shards).map(function(t){ return SHARD_TYPES[t].icon+shards[t]; }).join(' ');
+  pushLog('sys','🧪 分解药水 '+fl.name+' → '+txt); toast('药水分解：'+txt);
+  save();renderAll();
+}
+function decomposeAllFlasks(){
+  var flasks=G.player.inventory.filter(function(i){ return i.type==='flask'; });
+  if(!flasks.length){ toast('背包里没有药水'); return; }
+  var tot={};
+  flasks.forEach(function(fl){
+    var lv=fl.level||0, shards={};
+    if(lv<=2) shards={common:rand(2,4)};
+    else if(lv<=4) shards={refined:rand(2,3), common:rand(1,2)};
+    else if(lv<=6) shards={blue:rand(2,3), refined:rand(1,2)};
+    else if(lv<=8) shards={purple:rand(1,2), blue:rand(1,2)};
+    else shards={orange:1, purple:rand(1,2)};
+    for(var t in shards) tot[t]=(tot[t]||0)+shards[t];
+  });
+  for(var t in tot) matAdd(t,tot[t]);
+  var txt=Object.keys(tot).map(function(t){ return SHARD_TYPES[t].icon+tot[t]; }).join(' ');
+  pushLog('sys','🧪 批量分解药水 ×'+flasks.length+' → '+txt); toast('全分解：'+txt);
+  G.player.inventory=G.player.inventory.filter(function(i){ return i.type!=='flask'; });
+  save();renderAll();
+}
 
 /* ---- 锻造 ---- */
 function canForge(rar){
@@ -4479,6 +4813,52 @@ function doReforgeOne(uid){
   pushLog('sys','🔧 单词条重铸 '+it.name); toast('单词条重铸完成：'+it.name);
   save();renderAll();
 }
+/* ---- 指定词条重铸（点击具体词条投骰替换，材料与随机单词条相同） ---- */
+function reforgeTargetAffix(it, idx){
+  if(!it.affixes||idx<0||idx>=it.affixes.length) return false;
+  var oldAff=it.affixes[idx];
+  var ri=rarObj(it.rarity);
+  var ilv=itemIlv(it);
+  var excl=[];
+  for(var i=0;i<it.affixes.length;i++){
+    if(i===idx) continue;
+    var f=it.affixes[i]&&(it.affixes[i].family||it.affixes[i].stat);
+    if(f) excl.push(f);
+  }
+  var kind=(oldAff&&oldAff.kind==='prefix')?'prefix':(oldAff&&oldAff.kind==='suffix'?'suffix':null);
+  var aff=rollOneAffix(ri, ilv, it.slot, it.wType, excl.concat(oldAff&&oldAff.family?[oldAff.family]:[]), kind);
+  if(!aff) aff=rollOneAffix(ri, ilv, it.slot, it.wType, excl, kind);
+  if(!aff) return false;
+  it.affixes[idx]=aff;
+  it.name=equipName(it);
+  return true;
+}
+function canReforgeTarget(uid, idx){
+  var it=findItem(uid); if(!it||it.type) return {ok:false, reason:'无效目标'};
+  if(it.unique||it.mythic) return {ok:false, reason:'专属装备无法重铸'};
+  if(!it.affixes||idx<0||idx>=it.affixes.length) return {ok:false, reason:'无效词条'};
+  var cost=SINGLE_REFORGE_COST[it.rarity]; if(!cost) return {ok:false, reason:'无法重铸'};
+  if(!matCost(cost.shards)) return {ok:false, reason:'碎片不足'};
+  if(G.player.gold<cost.gold) return {ok:false, reason:'金币不足'};
+  return {ok:true, it:it, cost:cost, idx:idx};
+}
+function doReforgeTarget(uid, idx){
+  var res=canReforgeTarget(uid, idx); if(!res.ok){ toast(res.reason); return; }
+  var it=res.it, cost=res.cost;
+  matSpend(cost.shards); G.player.gold-=cost.gold;
+  reforgeTargetAffix(it, idx);
+  pushLog('sys','🎯 指定词条重铸 '+it.name); toast('指定词条重铸完成：'+it.name);
+  /* 清除选中状态 */
+  if(G.reforgeSel) G.reforgeSel[uid]=-1;
+  save();renderAll();
+}
+/* 选中/取消选中指定词条 */
+function selectReforgeAffix(uid, idx){
+  if(!G.reforgeSel) G.reforgeSel={};
+  if(G.reforgeSel[uid]===idx) G.reforgeSel[uid]=-1; else G.reforgeSel[uid]=idx;
+  renderContent();
+}
+function selectReforgeDo(uid, idx){ doReforgeTarget(uid, idx); }
 
 /* ---- 出售 ---- */
 function sellItem(uid){
@@ -4525,7 +4905,11 @@ function genEquip(tier, forceRarity, forceSlot){
       armorType=atKeys[rand(0,atKeys.length-1)];
       const baseTier=Math.min(tier,3);
       tierIdx=(Math.random()<0.2)?Math.min(3,baseTier+1):baseTier;
-    } else { isWeapon=false; /* 护手/戒指/护符 */ }
+    } else if(slot==='hands'){
+      isWeapon=false;
+      const atKeys=Object.keys(ARMOR_TYPES);
+      armorType=atKeys[rand(0,atKeys.length-1)];
+    } else { isWeapon=false; /* 戒指/护符 */ }
   } else {
     isWeapon = Math.random()<0.32;
     if(isWeapon){ slot='weapon'; }
@@ -4542,6 +4926,7 @@ function genEquip(tier, forceRarity, forceSlot){
       } else { /* 护手/戒指/护符 */
         const acc=['hands','ring','amulet'];
         slot=acc[rand(0,2)];
+        if(slot==='hands'){ const atKeys=Object.keys(ARMOR_TYPES); armorType=atKeys[rand(0,atKeys.length-1)]; }
       }
     }
   }
@@ -4655,11 +5040,16 @@ function playerUnit(){
   const equipped=(G.player.equippedSkills||[]).filter(function(id){
     const d=SKILLS[id]; return d && skillWeaponOk(d) && skillLevel(id)>0;
   });
-  const skills=equipped.map(function(id){ return {
-    id, lv:skillLevel(id), cd:0, def:SKILLS[id],
-    cdBase:Math.max(1, Math.ceil((SKILLS[id].cd||1)/(1+cdr))),
-    cost:8+(SKILLS[id].cd||1)*3
-  }; });
+  const skills=equipped.map(function(id){
+    var cb=Math.max(1, Math.ceil((SKILLS[id].cd||1)/(1+cdr+(SKILLS[id].school==='lightning'&&s.cdrLightning?-s.cdrLightning:0))));
+    if(id==='uni_strike'&&s.uniStrikeCdReduce) cb=Math.max(1, cb+s.uniStrikeCdReduce);
+    if(SKILLS[id].type==='heal'&&s.healCdReduce) cb=Math.max(1, cb+s.healCdReduce);
+    return { id, lv:skillLevel(id), cd:0, def:SKILLS[id], cdBase:cb, cost:8+(SKILLS[id].cd||1)*3 };
+  });
+  /* 初始化吟唱时间 */
+  skills.forEach(function(sk){
+    if(!sk.def._castTime){ var ct={base:50,mid:80,high:110,boss:150,aura:0}; sk.def._castTime=ct[sk.def.tier]||60; }
+  });
   const maxMp=Math.round(s.mp);
   var p = {
     name:G.player.name, side:'player', emoji:'🗡️',
@@ -4673,6 +5063,7 @@ function playerUnit(){
     hit:s.hit, eva:Math.min(0.35, s.eva+(aura.eva||0)),
     lifesteal:Math.min(AFFIX_CAPS.lifesteal, s.lifesteal||0),
     dmgReduce:Math.min(AFFIX_CAPS.dmgReduce, s.dmgReduce||0),
+    castSpeed:Math.min(AFFIX_CAPS.castSpeed, s.castSpeed||0),
     skillDmg:Math.min(AFFIX_CAPS.skillDmg, (s.skillDmg||0)+aura.skillDmg),
     eliteBossDmg:Math.min(AFFIX_CAPS.eliteBossDmg, s.eliteBossDmg||0), healEff:s.healEff||0,
     shieldPct:Math.min(AFFIX_CAPS.shieldPct, s.shieldPct||0), reflectDmg:Math.min(AFFIX_CAPS.reflectDmg, s.reflectDmg||0), triggerCrit:Math.min(AFFIX_CAPS.triggerCrit, s.triggerCrit||0), triggerThorns:Math.min(AFFIX_CAPS.triggerThorns, s.triggerThorns||0), triggerDual:Math.min(AFFIX_CAPS.triggerDual, s.triggerDual||0), triggerShadow:Math.min(AFFIX_CAPS.triggerShadow, s.triggerShadow||0), triggerMercy:Math.min(AFFIX_CAPS.triggerMercy, s.triggerMercy||0),
@@ -4681,6 +5072,7 @@ function playerUnit(){
     _regenPct:aura.regen||0,  /* 恢复光环：每回合自动回血 */
     /* 未录·敕令共鸣：本次战斗生效的未录 id 列表 + 效果状态位 */
     uniq:mythicIds(), noHeal:false, _dmgAcc:0, _curSkill:null,
+    stunBonusDmg:s.stunBonusDmg||0, onKillCdReset:s.onKillCdReset||0, dotExtend:s.dotExtend||0, critPerDebuff:s.critPerDebuff||0, dmgPerLostHp:s.dmgPerLostHp||0, lifestealLowHp:s.lifestealLowHp||0, hpDrain:s.hpDrain||0, onKillHeal:s.onKillHeal||0, onKillNoHeal:s.onKillNoHeal||0, debuffExtend:s.debuffExtend||0, triggerDotDbl:s.triggerDotDbl||0, dmgReduceShielded:s.dmgReduceShielded||0, selfHealReduce:s.selfHealReduce||0, healLowHpDouble:s.healLowHpDouble||0, healCdReduce:s.healCdReduce||0, healOverflowShield:s.healOverflowShield||0, healCritCleanse:s.healCritCleanse||0, healCanCrit:s.healCanCrit||0, healFreeCast:s.healFreeCast||0, maxHpPct:s.maxHpPct||0, armorEffBonus:s.armorEffBonus||0, shieldBreakDebuff:s.shieldBreakDebuff||0, selfVulnOnBreak:s.selfVulnOnBreak||0, skillSlowChance:s.skillSlowChance||0, skillCostPct:s.skillCostPct||0, cdrOnFirstCrit:s.cdrOnFirstCrit||0, cdrLightning:s.cdrLightning||0, selfStunOnCast:s.selfStunOnCast||0, guardDmgReduce:s.guardDmgReduce||0, guardEndRefresh:s.guardEndRefresh||0, auraEffectBoost:s.auraEffectBoost||0, auraAllyDmg:s.auraAllyDmg||0, onHitHeal:s.onHitHeal||0, sunderAtkDown:s.sunderAtkDown||0, sunderKillCdReset:s.sunderKillCdReset||0, uniStrikeForceCrit:s.uniStrikeForceCrit||0, uniStrikeCdReduce:s.uniStrikeCdReduce||0, critBonusDmg:s.critBonusDmg||0, critDmgVsCC:s.critDmgVsCC||0, autoHealOnDeath:s.autoHealOnDeath||0, healTargetDmgReduce:s.healTargetDmgReduce||0,
     /* 职业特性：由 G.player.trait（15 级觉醒选定，存盘）派生；未选则无特性 */
     origin:(G.account&&G.account.origin)||null,
     passive:(function(){
@@ -4707,6 +5099,8 @@ function playerUnit(){
     }
   })();
   if(G.player._godMode){ p.maxHp=999999; p.hp=999999; p.atk=999999; p.matk=999999; }
+  applyPetEffects(p);
+  if(p.maxHpPct!==0){ p.maxHp=Math.round(p.maxHp*(1+p.maxHpPct)); p.hp=Math.min(p.maxHp,p.hp); }
   return p;
 }
 function enemyUnit(def, tier){
@@ -4738,6 +5132,10 @@ function enemyUnit(def, tier){
   if(fixed && fixed.length){ picks = fixed.slice(); }
   else { const fb = monSkillPool(def.boss?'boss':def.elite?'elite':'normal'); picks = fb.keys; lv = fb.lv; }
   u.skills=picks.map(function(k){ return {def:MONSTER_SKILLS[k], lv:lv, cd:0, cost:0}; });
+  /* 初始化吟唱时间（不能等 castSkill 再赋值，否则首轮读默认 20 太快） */
+  u.skills.forEach(function(sk){
+    if(!sk.def._castTime){ var ct={base:50,mid:80,high:110,boss:150,aura:0}; sk.def._castTime=ct[sk.def.tier]||60; }
+  });
   if(picks.indexOf('mboss_drain')>=0) u.lifesteal=0.35; /* 生命汲取：技能吸血 */
   return u;
 }
@@ -4751,6 +5149,24 @@ function effSpd(u){
 }
 
 /* ==================== ATB 自动战斗引擎 ==================== */
+function petUnit(){
+  var pet=G.player&&G.player.pet; if(!pet||!pet.skills||!pet.skills.length) return null;
+  var p=playerUnit();
+  var maxHp=Math.round(p.maxHp*(pet.rarity==='gold'?0.30:(pet.rarity==='purple'?0.20:0.12)));
+  var atk=Math.round(p.atk*(pet.rarity==='gold'?0.20:(pet.rarity==='purple'?0.14:0.08)));
+  var u={name:pet.name, side:'player', pet:true, img:pet.img||'',
+    rarity:pet.rarity, prefix:pet.prefix,
+    maxHp:maxHp, hp:maxHp, def:Math.round(p.def*0.6), spd:Math.round(p.spd*0.7),
+    atk:atk, matk:Math.round(atk*0.6), crit:p.crit, critDmg:p.critDmg||1.5,
+    skills:[], buffs:[], shield:0, dmgReduce:(pet.rarity==='gold'?0.05:0), time:0};
+  for(var i=0;i<pet.skills.length;i++){
+    var sk=MONSTER_SKILLS[pet.skills[i].id]; if(!sk||sk.type==='passive') continue;
+    u.skills.push({id:pet.skills[i].id, def:sk, lv:1, cd:0, cost:0, cdBase:sk.cd||3});
+  }
+  /* 初始化吟唱时间 */
+  u.skills.forEach(function(sk){ if(!sk.def._castTime){ var ct={base:50,mid:80,high:110,boss:150,aura:0}; sk.def._castTime=ct[sk.def.tier]||60; } });
+  return u;
+}
 function startBattle(enemyDefOrList, label){
   const defs = Array.isArray(enemyDefOrList) ? enemyDefOrList : [enemyDefOrList];
   /* 图鉴：记录已遭遇的怪物（用于问号未解锁态） */
@@ -4761,7 +5177,7 @@ function startBattle(enemyDefOrList, label){
   }
   const enemies = defs.map(function(d){ return enemyUnit(d, G.mapTier); });
   const b={
-    player:playerUnit(), enemies:enemies,
+    player:playerUnit(), pet:petUnit(), enemies:enemies,
     over:false, result:null, turn:0, label:label||''
   };
   G.battle=b;
@@ -4775,21 +5191,55 @@ function startBattle(enemyDefOrList, label){
 function tickBattle(){
   if(!G||!G.battle) return;
   const b=G.battle; if(!b||b.over) return;
-  b.player.time+=effSpd(b.player);
-  b.enemies.forEach(function(e){ e.time+=effSpd(e); });
+  /* 吟唱进度推进 */
+  [b.player,b.pet].concat(b.enemies).forEach(function(u){
+    if(!u||u.hp<=0||!u._casting) return;
+    var spd=effSpd(u);
+    var cs=u.castSpeed||0;
+    u._casting.progress+=Math.round(spd*(1+cs));
+    if(u._casting.progress>=u._casting.castTime){
+      u._casting.progress=0;
+      var cs2=u._casting;
+      u._casting=null;
+      if(cs2.target&&cs2.target.hp>0){
+        castSkill(u,cs2.target,cs2.sk);
+        if(cs2.sk2){ pushLog(u.side,'🔁 '+u.name+' 禁卷共鸣·第二发！'); castSkill(u,cs2.target,cs2.sk2); }
+      } else { /* 目标已死，找新目标 */
+        var foes=G.battle.enemies.filter(function(e){ return e.hp>0; });
+        if(foes.length) castSkill(u,foes[0],cs2.sk);
+      }
+    }
+  });
+  b.player.time+=b.player._casting?0:effSpd(b.player);
+  if(b.pet&&b.pet.hp>0) b.pet.time+=b.pet._casting?0:effSpd(b.pet);
+  b.enemies.forEach(function(e){ e.time+=e._casting?0:effSpd(e); });
   let guard=0;
   while(!b.over && guard<80){
     guard++;
     /* 取 time 最高的存活单位出手（平局玩家优先，保证 ATB 公平） */
-    const cand=[b.player].concat(b.enemies).filter(function(u){ return u.hp>0 && u.time>=100; });
+    const cand=[b.player].concat(b.pet&&b.pet.hp>0?[b.pet]:[]).concat(b.enemies).filter(function(u){ return u.hp>0 && u.time>=100 && !u._casting; });
     cand.sort(function(a,c){ return (c.time-a.time) || (a.side==='player'?-1:1); });
     const actor=cand[0];
     if(!actor) break;
     actor.time-=100;
-    if(actor.side==='player'){
+    if(actor.pet){
+      /* 宠物逻辑：见 unitAct 内部处理治疗/攻击 */
+      unitAct(actor, b.player);
+    } else if(actor.side==='player'){
       const foe=b.enemies.find(function(e){ return e.hp>0; });
       if(foe) unitAct(actor,foe);
     } else {
+      /* 仇恨系统：选仇恨最高的友方单位 */
+      var pet=b.pet&&b.pet.hp>0?b.pet:null;
+      if(!actor._hatred){ actor._hatred={}; if(b.player) actor._hatred[b.player.name]=0; if(pet) actor._hatred[pet.name]=200; }
+      var cands=pet?[b.player, pet]:[b.player];
+      var target=null, maxH=0;
+      cands.forEach(function(u){
+        var h=(actor._hatred[u.name]||0);
+        if(u.buffs&&u.buffs.some(function(x){ return x.type==='taunt'&&x.turns>0; })) h*=3;
+        if(h>maxH||(h===maxH&&u.pet)){ maxH=h; target=u; }
+      });
+      if(!target) target=b.player;
       /* 嘲讽：若敌方有 taunt buff，优先攻击施放嘲讽的玩家（组队时有用） */
       var target=b.player;
       if(G.battle && G.battle.player){
@@ -4804,6 +5254,8 @@ function tickBattle(){
     }
   }
   if(!b.over) applyFlasks(b.player);   /* 药水瓶自动回复（血/蓝） */
+  /* 仇恨衰减 */
+  b.enemies.forEach(function(e){ if(e._hatred){ for(var hk in e._hatred) e._hatred[hk]=Math.floor(e._hatred[hk]*0.90); } });
   b.turn++;
   renderBattleScreen();
   checkBattleEnd();
@@ -4851,9 +5303,12 @@ function applyFlasks(u){
   }
 }
 function processStartBuffs(u){
+  if(u.hpDrain>0&&u.side==='player'){ var drn=Math.round(u.maxHp*u.hpDrain); u.hp=Math.max(1,u.hp-drn); }
   for(const buf of u.buffs){
     if(buf.type==='dot'&&buf.turns>0){
-      const d=Math.round(buf.dmg); u.hp-=d;
+      let d=Math.round(buf.dmg);
+      if(u.triggerDotDbl>0&&Math.random()<u.triggerDotDbl){ d*=2; pushLog(u.side,'☠️ 毒素谐振·双倍毒跳！'); }
+      u.hp-=d;
       pushLog(u.side,(u.side==='player'?'🗡️':'💀')+' '+u.name+' 受到持续伤害 '+d);
     }
   }
@@ -4886,7 +5341,26 @@ function unitAct(actor,foe){
   if(actor.hp<=0) return;
   /* 眩晕：本回合无法行动（stun 回合数由 processStartBuffs 递减） */
   if(actor.buffs.some(x=>x.type==='stun'&&x.turns>0)){
+    if(actor._casting){ actor._casting=null; pushLog(actor.side,'💫 '+actor.name+' 吟唱被打断！'); }
     pushLog(actor.side,(actor.side==='player'?'🗡️':'💀')+' '+actor.name+' 被眩晕，无法行动！');
+    return;
+  }
+  /* 宠物行动：有治疗技且主人低血则治疗，否则攻击 */
+  if(actor.pet){
+    actor.skills.forEach(function(sk){ if(sk.cd>0) sk.cd--; });
+    var foes=G.battle.enemies.filter(function(e){ return e.hp>0; });
+    var healRdy=actor.skills.filter(function(sk){ return sk.cd<=0&&sk.def&&(sk.def.type==='heal'||(sk.def.type==='buff'&&sk.def.shield)); });
+    if(healRdy.length && foe && foe.side==='player' && foe.hp<foe.maxHp*0.6 && Math.random()<0.7){
+      healRdy[0].cd=healRdy[0].cdBase||3;
+      castSkill(actor,foe,healRdy[0]);
+    } else if(foes.length){
+      var dmgRdy=actor.skills.filter(function(sk){ return sk.cd<=0; });
+      if(dmgRdy.length){
+        var sk=dmgRdy[0]; sk.cd=sk.cdBase||3;
+        var target=foes[rand(0,foes.length-1)];
+        castSkill(actor,target,sk);
+      } else { /* 普攻 */ dealDamage(actor,foes[0],actor.atk,false); }
+    }
     return;
   }
   if(actor.side==='player'){
@@ -4901,18 +5375,21 @@ function unitAct(actor,foe){
     const ready=actor.skills.filter(sk=>sk.cd<=0 && actor.mp>=sk.cost && skillPrio(actor,sk)<99)
       .sort((a,b)=>skillPrio(actor,a)-skillPrio(actor,b) || (b.def.mult||0)-(a.def.mult||0));
     if(ready.length){
-      actor.mp-=ready[0].cost; castSkill(actor,foe,ready[0]);
-      /* 法师·双重施法：本次施法成功后，若冷却就绪则额外再施放一次技能 */
-      if(actor.passive && actor.passive.type==='dualCast'){
-        if(actor.passive.dualCastCd>0) actor.passive.dualCastCd--;
-        else {
-          const r2=actor.skills.filter(sk=>sk.cd<=0 && actor.mp>=sk.cost && skillPrio(actor,sk)<99)
-            .sort((a,b)=>skillPrio(actor,a)-skillPrio(actor,b) || (b.def.mult||0)-(a.def.mult||0));
-          if(r2.length){ actor.mp-=r2[0].cost; pushLog(actor.side,'🔁 '+actor.name+' 禁卷共鸣·双重施法！'); castSkill(actor,foe,r2[0]); actor.passive.dualCastCd=2; }
-        }
+      /* 开始吟唱 */
+      var chosen=ready[0];
+      /* 双重施法：玩家多选一个 */
+      if(actor.passive&&actor.passive.type==='dualCast'&&ready.length>1&&actor.passive.dualCastCd<=0){
+        actor._casting={sk:chosen, sk2:ready[1], progress:0, target:foe, castTime:(chosen.def._castTime||20)};
+        actor.passive.dualCastCd=2;
+        actor.mp-=chosen.cost+(ready[1].cost||0);
+        pushLog(actor.side,'🎵 '+actor.name+' 吟唱【'+chosen.def.name+'】+【'+ready[1].def.name+'】（双重）...');
+      } else {
+        if(actor.passive&&actor.passive.type==='dualCast'&&actor.passive.dualCastCd>0) actor.passive.dualCastCd--;
+        actor._casting={sk:chosen, progress:0, target:foe, castTime:(chosen.def._castTime||20)};
+        actor.mp-=chosen.cost;
+        pushLog(actor.side,'🎵 '+actor.name+' 吟唱【'+chosen.def.name+'】...');
       }
-    }
-    else basicAttack(actor,foe);
+    } else { dealDamage(actor,foe,actor.atk,false); }
     /* —— 职业被动：行动后团队效果 —— */
     if(actor.passive){
       const P=actor.passive;
@@ -4943,12 +5420,15 @@ function unitAct(actor,foe){
       actor.hp=Math.min(actor.maxHp, actor.hp+Math.round(actor.maxHp*actor._regenPct));
     }
   } else {
-    /* 怪物：有可用技能则施放（独立于玩家技能池），否则普通攻击 */
+    /* 怪物：有可用技能则吟唱施放，否则普通攻击 */
     actor.skills.forEach(sk=>{if(sk.cd>0)sk.cd--;});
     const ready=actor.skills.filter(sk=>sk.cd<=0 && (actor.mp>=(sk.cost||0)) && skillPrio(actor,sk)<99)
       .sort((a,b)=>skillPrio(actor,a)-skillPrio(actor,b) || (b.def.mult||0)-(a.def.mult||0));
-    if(ready.length){ actor.mp-=ready[0].cost||0; castSkill(actor,foe,ready[0]); }
-    else basicAttack(actor,foe);
+    if(ready.length){
+      actor.mp-=ready[0].cost||0;
+      actor._casting={sk:ready[0], progress:0, target:foe, castTime:(ready[0].def._castTime||20)};
+      pushLog(actor.side,'🎵 '+actor.name+' 吟唱【'+ready[0].def.name+'】...');
+    } else basicAttack(actor,foe);
     actor.mp=Math.min(actor.maxMp, actor.mp+3);
   }
 }
@@ -4973,6 +5453,7 @@ function dealDamage(a,t,power,magical){
     return {dmg:0, miss:true, crit:false};
   }
   let defense = (hk&&hk.ignoreDef) ? 0 : (magical ? (t.mdef||0) : (t.def||0));
+  if(t.armorEffBonus>0) defense*=(1+t.armorEffBonus);
   /* 战士·破阵执戟：累计破甲无视目标部分防御（满 5 层 = 20%），对高防 BOSS 增伤显著 */
   if(a.passive && a.passive.type==='armorBreak'){
     const ig=(a.passive.armorStacks||0)*0.04;
@@ -4981,18 +5462,30 @@ function dealDamage(a,t,power,magical){
   let raw = power * (1 - defense/(defense+220));
   let dmg = Math.max(1, Math.round(raw));
   let crit=false;
-  const _forceCrit=(hk&&hk.forceCrit) || a.forceNextCrit;
+  const _forceCrit=(hk&&hk.forceCrit) || a.forceNextCrit || (a.uniStrikeForceCrit && a._curSkill==='uni_strike');
   const _critBuff=(a.buffs||[]).find(function(x){ return x.type==='critBuff' && x.turns>0; });
-  const effCrit=(a.crit||0)+(_critBuff?_critBuff.val:0);
+  const effCrit=(a.crit||0)+(_critBuff?_critBuff.val:0) + ((a.critPerDebuff>0&&t&&t.buffs)?(t.buffs.filter(function(x){ return x.turns>0; }).length*a.critPerDebuff):0);
   if(_forceCrit || Math.random() < effCrit){
     /* critDmgCap：未录①锈冠·褪印的必暴走这里夹取（GDD 05b §6.5）。满 T1 时 critDmg 可达 4.6+，
        而"无视防御 + 必暴"本身已是双重乘算，不夹的话对 tier9 Boss 单发可达 2.6 万。 */
     let _cd=(a.critDmg||1.5);
     /* 刺客·致命韵律：必暴那下额外 +30% 暴伤（装备暴击词条给不了此维度，满暴流仍有价值） */
     if(a.forceNextCrit && a.passive && a.passive.type==='lethalRhythm' && a.passive.critDmgBonus) _cd=_cd*(1+a.passive.critDmgBonus);
+    if(a.critDmgVsCC>0 && t && t.buffs && t.buffs.some(function(b){ return b.type==='slow'||b.type==='stun'; })) _cd*=(1+a.critDmgVsCC);
     const cdCap=(hk&&hk.critDmgCap)?hk.critDmgCap:Infinity;
     crit=true; dmg=Math.round(dmg*Math.min(_cd, cdCap));
     if(a.forceNextCrit){ a.forceNextCrit=false; if(a.side==='player') pushLog(a.side,'🔥 '+a.name+' 致命韵律·必暴！'); }
+    if(crit && a.side==='player' && a.cdrOnFirstCrit<0 && !a._critThisTurn){
+      a._critThisTurn=true;
+      if(G.battle && G.battle.playerSkills){
+        var maxCdId=null,maxCdV=0;
+        for(var ks in G.battle.playerSkills){
+          if(G.battle.playerSkills[ks].cd>maxCdV){ maxCdV=G.battle.playerSkills[ks].cd; maxCdId=ks; }
+        }
+        if(maxCdId){ G.battle.playerSkills[maxCdId].cd=Math.max(0,G.battle.playerSkills[maxCdId].cd+a.cdrOnFirstCrit);
+          pushLog(a.side,'⚡ '+a.name+' 铁腕·冷却 -1'); }
+      }
+    }
     /* 破绽触发：暴击时概率叠 1 层破甲（armorBreak trait） */
     if(a.side==='player' && a.triggerCrit && Math.random()<a.triggerCrit && a.passive && a.passive.type==='armorBreak' && (a.passive.armorStacks||0)<5){
       a.passive.armorStacks++; pushLog(a.side,'⚡ 破绽触发·叠层 '+a.passive.armorStacks+'/5');
@@ -5002,9 +5495,36 @@ function dealDamage(a,t,power,magical){
   if(vuln) dmg=Math.round(dmg*(1+vuln.val));
   applyDamage(t,dmg,a);
   /* 即时击杀奖励：每只怪死后立刻给经验和道具 */
-  if(t.hp<=0&&t.side==='enemy') killEnemy(t);
+  /* 仇恨累计：敌人记录每个攻击者的累计伤害 */
+  if(a&&t._hatred){ t._hatred[a.name]=(t._hatred[a.name]||0)+dmg; }
+  if(t.hp<=0&&t.side==='enemy'){
+    killEnemy(t);
+    /* 全局击杀效果 */
+    if(a.onKillHeal>0){
+      var oh=Math.round(a.maxHp*a.onKillHeal);
+      a.hp=Math.min(a.maxHp,a.hp+oh);
+      if(oh>0) pushLog(a.side,'💀 '+a.name+' 收割·全团回复 '+oh+' 生命');
+    }
+    if(a.onKillCdReset>0 && Math.random()<a.onKillCdReset && G.battle && G.battle.playerSkills){
+      var longId=null,longCd=0;
+      for(var k in G.battle.playerSkills){
+        if(G.battle.playerSkills[k].cd>longCd){ longCd=G.battle.playerSkills[k].cd; longId=k; }
+      }
+      if(longId){ G.battle.playerSkills[longId].cd=0; pushLog(a.side,'🔄 '+a.name+' 高歌·重置【'+(SKILLS[longId]?SKILLS[longId].name:longId)+'】冷却'); }
+    }
+    /* 缚龙收网：破甲击杀重置破甲冷却 */
+    if(a.sunderKillCdReset && G.battle && G.battle.playerSkills && G.battle.playerSkills['sunder_strike']){
+      G.battle.playerSkills['sunder_strike'].cd=0;
+      pushLog(a.side,'⛓️ '+a.name+' 缚龙收网·破甲冷却重置');
+    }
+    if(a.onKillNoHeal>0 && G.battle && G.battle.enemies){
+      G.battle.enemies.forEach(function(e){ if(e.hp>0) e.buffs.push({type:'noHeal',turns:a.onKillNoHeal}); });
+      pushLog(a.side,'🔇 '+a.name+' 封喉余音·全敌禁疗 '+a.onKillNoHeal+' 回合');
+    }
+  }
   if(a.lifesteal && !a.noHeal){
     let heal=Math.round(dmg*a.lifesteal);
+    if(a.lifestealLowHp>1 && a.hp<a.maxHp*0.3) heal=Math.round(heal*a.lifestealLowHp);
     /* 单次回复 ≤ 3% 最大生命（GDD 02 §7.5 H1）：只约束玩家侧，
        怪物的技能吸血（mboss_drain 0.35）是设计好的 Boss 机制，不在此列 */
     if(a.side==='player') heal=Math.min(heal, Math.round(a.maxHp*AFFIX_CAPS.lifestealPerHit));
@@ -5041,6 +5561,8 @@ function castSkill(a,t,sk){
   const _hc = (a.uniq&&a.uniq.length) ? {a:a,t:t,sk:sk,b:G.battle} : null;
   if(_hc){ a._dmgAcc=0; a._curSkill=sk.id||null; fireHook(a,'preCast',_hc); }
   const def=sk.def,lv=sk.lv;
+  /* 技能吟唱时间：基于稀有度 */ 
+  if(!def._castTime){ var ct={base:50,mid:80,high:110,boss:150,aura:0}; def._castTime=ct[def.tier]||60; }
   /* dualCast + chain_lightning synergy：双重施法时不扣 MP */
   if(a._dualFree){ a.mp+=sk.cost; a._dualFree=false; }
   const mult=def.mult+(lv-1)*0.08;
@@ -5074,6 +5596,9 @@ function castSkill(a,t,sk){
     let power=(magical?a.matk:a.atk)*mult*_originPenalty;
     if(a.skillDmg) power*=(1+a.skillDmg);
     if(a.eliteBossDmg&&(t.isElite||t.isBoss)) power*=(1+a.eliteBossDmg);
+    if(a.stunBonusDmg>0 && def.stun) power*=(1+a.stunBonusDmg);
+    if(a.critBonusDmg>0) power*=(1+a.critBonusDmg);
+    if(a.dmgPerLostHp>0){ var lostPct=1-(a.hp/a.maxHp); power*=(1+lostPct*a.dmgPerLostHp); }
     const r=dealDamage(a,t,power,magical);
     if(r.miss) pushLog(a.side,'✨ '+a.name+' 施放【'+def.name+'】'+lv+'级 对 '+t.name+' 落空！');
     else pushLog(a.side,'✨ '+a.name+' 施放【'+def.name+'】'+lv+'级 对 '+t.name+' 造成 '+r.dmg+(r.crit?' 暴击!':''));
@@ -5091,6 +5616,11 @@ function castSkill(a,t,sk){
     }
     if(def.slow) t.buffs.push({type:'slow',val:def.slow,turns:def.slowTurns});
     if(def.vuln) t.buffs.push({type:'vuln',val:def.vuln,turns:def.vulnTurns||2});
+    if(a.sunderAtkDown>0 && sk.id==='sunder_strike') t.buffs.push({type:'atkDown',val:a.sunderAtkDown,turns:2});
+    if(a.skillSlowChance>0 && !r.miss && Math.random()<a.skillSlowChance){
+      t.buffs.push({type:'slow',val:0.20,turns:2});
+      pushLog(a.side,'🥾 '+esc(a.name)+' 束缚·减速20%');
+    }
     if(def.hits&&def.hits>1){
       for(let h=1;h<def.hits;h++){
         const r2=dealDamage(a,t,power,magical);
@@ -5111,7 +5641,8 @@ function castSkill(a,t,sk){
     /* BUG-4 fix: 只有 def.vuln 存在时才推易伤（旧码无条件 push→poison_edge 无 vuln→NaN 软锁） */
     /* BUG-5 fix: 使用等级加成后的 mult（旧码用 def.mult→dot 技能完全不升级） */
     const dotPower = (magical ? a.matk : a.atk) * mult;
-    t.buffs.push({type:'dot', dmg: dotPower, turns: def.turns});
+    const dotTurns = def.turns + (a.dotExtend||0);
+    t.buffs.push({type:'dot', dmg: dotPower, turns: dotTurns});
     if(def.vuln){
       /* BUG-7 fix: 若已有更强易伤则不覆盖（旧码 find 取首个→低阶吞高阶） */
       const oldV = t.buffs.find(function(b){ return b.type==='vuln'; });
@@ -5122,7 +5653,15 @@ function castSkill(a,t,sk){
     }
     pushLog(a.side,'☠️ '+a.name+' 施放【'+def.name+'】'+lv+'级，'+t.name+' 陷入枯朽');
   } else if(def.type==='heal'){
-    const heal=_noHeal?0:Math.round(a.maxHp*def.heal*(1+(a.healEff||0))*_originPenalty);
+    let heal=_noHeal?0:Math.round(a.maxHp*def.heal*(1+(a.healEff||0))*_originPenalty);
+    if(a.healLowHpDouble>0 && a.hp < a.maxHp*a.healLowHpDouble) heal=Math.round(heal*2);
+    if(a.healCanCrit && Math.random() < (a.crit||0)){
+      heal=Math.round(heal*(a.critDmg||1.5));
+      pushLog(a.side,'💛 '+a.name+' 治愈暴击！');
+      if(a.healCritCleanse){ a.buffs=(a.buffs||[]).filter(function(b){ return !isDebuff(b.type); }); pushLog(a.side,'🌿 净墨如洗·驱散全部负面'); }
+    }
+    if(a.selfHealReduce<0) heal=Math.round(heal*(1+a.selfHealReduce));
+    if(a.healFreeCast>0 && Math.random()<a.healFreeCast){ a.mp+=sk.cost; pushLog(a.side,'✨ 无照·今日免费'); }
     a.hp=Math.min(a.maxHp,a.hp+heal);
     a._healDone = heal;
     /* synergy·teamMercy + heal_light：过量治疗转护盾 */
@@ -5135,6 +5674,11 @@ function castSkill(a,t,sk){
       const oh2=Math.max(0, (a.hp+heal)-a.maxHp);
       if(oh2>0){ const add=Math.min(Math.round(a.maxHp*0.2), oh2); a.shield=(a.shield||0)+add; pushLog(a.side,'⚡ 续命触发·过量转 '+add+' 护盾'); }
     }
+    /* 满溢：溢出治疗转护盾 */
+    if(a.healOverflowShield>0){
+      const oh3=Math.max(0, (a.hp+heal)-a.maxHp);
+      if(oh3>0){ const add=Math.round(oh3*a.healOverflowShield); a.shield=(a.shield||0)+add; pushLog(a.side,'💧 满溢·溢出治疗转 '+add+' 护盾'); }
+    }
     /* purify：清除自身负面效果（原描述"清除负面"之前未实现） */
     if(sk.id==='purify' || sk.id==='uni_cleanse'){
       a.buffs=(a.buffs||[]).filter(function(b){ return !isDebuff(b.type); });
@@ -5145,6 +5689,7 @@ function castSkill(a,t,sk){
         pushLog(a.side,'✨ 真言共鸣·全队攻击+15%！');
       }
     }
+    if(a.healTargetDmgReduce>0) a.buffs.push({type:'dmgReduce',val:a.healTargetDmgReduce,turns:2,src:'heal'});
     pushLog(a.side,'🌟 '+a.name+' 施放【'+def.name+'】，恢复 '+heal+' 生命');
   }
   /* BUG-6 fix: 非 heal 类型技能若有 .heal 字段也应回血（如 silent_hymn 的 rider） */
@@ -5184,8 +5729,22 @@ function castSkill(a,t,sk){
     else if(def.license==='restricted'){ a.buffs.push({type:'vuln',val:0.10,turns:2,src:'license'}); }
     else if(def.license==='illicit' && Math.random()<0.20){ a.buffs.push({type:'noHeal',turns:2,src:'license'}); }
   }
+  /* debuffExtend：所有负面效果延长时间 */
+  if(a.debuffExtend>0 && t && t.buffs){
+    t.buffs.forEach(function(b){
+      if(b.type==='slow'||b.type==='stun'||b.type==='vuln'||b.type==='atkDown'||b.type==='noHeal'||b.type==='dot'){
+        if(!b._extended){ b.turns+=a.debuffExtend; b._extended=true; }
+      }
+    });
+  }
   /* 未录钩子：施法后（此处已写入 CD，效果可将其清零 / 改写治疗与护盾结果） */
   if(_hc){ fireHook(a,'postCast',_hc); a._curSkill=null; }
+  /* 反噬：掌典·禁页杖首次释放后自身麻痹 */
+  if(a.selfStunOnCast && sk.id==='chain_lightning' && !a._lightningStunned){
+    a._lightningStunned=true;
+    a.buffs.push({type:'stun', turns:2});
+    pushLog(a.side,'⚡ 反噬·掌典·麻痹自身！');
+  }
 }
 /* src = 攻击者（可选）。⑧缚龙牌的「受到非龙裔伤害 +N%」需要知道来源；
    DoT / 真名伤害等无源伤害不传 src，此时按"来源未知"处理、不施加该惩罚（宁可漏判不误判）。 */
@@ -5194,6 +5753,7 @@ function applyDamage(t,dmg,src){
   /* 未录钩子：承伤前（锻痕受伤加成 / 盾破惩罚等，在减伤与吸收之前结算） */
   if(t.uniq && t.uniq.length && rem>0){ rem=fireHook(t,'incoming',{t:t,dmg:rem,a:src||null,b:G.battle}).dmg; }
   if(t.dmgReduce) rem=Math.round(rem*(1-t.dmgReduce));
+  if(t.dmgReduceShielded>0 && t.shield>0) rem=Math.round(rem*(1-t.dmgReduceShielded));
   /* 玻璃大炮：受到伤害 +20%（最大生命 -25% 已在 playerUnit 落地） */
   if(t.dmgTakenMul) rem=Math.round(rem*(1+t.dmgTakenMul));
   /* 坦克·团队壁垒：友方坦克为受击友方分担减伤（单机时即自身额外减伤 20%） */
@@ -5206,12 +5766,29 @@ function applyDamage(t,dmg,src){
     const guard = party.find(function(u){ return u!==t && u.uniq && u.uniq.indexOf('myth_bulwark_armor')>=0 && u.hp>0 && !u._bulwarkBroken; });
     if(guard && t!==guard){
       const split=Math.round(rem*0.50);
-      rem-=split; guard.hp=Math.max(1, guard.hp-split);
+      var guardSplit=split;
+      if(guard.guardDmgReduce>0) guardSplit=Math.round(split*(1-guard.guardDmgReduce));
+      rem-=split; guard.hp=Math.max(1, guard.hp-guardSplit);
     }
     /* 荆棘不动：自身承伤再 -15% */
     if(t.passive && t.passive.type==='thorns' && (t.passive.reduce||0)>0) rem=Math.round(rem*(1-t.passive.reduce));
   }
-  if(t.shield>0){const ab=Math.min(t.shield,rem);t.shield-=ab;rem-=ab;}
+  t._wasShielded = t.shield>0;
+  if(t.onHitHeal>0 && Math.random()<0.60 && rem>0){
+    const ohH=Math.round(t.maxHp*t.onHitHeal);
+    t.hp=Math.min(t.maxHp,t.hp+ohH);
+    pushLog('sys','🦴 '+t.name+' 铁骨·回复 '+ohH+' 生命');
+  }
+  if(t.shield>0){const ab=Math.min(t.shield,rem);t.shield-=ab;rem-=ab;
+    if(t.shieldBreakDebuff && t.shield<=0 && t._wasShielded && src && src.buffs){
+      src.buffs.push({type:'atkDown',val:0.25,turns:2});
+      src.buffs.push({type:'vuln',val:0.25,turns:2});
+      pushLog('sys','⚡ 破印反噬！'+src.name+' 攻击-25%·易伤+25%（2回合）');
+    }
+    if(t.selfVulnOnBreak>0 && t.shield<=0 && t._wasShielded){
+      t.buffs.push({type:'vuln',val:t.selfVulnOnBreak,turns:1});
+    }
+  }
   t.hp-=rem; if(t.hp<0)t.hp=0;
   /* 荆棘不动：反弹部分伤害给攻击者（直扣血、置位防止互弹死循环） */
   if(rem>0 && t.passive && t.passive.type==='thorns' && src && !src._reflecting){
@@ -5267,7 +5844,14 @@ function checkBattleEnd(){
   const b=G.battle; if(b.over) return;
   const allDead = b.enemies.every(function(e){ return e.hp<=0; });
   if(allDead){b.over=true;b.result='win';endBattle();}
-  else if(b.player.hp<=0){b.over=true;b.result='lose';endBattle();}
+  else if(b.player.hp<=0){
+    if(b.player.autoHealOnDeath && !b._mercyUsed){
+      b._mercyUsed=true;
+      var rh=Math.round(b.player.maxHp*0.35);
+      b.player.hp=Math.min(b.player.maxHp,rh);
+      pushLog('player','🕊️ 大慈大悲·万死不辞！回复 '+rh+' 生命（本战仅此一次）');
+    } else { b.over=true;b.result='lose';endBattle(); }
+  }
 }
 function endBattle(){
   clearInterval(G.battleTimer);G.battleTimer=null;
@@ -5478,7 +6062,7 @@ function generateLoot(enemies){
   if(!Array.isArray(enemies)) enemies=[enemies];
   const dm=1;
   const gf=(totalStats().goldFind)||0;
-  const loot={gold:0,materials:0,items:[],books:[],flasks:[]};
+  const loot={gold:0,materials:0,items:[],books:[],flasks:[],petEggs:[]};
   enemies.forEach(function(enemy){
     const isElite=enemy.isElite,isBoss=enemy.isBoss;
     /* 未录代价（三指·脱籍戒）：击杀非 BOSS 不再掉金币 */
@@ -5527,10 +6111,14 @@ function generateLoot(enemies){
       }
     }
     /* 药水瓶：按地图难度产出（难度t → 等级2t/2t+1；精英/BOSS 更易掉且偏高一级） */
-    if(Math.random()<(isBoss?0.55:isElite?0.22:0.07)*dm){
+    if(Math.random()<(isBoss?0.30:isElite?0.12:0.03)*dm){
       const lvl=clamp(G.mapTier*2+((isBoss||isElite)?1:rand(0,1)),0,FLASK_TIERS.length-1);
       loot.flasks.push(genFlask(lvl, Math.random()<0.5?'hp':'mp', false));
     }
+    /* 宠物蛋：蓝0.6%/紫3%/金5% */
+    if(isBoss&&Math.random()<0.05) loot.petEggs.push(genPetEgg(k,'gold'));
+    else if(isElite&&Math.random()<0.03) loot.petEggs.push(genPetEgg(k,'purple'));
+    else if(!isElite&&!isBoss&&Math.random()<0.006) loot.petEggs.push(genPetEgg(k,'blue'));
   });
   return loot;
 }
@@ -5542,6 +6130,7 @@ function applyLoot(loot){
   loot.items.forEach(it=>{ G.player.inventory.push(it); const ro=rarObj(it.rarity)||RARITY[0]; pushLog('sys','🎁 获得【'+ro.name+'】'+it.name, {hl:true, color:ro.color}); });
   loot.books.forEach(sk=>{ G.player.inventory.push({type:'book',skill:sk,name:'技能书·'+SKILLS[sk].name}); const def=SKILLS[sk]; const col=(SKILL_TIER_COLOR&&SKILL_TIER_COLOR[(def&&def.tier)||'base'])||'#cfd8e2'; pushLog('sys','📖 习得技能书【'+def.name+'】', {hl:true, color:col}); });
   (loot.flasks||[]).forEach(f=>{G.player.inventory.push(f);pushLog('sys','🧪 获得 '+f.name, {hl:true, color:'#7fd6a0'});});
+  (loot.petEggs||[]).forEach(function(e){ G.player.inventory.push(e); pushLog('sys','🥚 获得 '+e.name+' ('+e.skillCount+'技能)', {hl:true, color:e.color}); });
 }
 /* ==================== 经验衰减（GDD 05b §9，候选 B′） ====================
    Δ = player.level − ML_map(当前地图 tier)：
@@ -5640,7 +6229,7 @@ function invCell(o){
     (o.onClick?' onclick="'+o.onClick+'"':'')+(o.title?' title="'+o.title+'"':'')+'>'+
     (o.rarity?'<span class="rar-c"></span>':'')+
     (o.q?'<span class="cell-q">'+o.q+'</span>':'')+
-    '<div class="cell-icon">'+o.icon+'</div>'+
+    '<div class="cell-icon">'+o.icon+(o.locked?'<span style="position:absolute;top:2px;right:2px;font-size:10px;">🔒</span>':'')+'</div>'+
     '<div class="cell-name"'+(o.color?' style="color:'+o.color+'"':'')+'>'+o.name+'</div>'+
     (o.count?'<span class="cell-count">'+o.count+'</span>':'')+
   '</div>';
@@ -5746,6 +6335,7 @@ if(INSPECT.kind==='worn'){
     }
     if(check.ok) h+='<button class="bag-act" onclick="applyEquip('+it.uid+')">装备</button>';
     else h+='<button class="bag-act" disabled>无法装备</button><div class="inspect-warn">需求：'+check.reqs.map(r=>(r.attr==='lv'?'等级'+r.need:ATTRS[r.attr].name+r.need)).join(' ')+'</div>';
+    h+='<button class="bag-act" style="background:'+(it.locked?'#5a3a2a;color:#e0a060':'var(--panel2);color:var(--dim)')+'" onclick="toggleLock('+it.uid+')">'+(it.locked?'🔒 已锁定（点击解锁）':'🔓 点击锁定')+'</button>';
     return h;
   }
   if(INSPECT.kind==='book'){
@@ -5781,7 +6371,29 @@ if(INSPECT.kind==='worn'){
       h+=flaskBody(fl);
     }
     h+='<button class="bag-act" onclick="applyEquipFlask('+fl.uid+')">装备药水</button>';
+    h+='<button class="bag-act" style="background:#5a4a3a;color:#c9a227;" onclick="decomposeFlask('+fl.uid+')">分解为碎片</button>';
     return h;
+  }
+  if(INSPECT.kind==='pet'){
+    var pt=p.inventory.find(function(i){ return i.uid===INSPECT.uid&&(i.type==='pet'||i.type==='pet_egg'); });
+    if(!pt&&p.pet&&p.pet.uid===INSPECT.uid) pt=p.pet;
+    if(!pt){ INSPECT=null; return renderInspect(); }
+    var isEgg=pt.type==='pet_egg';
+    var ih='<div class="inspect-head"><div class="inspect-icon" style="font-size:34px;">'+(isEgg?'🥚':'🐾')+'</div>'+
+      '<div><div class="inspect-name" style="color:'+pt.color+'">'+esc(pt.name)+'</div>'+
+      '<div class="inspect-sub">'+pt.prefix+(isEgg?' · 未孵化':' · '+pt.skillCount+'技能')+'</div></div></div>';
+    ih+='<div class="inspect-body"><div class="inspect-desc">来源：'+esc(pt.sourceKey)+'</div>';
+    if(pt.skills&&pt.skills.length){
+      ih+='<div style="font-size:12px;margin-top:6px;"><b>技能预览</b></div>';
+      pt.skills.forEach(function(s){
+        ih+='<div style="font-size:11px;color:var(--ink);margin:2px 0;">▸ '+esc(s.name)+'</div>';
+      });
+    }
+    ih+='</div>';
+    if(isEgg) ih+='<button class="bag-act btn-green" onclick="var idx=G.player.inventory.findIndex(function(i){return i.uid==='+pt.uid+';});hatchPetEgg(idx);">🥚 孵化</button>';
+    else if(!p.pet||p.pet.uid!==pt.uid) ih+='<button class="bag-act" onclick="equipPet('+pt.uid+')">🐾 装备宠物</button>';
+    else ih+='<button class="bag-act" style="background:#5a3a2a" onclick="unequipPet()">卸下宠物</button>';
+    return ih;
   }
   if(INSPECT.kind==='stone'){
     const st=p.inventory.find(i=>i.uid===INSPECT.uid);
@@ -5856,11 +6468,6 @@ function shopBuy(type){
     G.player.gold-=30;
     ['hp','mp'].forEach(k=>{const f=G.player.flasks&&G.player.flasks[k];if(f)f.charge=Math.min(f.cap,f.charge+80);});
     pushLog('sys','🧪 购买能量水晶，生命/法力药水瓶各充能 80');
-  } else if(type==='gear'){
-    if(G.player.gold<80){toast('金币不足');return;}
-    G.player.gold-=80;const it=genEquip(G.mapTier,null);
-    G.player.inventory.push(it);
-    pushLog('sys','🛒 购入装备：'+it.name);
   } else if(type==='incense'){
     if(G.player.gold<150){toast('金币不足');return;}
     G.player.gold-=150;G.consumables.incense=(G.consumables.incense||0)+1;
@@ -6373,6 +6980,7 @@ function applyCompat(){
      不会自动装填——需玩家手动从技能页装备技能。 */
   if(!Array.isArray(G.player.equippedSkills)) G.player.equippedSkills=[];
   if(!Array.isArray(G.player.equippedAuras)) G.player.equippedAuras=[];
+  if(G.player.pet===undefined) G.player.pet=null;
   if(typeof G.player.whetstones!=='number') G.player.whetstones=0;
   if(!G.tower) G.tower = {highest:0, current:1, active:false};
   if(!Array.isArray(G.player.runes)) G.player.runes=[];
@@ -6555,6 +7163,8 @@ function renderContent(){
     case 'forge': c.innerHTML=tabForge(); break;
     case 'shop': c.innerHTML=tabShop(); break;
     case 'party': c.innerHTML=tabParty(); break;
+    case 'pet': c.innerHTML=tabPet(); break;
+    case 'sets': c.innerHTML=tabSets(); break;
     case 'tower': c.innerHTML=tabTower(); break;
     case 'rune':  c.innerHTML=tabRune(); break;
     case 'bestiary': c.innerHTML=tabBestiary(); break;
@@ -6611,8 +7221,94 @@ function bestiaryDetailHTML(k){
         (lore.story?'<div class="bs-story">'+esc(lore.story)+'</div>':'')+
       '</div>'+
       '<div class="bsd-skills"><span class="bs-k">专属技能</span><br>'+skillHTML+'</div>'+
+      (info.type==='boss'?bestiaryMythicPreview(k):'')+
     '</div></div>';
 }
+/* 未录词缀描述 */
+const MYTHIC_AFFIX_DESC = {
+  stunBonusDmg:'眩晕技能命中时额外造成伤害',
+  onKillCdReset:'击杀时概率重置冷却最长技能',
+  dotExtend:'DOT持续伤害延长回合',
+  critPerDebuff:'目标每层负面效果增加暴击率',
+  triggerDotDbl:'DOT跳伤害时概率触发双倍',
+  onKillHeal:'技能击杀回复全队生命',
+  debuffExtend:'施加的负面效果延长回合',
+  onKillNoHeal:'击杀后全敌无法回复生命',
+  dmgPerLostHp:'每损失1%生命增加伤害',
+  lifestealLowHp:'低血时吸血效果翻倍',
+  hpDrain:'每回合损失最大生命',
+  dmgReduceShielded:'护盾存在时额外减伤',
+  shieldBreakDebuff:'护盾破碎时对攻击者降攻+易伤',
+  selfVulnOnBreak:'护盾破碎后自身易伤',
+  healOverflowShield:'溢出治疗转化为护盾',
+  healCritCleanse:'治愈暴击时净化全部负面',
+  healTargetDmgReduce:'治疗后目标伤害降低',
+  selfHealReduce:'自身受治疗减少',
+  healLowHpDouble:'低血目标治疗效果翻倍',
+  healCanCrit:'治疗可暴击',
+  healFreeCast:'治疗概率不消耗法力',
+  skillSlowChance:'技能命中概率减速',
+  critDmgVsCC:'被控目标受到更高暴击伤害',
+  sunderAtkDown:'破甲同时额外削弱攻击',
+  sunderKillCdReset:'破甲目标击杀后重置破甲冷却',
+  critBonusDmg:'技能暴击时额外伤害',
+  cdrOnFirstCrit:'每回合首次暴击减少冷却',
+  uniStrikeForceCrit:'通用打击必定暴击',
+  uniStrikeCdReduce:'通用打击冷却减少',
+  maxHpPct:'调整最大生命值',
+  armorEffBonus:'防御减免额外提升',
+  onHitHeal:'受击时概率回复生命',
+  guardDmgReduce:'替队友承受伤害时自身减免',
+  guardEndRefresh:'守护结束时全队护盾刷新',
+  auraEffectBoost:'光环技能效果提升',
+  auraAllyDmg:'光环内队友伤害提升',
+  autoHealOnDeath:'濒死时自动触发一次治愈（每战限一次）',
+  skillCostPct:'技能法力消耗调整',
+  cdrLightning:'雷系技能冷却额外减少',
+  selfStunOnCast:'释放绑定技能后自身跳过行动',
+};
+function bestiaryMythicPreview(bossKey){
+  var bd=BOSS_DROPS[bossKey]; if(!bd||!bd.mythic) return '';
+  var m=bd.mythic;
+  var skillDef=m.skill&&SKILLS[m.skill]?SKILLS[m.skill]:null;
+  /* 基础属性表 */
+  var baseHTML='';
+  if(m.base){
+    for(var k in m.base){
+      var v=m.base[k];
+      var label={atk:'攻击',def:'防御',hp:'生命',crit:'暴击',spd:'攻速'}[k]||k;
+      var fmt=k==='crit'?(Math.round(v*100)+'%'):String(v);
+      baseHTML+='<span class="ms-stat"><b>'+label+'</b> '+fmt+'</span>';
+    }
+  }
+  /* 固定词缀 */
+  var affixHTML='';
+  var fa=MYTHIC_FIXED_AFFIXES[m.id];
+  if(fa&&fa.length){
+    affixHTML=fa.map(function(a){
+      var prefix=a.val<0?'⚠ ':'';
+      var v2=a.pct?(Math.round(a.val*100)+'%'):String(Math.abs(a.val));
+      if(!a.pct&&a.val<0) v2=String(Math.abs(a.val));
+      var desc=MYTHIC_AFFIX_DESC[a.stat]||'';
+      var tip=desc?esc(desc):'';
+      return '<span class="ms-affix'+(a.val<0?' ms-affix-neg':'')+'" '+(tip?'title="'+tip+'"':'')+'>'+
+        prefix+esc(a.name)+' +'+v2+
+        (desc?' <i style="opacity:0.5;font-size:10px">'+tip+'</i>':'')+
+        '</span>';
+    }).join('');
+  }
+  /* 掉落率 */
+  var rateHTML='<span class="ms-rate">🔴 未录掉落率：5%（连续击杀20次保底）</span>';
+  return '<div class="bsd-mythic">'+
+    '<div class="ms-head"><span class="ms-label">未录装备</span><span class="ms-name">'+esc(m.name)+'</span></div>'+
+    '<div class="ms-base">'+baseHTML+'</div>'+
+    (affixHTML?'<div class="ms-affixes">'+affixHTML+'</div>':'')+
+    '<div class="ms-skill">⚡ <b>敕令技能</b>：'+(skillDef?esc(skillDef.name)+' Lv1 · '+esc(skillDef.desc):esc(m.skill||'—'))+'</div>'+
+    (m.desc?'<div class="ms-unique">🔴 <b>独特机制</b>：'+esc(m.desc)+'</div>':'')+
+    (m.cost?'<div class="ms-cost">⚠ <b>代价</b>：'+esc(m.cost)+'</div>':'')+
+    rateHTML+'</div>';
+}
+
 function bestiarySelect(k){
   BESTIARY_SEL=k;
   const d=document.getElementById('bsDetail');
@@ -6708,23 +7404,31 @@ function tabBag(){
   html+='<div class="bag-main">';
   
   /* 符文已移至独立符文页（RIGHT_TABS > rune），此处不再混排 */
-var bagCats=[['equip','\u88c5\u5907',equips.length],['book','\u6280\u80fd\u4e66',books.length],['flask','\u836f\u6c34',flasks.length],['stone','\u7279\u6027\u77f3',stones.length]];
+var petEggs=p.inventory.filter(function(i){ return i.type==='pet_egg'; });
+var myPets=p.inventory.filter(function(i){ return i.type==='pet'; });
+if(p.pet) myPets.unshift(p.pet);
+var bagCats=[['equip','装备',equips.length],['book','技能书',books.length],['flask','药水',flasks.length],['stone','特性石',stones.length],['pet','宠物',petEggs.length+myPets.length]];
   var tabsHtml='<div class="bag-tabs">';
   bagCats.forEach(function(c){ tabsHtml+='<button class="bag-tab'+(bagCat===c[0]?' on':'')+'" onclick="setBagCat(\''+c[0]+'\')">'+c[1]+' <span class="bag-tab-n">'+c[2]+'</span></button>'; });
   tabsHtml+='</div>';
   var bagHtml='';
   if(bagCat==='equip'){
     equips.forEach(function(it){ var ri=rarObj(it.rarity);
-      bagHtml+=invCell({ rarity:it.rarity, icon:itemBadgeSVG(it,52), name:it.name, color:ri.color, title:it.name, onClick:'selectBag(\'equip\','+it.uid+')', sel:(INSPECT&&INSPECT.kind==='equip'&&INSPECT.uid===it.uid) }); });
+      bagHtml+=invCell({ rarity:it.rarity, icon:itemBadgeSVG(it,52), name:it.name, color:ri.color, locked:!!it.locked, title:it.name+(it.locked?' [已锁定]':''), onClick:'selectBag(\'equip\','+it.uid+')', sel:(INSPECT&&INSPECT.kind==='equip'&&INSPECT.uid===it.uid) }); });
   } else if(bagCat==='book'){
     books.forEach(function(b){ var realIdx=p.inventory.indexOf(b), def=SKILLS[b.skill], lv=p.skills[b.skill]||0;
       bagHtml+=invCell({ icon:bookBadgeSVG(b.skill,52), name:def.name, color:(SKILL_TIER_COLOR[def.tier||'base'])||'#cfd8e2', title:b.name+(lv?('\u5df2\u5b66 '+lv+' \u7ea7'):''), count:(lv?lv+1:1), onClick:'selectBag(\'book\','+realIdx+')', sel:(INSPECT&&INSPECT.kind==='book'&&INSPECT.uid===realIdx) }); });
   } else if(bagCat==='stone'){
     stones.forEach(function(st){ bagHtml+=invCell({ icon:'<span style="font-size:30px;line-height:1;">\ud83d\udc8e</span>', name:st.name, color:'#ff9f3a', title:esc(st.desc), onClick:'selectBag(\'stone\','+st.uid+')', sel:(INSPECT&&INSPECT.kind==='stone'&&INSPECT.uid===st.uid) }); });
+  } else if(bagCat==='pet'){
+    petEggs.forEach(function(e){ bagHtml+=invCell({ icon:'<span style="font-size:30px;">🥚</span>', name:e.name, color:e.color, title:e.prefix+'之卵\n孵化后 ('+e.skillCount+'技能)', onClick:'selectBag(\'pet\','+e.uid+')', sel:(INSPECT&&INSPECT.uid===e.uid) }); });
+    myPets.forEach(function(pt){ var isEq=p.pet&&p.pet.uid===pt.uid; bagHtml+=invCell({ icon:'<span style="font-size:30px;">🐾</span>', name:pt.name+(isEq?' [已装备]':''), color:pt.color, title:'技能：'+pt.skills.map(function(s){ return s.name; }).join(' / '), onClick:'selectBag(\'pet\','+pt.uid+')', sel:(INSPECT&&INSPECT.uid===pt.uid) }); });
+    if(petEggs.length>0) bagHtml+='<div style="grid-column:1/-1;margin-top:4px;"><button class="btn btn-sm btn-green" style="width:100%" onclick="var idx=G.player.inventory.findIndex(function(i){return i.type===\'pet_egg\';});if(idx>=0)hatchPetEgg(idx);">🥚 孵化一枚蛋</button></div>';
   } else {
     flasks.forEach(function(f){ bagHtml+=invCell({ icon:flaskIconSVG(f.kind,44), name:f.name, color:FLASK_KINDS[f.kind].color, title:esc(flaskDesc(f)), onClick:'selectBag(\'flask\','+f.uid+')', sel:(INSPECT&&INSPECT.kind==='flask'&&INSPECT.uid===f.uid) }); });
+    if(flasks.length>0) bagHtml+='<div style="grid-column:1/-1;margin-top:6px;"><button class="btn btn-sm" style="background:#5a3a2a;color:#e0a060;width:100%;" onclick="decomposeAllFlasks()">🧪 一键分解全部药水（'+flasks.length+'瓶）</button></div>';
   }
-  var shown=(bagCat==='equip'?equips.length:(bagCat==='book'?books.length:(bagCat==='stone'?stones.length:flasks.length)));
+  var shown=(bagCat==='equip'?equips.length:(bagCat==='book'?books.length:(bagCat==='stone'?stones.length:(bagCat==='pet'?petEggs.length+myPets.length:flasks.length))));
   var pad=(5-(shown%5))%5; if(pad===0&&shown>0) pad=5;
   for(var i=0;i<pad;i++) bagHtml+=invCell({ empty:true, icon:'', name:'' });
   html+='<div class="bag-box"><div class="bag-box-title">╔══ 背包 ══╗</div>'+tabsHtml+'<div class="inv-grid" id="bagGrid">'+bagHtml+'</div></div>';
@@ -6771,7 +7475,7 @@ function cmpColHTML(it, title, titleColor){
      (it.armorType&&ARMOR_TYPES[it.armorType]?' · '+ARMOR_TYPES[it.armorType].name:'')+'</div>';
   for(const k in (it.base||{})) h+='<div class="cmp-line">'+statText(k,it.base[k])+'</div>';
   (it.affixes||[]).forEach(a=>{ h+='<div class="cmp-line" style="color:var(--green)">· '+esc(a.name)+'</div>'; });
-  if(it.setId&&SETS[it.setId]) h+='<div class="cmp-sub">套装：'+SETS[it.setId].name+'</div>';
+  if(it.setId&&SETS[it.setId]){ var s2=SETS[it.setId]; h+='<div class="cmp-sub">套装：'+s2.name+' <span style="font-size:10px;color:var(--gold-soft);">2件:'+JSON.stringify(s2.bonuses[2])+' 4件:'+JSON.stringify(s2.bonuses[4])+'</span></div>'; }
   const reqs=[];
   if(it.reqLv) reqs.push('Lv'+it.reqLv);
   if(it.reqStr) reqs.push('力'+it.reqStr);
@@ -7126,11 +7830,6 @@ function tabShop(){
       '<div class="shop-desc">为生命/法力药水瓶各充能 80 点（药水瓶为非消耗品，靠击杀与水晶充能）</div></div>'+
       '<div class="shop-price">30 💰</div>'+
       '<button class="btn btn-green btn-sm" onclick="shopBuy(\'potion\')">购买</button></div>'+
-    '<div class="shop-card"><div class="shop-icon">⚔️</div>'+
-      '<div class="shop-info"><div class="shop-name">随机装备</div>'+
-      '<div class="shop-desc">当前难度的随机装备一件</div></div>'+
-      '<div class="shop-price">80 💰</div>'+
-      '<button class="btn btn-blue btn-sm" onclick="shopBuy(\'gear\')">购买</button></div>'+
     '<div class="shop-card"><div class="shop-icon">🕯️</div>'+
       '<div class="shop-info"><div class="shop-name">引魂香 '+incenseStatus+'</div>'+
       '<div class="shop-desc">使用后 10 分钟内，遭遇普通怪物数量提升为 2-3 只（精英战额外带 1-2 只随从，BOSS 战不受影响）。持有 '+inc+' 个。</div></div>'+
@@ -7283,25 +7982,37 @@ function forgeReforgeHTML(){
   const items=[];
   p.inventory.forEach(i=>{ if(!i.type) items.push({it:i, where:'背包'}); });
   ALL_SLOTS.forEach(sl=>{ const e=p.equip[sl]; if(e) items.push({it:e, where:'已装备'}); });
-  let html='<div class="reforge-intro">重铸将<b>刷新该装备的全部随机词条</b>，保留部位 / 品质 / 基础属性，是毕业装备二次塑造的空间，<b>消耗大量碎片与金币</b>。</div>';
+  var html='<div class="reforge-intro">重铸将<b>刷新该装备的全部随机词条</b>，保留部位 / 品质 / 基础属性。指定词条可直接选中后重铸，<b>消耗与单词条相同（2× 材料）</b>。</div>';
   html+='<div class="decomp-list">';
   if(items.length===0) html+='<div style="color:var(--dim);padding:20px;text-align:center;">暂无可重铸的装备</div>';
   else items.forEach(o=>{
-    const it=o.it, ri=rarObj(it.rarity), cost=REFORGE_COST[it.rarity], cost1=SINGLE_REFORGE_COST[it.rarity];
-    const ok=cost && matCost(cost.shards) && p.gold>=cost.gold;
-    const ok1=cost1 && matCost(cost1.shards) && p.gold>=cost1.gold && it.affixes&&it.affixes.length>0;
-    const costTxt=cost?Object.keys(cost.shards).map(t=>SHARD_TYPES[t].icon+SHARD_TYPES[t].name+cost.shards[t]).join(' ')+' · 💰'+cost.gold:'—';
-    const cost1Txt=cost1?Object.keys(cost1.shards).map(t=>SHARD_TYPES[t].icon+SHARD_TYPES[t].name+cost1.shards[t]).join(' ')+' · 💰'+cost1.gold:'—';
-    /* 显示当前词缀列表，单词条重铸随机替换其中一个 */
-    const affTxt=it.affixes&&it.affixes.length?it.affixes.map(a=>'<span style="color:#9ea7b0;margin-right:6px;">▸'+a.name+'</span>').join(''):'<span style="color:var(--dim)">无词条</span>';
+    var it=o.it, ri=rarObj(it.rarity), cost=REFORGE_COST[it.rarity], cost1=SINGLE_REFORGE_COST[it.rarity];
+    var ok=cost && matCost(cost.shards) && p.gold>=cost.gold;
+    var ok1=cost1 && matCost(cost1.shards) && p.gold>=cost1.gold && it.affixes&&it.affixes.length>0;
+    var costTxt=cost?Object.keys(cost.shards).map(function(t){return SHARD_TYPES[t].icon+SHARD_TYPES[t].name+cost.shards[t];}).join(' ')+' · 💰'+cost.gold:'—';
+    var cost1Txt=cost1?Object.keys(cost1.shards).map(function(t){return SHARD_TYPES[t].icon+SHARD_TYPES[t].name+cost1.shards[t];}).join(' ')+' · 💰'+cost1.gold:'—';
+    /* 选中状态 */
+    if(!G.reforgeSel) G.reforgeSel={};
+    var selIdx=G.reforgeSel[it.uid]!=null?G.reforgeSel[it.uid]:-1;
+    /* 词缀列表：点击选中，高亮显示 */
+    var affTxt='';
+    if(it.affixes&&it.affixes.length){
+      affTxt=it.affixes.map(function(a,i){
+        var isSel=i===selIdx;
+        return '<span class="ms-affix'+(isSel?' ms-affix-sel':'')+'" style="cursor:pointer;margin-right:4px;" '+
+          'onclick="selectReforgeAffix('+it.uid+','+i+')" title="点击选中此词条">▸'+esc(a.name)+'</span>';
+      }).join('');
+    } else {
+      affTxt='<span style="color:var(--dim)">无词条</span>';
+    }
     html+='<div class="decomp-row" style="flex-wrap:wrap;padding:10px 12px;">'+
       '<div class="di-icon" style="color:'+ri.color+'">'+itemBadgeSVG(it,30)+'</div>'+
       '<div class="di-name" style="color:'+ri.color+'">'+it.name+'<span style="color:var(--dim);font-size:10px;"> · '+o.where+'</span>'+
         '<div style="font-size:9.5px;margin-top:3px;">'+affTxt+'</div></div>'+
-      '<div class="di-yield" style="font-size:9.5px;line-height:1.4;">全部：'+costTxt+'<br>单词条：'+cost1Txt+'</div>'+
+      '<div class="di-yield" style="font-size:9.5px;line-height:1.4;">全部：'+costTxt+'<br>指定：'+cost1Txt+'</div>'+
       '<div style="display:flex;gap:4px;">'+
         '<button class="btn btn-sm '+(ok?'btn-orange':'')+'" '+(ok?'':'disabled')+' onclick="doReforge('+it.uid+')">全部重铸</button>'+
-        '<button class="btn btn-sm '+(ok1?'btn-purple':'')+'" '+(ok1?'':'disabled')+' onclick="doReforgeOne('+it.uid+')" title="随机刷新一个词条，材料翻倍">单词条</button>'+
+        (selIdx>=0?'<button class="btn btn-sm '+(ok1?'btn-purple':'')+'" '+(ok1?'':'disabled')+' onclick="selectReforgeDo('+it.uid+','+selIdx+')" title="重铸选中的词条">重铸此条 ('+esc(it.affixes[selIdx].name)+')</button>':'')+
       '</div></div>';
   });
   html+='</div>';
@@ -7458,6 +8169,55 @@ function towerEndBattle(){
   setTimeout(function(){ if(G.tower.active) startTower(); },600);
 }
 function towerQuit(){ G.tower.active=false; G.tower.current=1; save(); showNormalView(); pushLog("sys","🚪 退出试炼塔"); }
+function tabPet(){
+  var p=G.player; if(!p) return '';
+  var pet=p.pet;
+  if(!pet) return '<h3>🐾 宠物</h3><p style="color:var(--dim)">尚未装备宠物。击败怪物有概率掉落宠物蛋，孵化后即可装备。</p>';
+  var monster=MONSTERS[pet.sourceKey];
+  var html='<h3 style="color:'+pet.color+'">🐾 '+esc(pet.name)+'</h3>';
+  html+='<div style="display:flex;gap:14px;margin-top:10px;">';
+  /* 左侧：立绘 */
+  html+='<div style="flex-shrink:0;width:120px;height:120px;border-radius:12px;overflow:hidden;background:rgba(0,0,0,.3);border:2px solid '+pet.color+';display:flex;align-items:center;justify-content:center;">';
+  if(pet.img){
+    html+='<img src="'+pet.img+'" style="width:120px;height:120px;object-fit:contain;" onerror="this.onerror=null;this.style.display=\'none\';this.insertAdjacentHTML(\'afterend\',\'<span style=font-size:50px;>🐾</span>\')">';
+  } else { html+='<span style="font-size:50px;">🐾</span>'; }
+  html+='</div>';
+  /* 右侧：信息+技能 */
+  html+='<div style="flex:1;min-width:0;">';
+  html+='<div style="font-size:12px;color:var(--dim);margin-bottom:8px;">来源：'+esc(monster?monster.name:pet.sourceKey)+' · '+pet.prefix+' · '+(pet.rarity==='gold'?'金色':(pet.rarity==='purple'?'紫色':'蓝色'))+' · '+pet.skillCount+'技能</div>';
+  html+='<div style="font-size:12px;font-weight:700;margin-bottom:4px;">技能详情</div>';
+  for(var i=0;i<pet.skills.length;i++){
+    var sk=MONSTER_SKILLS[pet.skills[i].id];
+    var typeLabel={dmg:'⚔攻击',dot:'☠持续',buff:'✨增益',heal:'💚治疗',passive:'🌀被动',debuff:'🔻减益'}[sk?sk.type:'']||'';
+    html+='<div style="font-size:11px;color:var(--ink);padding:5px 8px;margin:3px 0;background:rgba(255,255,255,.04);border-radius:6px;border-left:2px solid '+pet.color+';">'+
+      '<div><b>'+esc(pet.skills[i].name)+'</b> <span style="font-size:9px;color:var(--dim);">'+typeLabel+'</span></div>'+
+      '<div style="font-size:10px;color:var(--dim);margin-top:2px;">'+(sk?esc(sk.desc||''):'')+
+      (sk&&sk.cd?' · CD:'+sk.cd+'回合':'')+
+      (sk&&sk.mult?' · 倍率:'+Math.round(sk.mult*100)+'%':'')+
+      (sk&&sk.turns?' · 持续:'+sk.turns+'回合':'')+
+      (sk&&sk.val?' · 值:'+Math.round(sk.val*100)+'%':'')+
+      '</div></div>';
+  }
+  html+='</div></div>';
+  html+='<div style="font-size:11px;color:var(--dim);margin-top:10px;">技能出生即定型，不可更改。卸下宠物请在背包中操作。</div>';
+  return html;
+}
+function tabSets(){
+  var html='<h3>📜 套装图鉴</h3>';
+  for(var sid in SETS){
+    var s=SETS[sid];
+    var owned=0;
+    for(var sl in G.player.equip){ if(G.player.equip[sl]&&G.player.equip[sl].setId===sid) owned++; }
+    html+='<div style="padding:8px 10px;margin:6px 0;background:rgba(255,255,255,.03);border-radius:8px;border:1px solid '+(owned>=2?'var(--gold-soft)':'var(--line)')+';">'+
+      '<div style="font-size:13px;font-weight:700;">'+s.icon+' '+s.name+' <span style="color:var(--dim);font-size:10px;">已装备 '+owned+' 件</span></div>'+
+      '<div style="font-size:11px;color:var(--ink);margin-top:4px;">'+
+        '2件套：'+JSON.stringify(s.bonuses[2])+'<br>'+
+        '4件套：'+JSON.stringify(s.bonuses[4])+
+      '</div></div>';
+  }
+  html+='<div style="font-size:11px;color:var(--dim);margin-top:10px;">装备上有套装标签时（锻造30%概率产出），集齐2/4件即可激活对应效果。</div>';
+  return html;
+}
 function tabTower(){
   if(!towerUnlocked()) return "<h3>🗼 试炼塔</h3><p style=\"color:var(--dim);padding:40px 0;text-align:center;\">击败任意 BOSS 后解锁</p>";
   return "<h3 style=\"color:var(--gold-soft);font-size:15px;margin-bottom:12px;\">🗼 无尽试炼塔</h3>"+
@@ -7488,12 +8248,30 @@ function tabParty(){
 
 /* 行动读条：ATB 蓄力进度（time/100），攻速/施法速度越快涨得越快 */
 function castBarHTML(u,isPlayer){
-  const pct=Math.max(0,Math.min(100,u.time||0));
-  let label='普通攻击';
-  if(isPlayer&&u.skills&&u.skills.length){
-    const rd=u.skills.filter(sk=>sk.cd<=0&&u.mp>=sk.cost).sort((a,b)=>(b.def.mult||0)-(a.def.mult||0));
-    if(rd.length) label='技能 · '+rd[0].def.name;
+  var isEnemy=!isPlayer&&!u.pet;
+  /* 吟唱中：醒目纯色，无光效 */
+  if(u._casting){
+    var cs=u._casting;
+    var castPct=cs.castTime>0?Math.round(cs.progress/cs.castTime*100):100;
+    var skName=cs.sk&&cs.sk.def?cs.sk.def.name:(cs.sk?cs.sk.id:'技能');
+    var fill, border, txt;
+    if(isEnemy){ fill='linear-gradient(90deg,#c0392b,#e55039)'; border='#a93226'; txt='#e55039'; }
+    else if(u.pet){ fill='linear-gradient(90deg,#7d3c98,#a569bd)'; border='#6c3483'; txt='#a569bd'; }
+    else { fill='linear-gradient(90deg,#b8860b,#daa520)'; border='#8b6914'; txt='#daa520'; }
+    return '<div class="cast-wrap">'+
+      '<div class="cast-bar" style="border:2px solid '+border+';">'+
+        '<div class="cast-fill'+(isPlayer?'':' cast-enemy')+'" style="width:'+castPct+'%;background:'+fill+';"></div>'+
+      '</div>'+
+      '<div class="cast-label" style="color:'+txt+';font-weight:700;font-size:11px;">🎵 '+skName+' · '+castPct+'%</div></div>';
   }
+  /* 未吟唱：显示 ATB 行动条 + 就绪技能名或普通攻击 */
+  const pct=Math.max(0,Math.min(100,u.time||0));
+  var label='普通攻击';
+  var readySkills=(u.skills||[]).filter(function(sk){
+    if(u.pet) return sk.cd<=0;
+    return sk.cd<=0&&u.mp>=sk.cost;
+  }).sort(function(a,b){ return (b.def.mult||0)-(a.def.mult||0); });
+  if(readySkills.length) label=readySkills[0].def.name;
   return '<div class="cast-wrap">'+
     '<div class="cast-bar"><div class="cast-fill'+(isPlayer?'':' cast-enemy')+'" style="width:'+pct+'%"></div></div>'+
     '<div class="cast-label">'+label+' · '+Math.round(pct)+'%</div></div>';
@@ -7514,6 +8292,24 @@ function buffBarHTML(u){
   return '<div class="buff-bar">'+items+'</div>';
 }
 
+function renderPetSkillBar(b){
+  var pet=b.pet; if(!pet||pet.hp<=0||!pet.skills||!pet.skills.length) return '';
+  var html='<div class="skill-bar battle-skillbar-wrap" style="margin-top:4px;padding:4px 8px;opacity:0.85;border-top:1px solid rgba(176,107,255,.2);">';
+  html+='<span style="font-size:9px;color:#b06bff;margin-right:6px;">🐾</span>';
+  for(var i=0;i<pet.skills.length&&i<6;i++){
+    var sk=pet.skills[i];
+    var cd=sk.cd||0, cdBase=sk.cdBase||3;
+    var cdPct=cd>0?Math.round(cd/cdBase*360):0;
+    var icon=sk.def&&sk.def.icon?sk.def.icon:(sk.def&&sk.def.type==='heal'?'💚':(sk.def&&sk.def.type==='buff'?'🛡️':'⚡'));
+    var cls=cd>0?'pet-cd':'pet-ready';
+    html+='<div class="skill-slot '+cls+'" title="'+esc(sk.def?sk.def.name:sk.id)+' CD'+cdBase+'→'+cd+'" style="width:28px;height:28px;font-size:14px;">'+
+      icon+
+      (cd>0?'<span style="position:absolute;font-size:8px;color:#ffe0a0;bottom:1px;">'+cd+'</span>':'')+
+    '</div>';
+  }
+  html+='</div>';
+  return html;
+}
 /* ==================== 战斗屏渲染（多敌双栏） ==================== */
 function renderSkillBar(b){
   const p=b.player, es=G.player.equippedSkills||[], ea=G.player.equippedAuras||[];
@@ -7613,13 +8409,30 @@ function renderBattleScreen(){
   '</div>';
 
   let partyHtml='';
+  /* 宠物战斗面板（左阵营，玩家左侧） */
+  var pet=G.battle&&G.battle.pet;
+  if(pet){
+    var petPpct=pet.maxHp>0?Math.round(pet.hp/pet.maxHp*100):0;
+    var petImg=pet.img?'<img src="'+pet.img+'" style="width:72px;height:72px;object-fit:contain;" onerror="this.style.display=\'none\';">':'🐾';
+    var petColor=pet.prefix==='初敕'?'#ff9f3a':(pet.prefix==='封敕'?'#b06bff':'#4a9eff');
+    partyHtml+='<div class="fighter-panel pet-panel">'+
+      '<div class="fighter-name" style="color:'+petColor+';">🐾 '+esc(pet.name)+'</div>'+
+      '<div class="fighter-hp-bar"><div class="filler-hp hp-pet" style="width:'+petPpct+'%"></div>'+
+        '<div class="hp-text">'+pet.hp+'/'+pet.maxHp+'</div></div>'+
+      '<div class="fighter-avatar avatar-pet">'+petImg+'</div>'+
+      buffBarHTML(pet)+
+      castBarHTML(pet,false)+
+      '<button class="fighter-action action-player">⏳ 宠物战斗中</button>'+
+    '</div>';
+  }
   /* 技能栏固定在右下角 */
   const skBarHtml=renderSkillBar(b);
+  const petSkBarHtml=renderPetSkillBar(b);
   var bb=document.getElementById('battleBody');
   bb.style.backgroundImage='url(assets/bg_map'+(G.mapId||0)+'.png?v=1)';
   bb.innerHTML =
     partyHtml+playerHtml+'<div class="vs-mark">VS</div>'+'<div class="enemy-group">'+enemyGroup+'</div>'+
-    skBarHtml;
+    skBarHtml+petSkBarHtml;
 
   /* 日志 → 悬浮窗 */
   floatLogRender();
@@ -7851,6 +8664,7 @@ function dbgCmd(cmd, val){
     case 'clearInv': G.player.inventory=[]; G.player.runes=[]; toast('🗑 清空背包'); break;
     case 'respec': G.player.str=10; G.player.agi=10; G.player.con=10; G.player.int=10; G.player.spi=10; G.player.attrPoints=G.player.level*3; toast('🔄 属性已重置'); break;
     case 'unlockbest': if(!G.seenMonsters) G.seenMonsters=[]; Object.keys(MONSTER_MAP).forEach(function(k){ if(G.seenMonsters.indexOf(k)<0) G.seenMonsters.push(k); }); save(); toast('📖 图鉴已全解锁'); break;
+    case 'petegg': var mks=Object.keys(MONSTERS); var rar=val||(Math.random()<0.3?'gold':(Math.random()<0.5?'purple':'blue')); var e=genPetEgg(mks[rand(0,mks.length-1)],rar); if(e) G.player.inventory.push(e); toast('🥚 获得 '+e.name); break;
   }
   renderAll();
 }
@@ -7869,6 +8683,9 @@ function dbgCmd(cmd, val){
   <button class="debug-btn" onclick="dbgCmd('clearInv')">🗑 清空背包</button>
   <button class="debug-btn" onclick="tutorialReplay()">📖 重看教程</button>
   <button class="debug-btn" onclick="dbgCmd('unlockbest')">📖 解锁全图鉴</button>
+  <button class="debug-btn" onclick="dbgCmd('petegg','blue')">🥚 获得蓝色宠物蛋</button>
+  <button class="debug-btn" onclick="dbgCmd('petegg','purple')">🥚 获得紫色宠物蛋</button>
+  <button class="debug-btn" onclick="dbgCmd('petegg','gold')">🥚 获得金色宠物蛋</button>
   <div style="color:var(--dim);margin-top:6px;font-size:10px;">按 F2 开关面板</div>
 </div>
 <div id="floatLog" class="float-log"><div class="fl-head"><span>战斗日志</span><div class="fl-btns"><button class="fl-btn fl-min" onclick="floatLogToggle()">-</button></div></div><div class="fl-body" id="flBody"></div></div>
